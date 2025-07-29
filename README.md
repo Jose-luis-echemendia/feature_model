@@ -1,0 +1,2 @@
+# characteristic_model
+Tesis
