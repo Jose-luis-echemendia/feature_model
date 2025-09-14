@@ -1,3 +1,3 @@
-# characteristic_model
+# feature_model
 Tesis
 
