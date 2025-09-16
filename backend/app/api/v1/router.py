@@ -7,7 +7,6 @@ from app.api.v1.endpoints import login, private, utils
 api_router = APIRouter()
 
 # Incluir cada router con su prefijo y etiquetas
-# Esto agrupará las rutas en la documentación de Swagger UI
 api_router.include_router(login.router, tags=["Login"])
 api_router.include_router(user.router, tags=["Users"])
 api_router.include_router(item.router, tags=["Items"])
