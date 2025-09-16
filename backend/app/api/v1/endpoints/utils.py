@@ -1,8 +1,11 @@
+# endpoints for Root and Utils
+
 from fastapi import APIRouter, Depends
 from pydantic.networks import EmailStr
 
+from app.core.config import settings
 from app.api.deps import get_current_active_superuser
-from app.models import Message
+from app.models.common import Message
 from app.utils import generate_test_email, send_email
 
 router = APIRouter(prefix="/utils", tags=["utils"])
@@ -26,6 +29,18 @@ def test_email(email_to: EmailStr) -> Message:
     return Message(message="Test email sent")
 
 
+# ---------------------------------------------------------------------------
+#  Endpoint raíz de bienvenida.
+# ---------------------------------------------------------------------------
+@router.get("/", tags=["Root"])
+def read_root():
+    """ """
+    return {"message": f"Welcome to {settings.PROJECT_NAME}"}
+
+
+# ---------------------------------------------------------------------------
+# Endpoint Health Check
+# ---------------------------------------------------------------------------
 @router.get("/health-check/")
 async def health_check() -> bool:
     return True
