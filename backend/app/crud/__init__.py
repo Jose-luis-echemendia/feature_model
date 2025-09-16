@@ -1,2 +1,1 @@
-from .appointment import get_appointment_by_id, get_appointments, create_appointment_with_owner, update_appointment, get_appointments_count, get_appointments_by_date_range
 from .user import create_user, get_user_by_email, authenticate, update_user, create_item
