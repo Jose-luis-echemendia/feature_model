@@ -2,7 +2,7 @@ from backend.app.api.v1.endpoints import item, user
 from fastapi import APIRouter
 
 from app.core.config import settings
-from app.api.v1.endpoints import login, private, utils, 
+from app.api.v1.endpoints import login, private, utils
 
 api_router = APIRouter()
 
