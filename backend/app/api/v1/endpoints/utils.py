@@ -12,8 +12,28 @@ router = APIRouter(prefix="/utils", tags=["utils"])
 
 
 # ---------------------------------------------------------------------------
+#  Endpoint raíz de bienvenida.
+# ---------------------------------------------------------------------------
+
+@router.get("/")
+def read_root():
+    """ """
+    return {"message": f"Welcome to {settings.PROJECT_NAME}"}
+
+
+# ---------------------------------------------------------------------------
+# Endpoint Health Check
+# ---------------------------------------------------------------------------
+
+@router.get("/health-check/")
+async def health_check() -> bool:
+    return True
+
+
+# ---------------------------------------------------------------------------
 # Endpoint para probar el envío de correos electrónicos.
 # ---------------------------------------------------------------------------
+
 @router.post(
     "/test-email/",
     dependencies=[Depends(get_current_active_superuser)],
@@ -33,17 +53,16 @@ def test_email(email_to: EmailStr) -> Message:
 
 
 # ---------------------------------------------------------------------------
-#  Endpoint raíz de bienvenida.
+# Endpoint para obtener los roles del sistema.
 # ---------------------------------------------------------------------------
-@router.get("/")
-def read_root():
-    """ """
-    return {"message": f"Welcome to {settings.PROJECT_NAME}"}
-
-
-# ---------------------------------------------------------------------------
-# Endpoint Health Check
-# ---------------------------------------------------------------------------
-@router.get("/health-check/")
-async def health_check() -> bool:
-    return True
+@router.get(
+    "/roles/",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=list[str],
+)
+def get_roles() -> list[str]:
+    """
+    Retrieve the roles of the system.
+    """
+    from app.enums import UserRole 
+    return [role.value for role in UserRole]

@@ -13,6 +13,7 @@ from app.api.deps import (
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models.common import Message
+from app.enums import UserRole
 from app.models.user import (
     UpdatePassword,
     User,
@@ -42,7 +43,7 @@ router = APIRouter(prefix="/users", tags=["users"])
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UsersPublic,
 )
-def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> UsersPublic:
     """
     Retrieve users.
     """
@@ -64,7 +65,7 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
 @router.post(
     "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
 )
-def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
+def create_user(*, session: SessionDep, user_in: UserCreate) -> UserPublic:
     """
     Create new user.
     """
@@ -95,7 +96,7 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
 @router.patch("/me", response_model=UserPublic)
 def update_user_me(
     *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
-) -> Any:
+) -> UserPublic:
     """
     Update own user.
     """
@@ -122,7 +123,7 @@ def update_user_me(
 @router.patch("/me/password", response_model=Message)
 def update_password_me(
     *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
-) -> Any:
+) -> Message:
     """
     Update own password.
     """
@@ -145,7 +146,7 @@ def update_password_me(
 # ---------------------------------------------------------------------------
 
 @router.get("/me", response_model=UserPublic)
-def read_user_me(current_user: CurrentUser) -> Any:
+def read_user_me(current_user: CurrentUser) -> UserPublic:
     """
     Get current user.
     """
@@ -157,7 +158,7 @@ def read_user_me(current_user: CurrentUser) -> Any:
 # ---------------------------------------------------------------------------
 
 @router.delete("/me", response_model=Message)
-def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
+def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Message:
     """
     Delete own user.
     """
@@ -175,7 +176,7 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
 # ---------------------------------------------------------------------------
 
 @router.post("/signup", response_model=UserPublic)
-def register_user(session: SessionDep, user_in: UserRegister) -> Any:
+def register_user(session: SessionDep, user_in: UserRegister) -> UserPublic:
     """
     Create new user without the need to be logged in.
     """
@@ -198,7 +199,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
 @router.get("/{user_id}", response_model=UserPublic)
 def read_user_by_id(
     user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
-) -> Any:
+) -> UserPublic:
     """
     Get a specific user by id.
     """
@@ -229,7 +230,7 @@ def update_user(
     session: SessionDep,
     user_id: uuid.UUID,
     user_in: UserUpdate,
-) -> Any:
+) -> UserPublic:
     """
     Update a user.
     """
@@ -249,6 +250,26 @@ def update_user(
 
     db_user = crud.update_user(session=session, db_user=db_user, user_in=user_in)
     return db_user
+
+# ---------------------------------------------------------------------------
+# Endpoint para actualizar el rol de un usuario dado su id.
+# ---------------------------------------------------------------------------
+
+@router.put("/{user_id}/role", response_model=UserPublic)
+def update_user_role(user_id: int, role: UserRole, session: SessionDep) -> UserPublic:
+    """
+    Update a user's role.
+    """
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.role = role
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
 
 
 # ---------------------------------------------------------------------------
