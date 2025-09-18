@@ -1,8 +1,7 @@
-from app.api.v1.endpoints import item, user
 from fastapi import APIRouter
 
 from app.core.config import settings
-from app.api.v1.endpoints import login, private, utils
+from app.api.v1.endpoints import user, login, private, utils
 
 api_router = APIRouter()
 
@@ -10,7 +9,6 @@ api_router = APIRouter()
 api_router.include_router(utils.router, tags=["Utils"])  # Root
 api_router.include_router(login.router, tags=["Login"])
 api_router.include_router(user.router, tags=["Users"])
-api_router.include_router(item.router, tags=["Items"])
 
 
 if settings.ENVIRONMENT == "local":
