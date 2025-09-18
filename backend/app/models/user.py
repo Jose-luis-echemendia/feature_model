@@ -17,7 +17,7 @@ class UserBase(SQLModel):
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
-    role: UserRole = Field(default=UserRole.teaching, max_length=10)
+    role: UserRole = Field(default=UserRole.teaching)
 
 
 # Properties to receive via API on creation
