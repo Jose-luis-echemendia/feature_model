@@ -11,6 +11,9 @@ from app.utils import generate_test_email, send_email
 router = APIRouter(prefix="/utils", tags=["utils"])
 
 
+# ---------------------------------------------------------------------------
+# Endpoint para probar el envío de correos electrónicos.
+# ---------------------------------------------------------------------------
 @router.post(
     "/test-email/",
     dependencies=[Depends(get_current_active_superuser)],
@@ -32,7 +35,7 @@ def test_email(email_to: EmailStr) -> Message:
 # ---------------------------------------------------------------------------
 #  Endpoint raíz de bienvenida.
 # ---------------------------------------------------------------------------
-@router.get("/", tags=["Root"])
+@router.get("/")
 def read_root():
     """ """
     return {"message": f"Welcome to {settings.PROJECT_NAME}"}

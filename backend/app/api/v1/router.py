@@ -7,10 +7,10 @@ from app.api.v1.endpoints import login, private, utils
 api_router = APIRouter()
 
 # Incluir cada router con su prefijo y etiquetas
+api_router.include_router(utils.router, tags=["Utils"])  # Root
 api_router.include_router(login.router, tags=["Login"])
 api_router.include_router(user.router, tags=["Users"])
 api_router.include_router(item.router, tags=["Items"])
-api_router.include_router(utils.router, tags=["Utils"]) # Root
 
 
 if settings.ENVIRONMENT == "local":
