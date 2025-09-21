@@ -1,5 +1,6 @@
 services:
 
+  # SERVICIO DE POSTGRESQL PARA LA BASE DE DATOS
   db:
     image: postgres:17
     restart: always
@@ -22,6 +23,7 @@ services:
       - shared-network
       - default
 
+  # SERVICIO DE ADMINER PARA LA GESTIÓN DE LA BASE DE DATOS
   adminer:
     image: adminer
     restart: always
@@ -45,6 +47,7 @@ services:
       - traefik.http.routers.${STACK_NAME?Variable not set}-adminer-https.tls.certresolver=le
       - traefik.http.services.${STACK_NAME?Variable not set}-adminer.loadbalancer.server.port=8080
 
+  # SERVICIO DE PRESTART PARA LA INICIALIZACIÓN DE LA BASE DE DATOS Y OTROS AJUSTES ANTES DE INICIAR EL BACKEND
   prestart:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
     build:

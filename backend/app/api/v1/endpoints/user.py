@@ -29,11 +29,10 @@ from app.utils import generate_new_account_email, send_email
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-
-
 #######################################
 ## Endpoint para gestión de usuarios ##
 #######################################
+
 
 # ---------------------------------------------------------------------------
 # Endpoint para leer la información de los usuarios.
@@ -57,10 +56,10 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> UsersPub
     return UsersPublic(data=users, count=count)
 
 
-
 # ---------------------------------------------------------------------------
 # Endpoint para crear nuevos usuarios.
 # ---------------------------------------------------------------------------
+
 
 @router.post(
     "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
@@ -93,7 +92,8 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> UserPublic:
 # Endpoint para actualizar el usuario propio.
 # ---------------------------------------------------------------------------
 
-@router.patch("/me", response_model=UserPublic)
+
+@router.patch("/me/", response_model=UserPublic)
 def update_user_me(
     *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
 ) -> UserPublic:
@@ -115,12 +115,12 @@ def update_user_me(
     return current_user
 
 
-
 # ---------------------------------------------------------------------------
 # Endpoint para cambiar la contraseña del usuario propio.
 # ---------------------------------------------------------------------------
 
-@router.patch("/me/password", response_model=Message)
+
+@router.patch("/me/password/", response_model=Message)
 def update_password_me(
     *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
 ) -> Message:
@@ -140,12 +140,12 @@ def update_password_me(
     return Message(message="Password updated successfully")
 
 
-
 # ---------------------------------------------------------------------------
 # Endpoint para leer la información del usuario propio.
 # ---------------------------------------------------------------------------
 
-@router.get("/me", response_model=UserPublic)
+
+@router.get("/me/", response_model=UserPublic)
 def read_user_me(current_user: CurrentUser) -> UserPublic:
     """
     Get current user.
@@ -157,7 +157,8 @@ def read_user_me(current_user: CurrentUser) -> UserPublic:
 # Endpoint para eliminar el usuario propio.
 # ---------------------------------------------------------------------------
 
-@router.delete("/me", response_model=Message)
+
+@router.delete("/me/", response_model=Message)
 def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Message:
     """
     Delete own user.
@@ -175,7 +176,8 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Message:
 # Endpoint para lregistrar un nuevo usuario.
 # ---------------------------------------------------------------------------
 
-@router.post("/signup", response_model=UserPublic)
+
+@router.post("/signup/", response_model=UserPublic)
 def register_user(session: SessionDep, user_in: UserRegister) -> UserPublic:
     """
     Create new user without the need to be logged in.
@@ -191,12 +193,12 @@ def register_user(session: SessionDep, user_in: UserRegister) -> UserPublic:
     return user
 
 
-
 # ---------------------------------------------------------------------------
 # Endpoint para leer la información de los usuarios dado su id.
 # ---------------------------------------------------------------------------
 
-@router.get("/{user_id}", response_model=UserPublic)
+
+@router.get("/{user_id}/", response_model=UserPublic)
 def read_user_by_id(
     user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
 ) -> UserPublic:
@@ -214,14 +216,13 @@ def read_user_by_id(
     return user
 
 
-
 # ---------------------------------------------------------------------------
 # Endpoint para actualizar un usuario dado su id.
 # ---------------------------------------------------------------------------
 
 
 @router.patch(
-    "/{user_id}",
+    "/{user_id}/",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UserPublic,
 )
@@ -251,11 +252,13 @@ def update_user(
     db_user = crud.update_user(session=session, db_user=db_user, user_in=user_in)
     return db_user
 
+
 # ---------------------------------------------------------------------------
 # Endpoint para actualizar el rol de un usuario dado su id.
 # ---------------------------------------------------------------------------
 
-@router.put("/{user_id}/role", response_model=UserPublic)
+
+@router.put("/{user_id}/role/", response_model=UserPublic)
 def update_user_role(user_id: int, role: UserRole, session: SessionDep) -> UserPublic:
     """
     Update a user's role.
@@ -263,7 +266,7 @@ def update_user_role(user_id: int, role: UserRole, session: SessionDep) -> UserP
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     user.role = role
     session.add(user)
     session.commit()
@@ -271,12 +274,12 @@ def update_user_role(user_id: int, role: UserRole, session: SessionDep) -> UserP
     return user
 
 
-
 # ---------------------------------------------------------------------------
 # Endpoint para eliminar un usuario dado su id.
 # ---------------------------------------------------------------------------
 
-@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
+
+@router.delete("/{user_id}/", dependencies=[Depends(get_current_active_superuser)])
 def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> Message:
