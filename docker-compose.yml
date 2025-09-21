@@ -18,6 +18,9 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+    networks:
+      - shared-network
+      - default
 
   adminer:
     image: adminer
@@ -169,4 +172,6 @@ volumes:
 networks:
   traefik-public:
     # Allow setting it to false for testing
+    external: true
+  shared-network:
     external: true
