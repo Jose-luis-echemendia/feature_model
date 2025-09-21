@@ -22,7 +22,7 @@ from app.utils import (
 router = APIRouter(tags=["login"])
 
 
-@router.post("/login/access-token")
+@router.post("/login/access-token/")
 def login_access_token(
     session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ) -> Token:
@@ -44,7 +44,7 @@ def login_access_token(
     )
 
 
-@router.post("/login/test-token", response_model=UserPublic)
+@router.post("/login/test-token/", response_model=UserPublic)
 def test_token(current_user: CurrentUser) -> Any:
     """
     Test access token
@@ -52,7 +52,7 @@ def test_token(current_user: CurrentUser) -> Any:
     return current_user
 
 
-@router.post("/password-recovery/{email}")
+@router.post("/password-recovery/{email}/")
 def recover_password(email: str, session: SessionDep) -> Message:
     """
     Password Recovery
@@ -100,7 +100,7 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
 
 
 @router.post(
-    "/password-recovery-html-content/{email}",
+    "/password-recovery-html-content/{email}/",
     dependencies=[Depends(get_current_active_superuser)],
     response_class=HTMLResponse,
 )
