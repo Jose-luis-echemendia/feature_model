@@ -1,4 +1,4 @@
-# alembic revision --autogenerate -m "Add role column to user table"
+# alembic revision --autogenerate -m "message de la migracion"
 # alembic upgrade head
 
 
