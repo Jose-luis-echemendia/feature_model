@@ -52,6 +52,8 @@ services:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
     build:
       context: ./backend
+    volumes:
+      - ./backend/app:/app/app  
     networks:
       - traefik-public
       - default
@@ -122,6 +124,8 @@ services:
 
     build:
       context: ./backend
+    volumes:
+      - ./backend/app:/app/app  
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
