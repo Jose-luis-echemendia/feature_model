@@ -11,7 +11,7 @@ from .common import BaseTable
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_superuser: bool = False
-    role: UserRole = Field(default=UserRole.teaching)
+    role: UserRole = Field(default=UserRole.viewer)
 
 
 # Properties to receive via API on creation
