@@ -49,7 +49,7 @@ class Settings(BaseSettings):
             self.FRONTEND_HOST
         ]
 
-    PROJECT_NAME: str = "Netsy Call"
+    PROJECT_NAME: str = "Featurea Models"
     SENTRY_ENVIRONMENT: str | None = None
     SENTRY_DSN: HttpUrl | None = None
     POSTGRES_SERVER: str
