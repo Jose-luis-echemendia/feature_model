@@ -36,6 +36,8 @@ router = APIRouter(prefix="/users", tags=["users"])
 # ---------------------------------------------------------------------------
 # Endpoint para leer la información de los usuarios.
 # ---------------------------------------------------------------------------
+
+
 @router.get(
     "/",
     dependencies=[Depends(get_current_active_superuser)],
@@ -53,6 +55,16 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> UsersPub
     users = session.exec(statement).all()
 
     return UsersPublic(data=users, count=count)
+
+
+# ---------------------------------------------------------------------------
+# Endpoint para obtener los usuarios dado un rol.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/by-role/{role}", response_model=UsersPublic)
+def read_users_by_role(session: SessionDep, role: UserRole) -> UsersPublic:
+    return session.exec(select(User).where(User.role == role)).all()
 
 
 # ---------------------------------------------------------------------------

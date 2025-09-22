@@ -1,12 +1,9 @@
 import uuid
 
 from pydantic import EmailStr
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, SQLModel
 
 from app.enums import UserRole
-
-from typing import TYPE_CHECKING
-
 
 
 # Shared properties
