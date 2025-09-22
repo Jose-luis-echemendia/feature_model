@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from typing import Annotated
+from typing import Annotated, Callable
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -12,7 +12,8 @@ from app.core import security
 from app.core.config import settings
 from app.core.db import engine
 from app.models.common import TokenPayload
-from app.models.user import  User
+from app.models.user import User
+from app.enums import UserRole
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -57,5 +58,31 @@ def get_current_active_superuser(current_user: CurrentUser) -> User:
         )
     return current_user
 
+
 CurrentSuperUSer = Annotated[User, Depends(get_current_active_superuser)]
 
+
+def get_current_user_with_roles(allowed_roles: list[UserRole]) -> Callable[[CurrentUser], User]:
+    """
+    Dependency factory para crear una dependencia que verifica roles.
+
+    Args:
+        allowed_roles: Una lista de roles (`UserRole`) que tienen permiso.
+
+    Returns:
+        Una función de dependencia que puede ser usada en los endpoints.
+    """
+
+    def dependency(current_user: CurrentUser) -> User:
+        """
+        Esta es la dependencia real que se ejecuta en la ruta.
+        Comprueba si el rol del usuario actual está en la lista de roles permitidos (role_checker).
+        """
+        if current_user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"The user does not have the required permissions. Allowed roles: {', '.join([r.value for r in allowed_roles])}",
+            )
+        return current_user
+
+    return dependency

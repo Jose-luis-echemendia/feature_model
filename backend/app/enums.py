@@ -8,7 +8,8 @@ class UserRole(str, Enum):
 
     admin = "admin"
     model_designer = "model_designer"
-    teaching = "teaching"
+    configurator = "configurator"
+    viewer = "viewer"
 
 class FeatureType(str, Enum):
     """
