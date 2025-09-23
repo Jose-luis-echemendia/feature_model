@@ -69,6 +69,7 @@ def get_domain_with_feature_models(*, session: Session, domain_id: UUID) -> Doma
     # SQLModel carga las relaciones automáticamente cuando se acceden
     return DomainPublicWithFeatureModels.model_validate(domain)
 
+
 def domain_exists(*, session: Session, domain_id: UUID) -> bool:
     """Verificar si un dominio existe"""
     return session.get(Domain, domain_id) is not None
