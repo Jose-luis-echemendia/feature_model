@@ -30,7 +30,7 @@ def login_access_token(
     OAuth2 compatible token login, get an access token for future requests
     """
     user = crud.authenticate(
-        session=session, email=form_data.username, password=form_data.password
+        session=session, email=form_data.email, password=form_data.password
     )
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
@@ -113,7 +113,7 @@ def recover_password_html_content(email: str, session: SessionDep) -> Any:
     if not user:
         raise HTTPException(
             status_code=404,
-            detail="The user with this username does not exist in the system.",
+            detail="The user with this email does not exist in the system.",
         )
     password_reset_token = generate_password_reset_token(email=email)
     email_data = generate_reset_password_email(
