@@ -4,7 +4,7 @@ from uuid import UUID
 from app.models import Domain, DomainCreate, DomainUpdate, DomainPublic, DomainPublicWithFeatureModels
 
 
-def read_domains(*, session: Session, skip: int = 0, limit: int = 100) -> list[Domain]:
+def get_domains(*, session: Session, skip: int = 0, limit: int = 100) -> list[Domain]:
     """Obtener lista de dominios con paginación"""
     statement = select(Domain).offset(skip).limit(limit)
     domains = session.exec(statement).all()
