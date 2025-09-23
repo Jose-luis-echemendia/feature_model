@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app import crud
 from app.api.deps import SessionDep, get_current_user
-from app.models.domain import Domain, DomainPublic, DomainsPublic
+from app.models.domain import Domain, DomainPublic, DomainsPublic, DomainCreate
 
 router = APIRouter(prefix="/domains", tags=["domains"])
 
@@ -33,3 +33,26 @@ def read_domains(session: SessionDep, skip: int = 0, limit: int = 100) -> Domain
     count = crud.get_domains_count(session=session)
 
     return DomainsPublic(data=domains, count=count)
+
+# ---------------------------------------------------------------------------
+# Endpoint para crear nuevos dominios.
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/",
+    dependencies=[],
+    response_model=DomainPublic
+)
+def create_domain(*, session: SessionDep, domain_in: DomainCreate) -> DomainPublic:
+    """ create new domain
+
+    Args:
+        session (SessionDep): _description_
+        domain_in (DomainCreate): _description_
+
+    Returns:
+        DomainPublic: _description_
+    """
+    
+    pass
+

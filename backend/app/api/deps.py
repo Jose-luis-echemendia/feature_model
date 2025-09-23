@@ -193,9 +193,11 @@ def get_configurator_user() -> Callable[[CurrentUser], User]:
     """Dependencia para usuarios configuradores"""
     return role_required([UserRole.configurator, UserRole.admin])
 
+
 def get_viewer_user() -> Callable[[CurrentUser], User]:
     """Dependencia para usuarios observadores"""
     return role_required([UserRole.viewer, UserRole.admin])
+
 
 def get_verified_user() -> Callable[[CurrentUser], User]:
     """Dependencia para usuarios verificados (no guests)."""
