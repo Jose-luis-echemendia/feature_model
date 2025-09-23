@@ -29,9 +29,9 @@ class DomainUpdate(SQLModel):
 
 # Modelo de la base de datos
 class Domain(BaseTable, DomainBase, table=True):
-    
+
     __tablename__ = "domains"
-    
+
     # Relación uno-a-muchos: Un dominio tiene muchos modelos de características
     feature_models: list["FeatureModel"] = Relationship(back_populates="domain")
 
@@ -39,6 +39,12 @@ class Domain(BaseTable, DomainBase, table=True):
 # Propiedades para retornar vía API
 class DomainPublic(DomainBase):
     id: uuid.UUID
+
+
+class DomainsPublic(DomainBase):
+    data: list[DomainPublic]
+    count: int
+
 
 # Modelo público con relaciones anidadas
 class DomainPublicWithFeatureModels(DomainPublic):
