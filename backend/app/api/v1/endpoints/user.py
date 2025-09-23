@@ -10,7 +10,6 @@ from app.api.deps import (
     get_current_active_superuser,
 )
 from app.core.config import settings
-from app.core.security import get_password_hash, verify_password
 from app.models.common import Message
 from app.enums import UserRole
 from app.models.user import (
