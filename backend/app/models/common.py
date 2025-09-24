@@ -29,7 +29,7 @@ class NewPassword(SQLModel):
 
 # TABLA BASE CON CAMPOS COMUNES PARA EL RESTO DE TABLAS
 class BaseTable(SQLModel):
-    uid: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True, nullable=False)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True, nullable=False)
     is_active: bool = Field(default=True, nullable=False)
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False, sa_column_kwargs={"onupdate": datetime.utcnow},)
