@@ -451,7 +451,7 @@ export const UserUpdateMeSchema = {
   title: "UserUpdateMe",
 } as const
 
-export const UsersPublicSchema = {
+export const UserListResponseSchema = {
   properties: {
     data: {
       items: {
@@ -467,7 +467,7 @@ export const UsersPublicSchema = {
   },
   type: "object",
   required: ["data", "count"],
-  title: "UsersPublic",
+  title: "UserListResponse",
 } as const
 
 export const ValidationErrorSchema = {

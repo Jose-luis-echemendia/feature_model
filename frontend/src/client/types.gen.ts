@@ -83,7 +83,7 @@ export type UserRegister = {
   full_name?: string | null
 }
 
-export type UsersPublic = {
+export type UserListResponse = {
   data: Array<UserPublic>
   count: number
 }
@@ -176,7 +176,7 @@ export type UsersReadUsersData = {
   skip?: number
 }
 
-export type UsersReadUsersResponse = UsersPublic
+export type UsersReadUsersResponse = UserListResponse
 
 export type UsersCreateUserData = {
   requestBody: UserCreate

@@ -5,7 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from app import crud
 from app.models.common import Message
 from app.api.deps import SessionDep, get_current_user, AdminUser
-from app.models.domain import DomainPublic, DomainsPublic, DomainCreate, DomainUpdate
+from app.models.domain import (
+    DomainPublic,
+    DomainListResponse,
+    DomainCreate,
+    DomainUpdate,
+)
 
 router = APIRouter(prefix="/domains", tags=["domains"])
 
@@ -18,9 +23,11 @@ router = APIRouter(prefix="/domains", tags=["domains"])
 @router.get(
     "/",
     dependencies=[Depends(get_current_user)],
-    response_model=DomainsPublic,
+    response_model=DomainListResponse,
 )
-def read_domains(session: SessionDep, skip: int = 0, limit: int = 100) -> DomainsPublic:
+def read_domains(
+    session: SessionDep, skip: int = 0, limit: int = 100
+) -> DomainListResponse:
     """Retrieve domains
 
     Args:
@@ -29,13 +36,13 @@ def read_domains(session: SessionDep, skip: int = 0, limit: int = 100) -> Domain
         limit (int, optional): _description_. Defaults to 100.
 
     Returns:
-        DomainsPublic: _description_
+        DomainListResponse: _description_
     """
 
     domains = crud.get_domains(session=session, skip=skip, limit=limit)
     count = crud.get_domains_count(session=session)
 
-    return DomainsPublic(data=domains, count=count)
+    return DomainListResponse(data=domains, count=count)
 
 
 # ---------------------------------------------------------------------------
@@ -187,10 +194,10 @@ def delete_domain(
 # ---------------------------------------------------------------------------
 # Endpoint para buscar dominios por nombre (accesible para varios roles)
 # ---------------------------------------------------------------------------
-@router.get("/search/{search_term}/", response_model=DomainsPublic)
+@router.get("/search/{search_term}/", response_model=DomainListResponse)
 def search_domains(
     *, session: SessionDep, search_term: str, skip: int = 0, limit: int = 100
-) -> DomainsPublic:
+) -> DomainListResponse:
     """
     Search domains by name or description.
 
@@ -203,14 +210,14 @@ def search_domains(
         limit: Pagination limit
 
     Returns:
-        DomainsPublic: Search results
+        DomainListResponse: Search results
     """
     domains = crud.search_domains(
         session=session, search_term=search_term, skip=skip, limit=limit
     )
     count = len(domains)
 
-    return DomainsPublic(data=domains, count=count)
+    return DomainListResponse(data=domains, count=count)
 
 
 # ---------------------------------------------------------------------------

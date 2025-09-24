@@ -18,7 +18,7 @@ from app.models.user import (
     UserCreate,
     UserPublic,
     UserRegister,
-    UsersPublic,
+    UserListResponse,
     UserUpdate,
     UserUpdateMe,
 )
@@ -40,16 +40,18 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get(
     "/",
     dependencies=[Depends(get_current_active_superuser)],
-    response_model=UsersPublic,
+    response_model=UserListResponse,
 )
-def read_users(*, session: SessionDep, skip: int = 0, limit: int = 100) -> UsersPublic:
+def read_users(
+    *, session: SessionDep, skip: int = 0, limit: int = 100
+) -> UserListResponse:
     """
     Retrieve users.
     """
     users = crud.get_users(session=session, skip=skip, limit=limit)
     count = crud.get_users_count(session=session)
 
-    return UsersPublic(data=users, count=count)
+    return UserListResponse(data=users, count=count)
 
 
 # ---------------------------------------------------------------------------
@@ -57,10 +59,10 @@ def read_users(*, session: SessionDep, skip: int = 0, limit: int = 100) -> Users
 # ---------------------------------------------------------------------------
 
 
-@router.get("/by-role/{role}", response_model=UsersPublic)
+@router.get("/by-role/{role}", response_model=UserListResponse)
 def read_users_by_role(
     *, session: SessionDep, role: UserRole, skip: int = 0, limit: int = 100
-) -> UsersPublic:
+) -> UserListResponse:
     """
     Get users by role.
     """
@@ -72,7 +74,7 @@ def read_users_by_role(
     count_statement = select(func.count()).select_from(User).where(User.role == role)
     count = session.exec(count_statement).one()
 
-    return UsersPublic(data=users, count=count)
+    return UserListResponse(data=users, count=count)
 
 
 # ---------------------------------------------------------------------------
@@ -344,10 +346,10 @@ def delete_user(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/search/{search_term}/", response_model=UsersPublic)
+@router.get("/search/{search_term}/", response_model=UserListResponse)
 def search_users(
     *, session: SessionDep, search_term: str, skip: int = 0, limit: int = 100
-) -> UsersPublic:
+) -> UserListResponse:
     """
     Search users by email or name.
     """
@@ -358,7 +360,7 @@ def search_users(
     # Para el count, necesitamos una función específica o podemos contar los resultados
     count = len(users)
 
-    return UsersPublic(data=users, count=count)
+    return UserListResponse(data=users, count=count)
 
 
 # ---------------------------------------------------------------------------

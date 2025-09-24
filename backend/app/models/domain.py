@@ -41,10 +41,10 @@ class DomainPublic(DomainBase):
     id: uuid.UUID
 
 
-class DomainsPublic(DomainBase):
+class DomainListResponse(DomainBase):
     data: list[DomainPublic]
     count: int
-
+    
 
 # Modelo público con relaciones anidadas
 class DomainPublicWithFeatureModels(DomainPublic):

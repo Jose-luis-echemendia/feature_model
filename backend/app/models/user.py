@@ -52,6 +52,10 @@ class UserPublic(UserBase):
     id: uuid.UUID
 
 
-class UsersPublic(SQLModel):
+
+class UserListResponse(SQLModel):
+    """
+    Respuesta para listar los usuarios.
+    """
     data: list[UserPublic]
     count: int

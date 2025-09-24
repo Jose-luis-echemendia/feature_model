@@ -305,7 +305,7 @@ export class UsersService {
    * @param data The data for the request.
    * @param data.skip
    * @param data.limit
-   * @returns UsersPublic Successful Response
+   * @returns UserListResponse Successful Response
    * @throws ApiError
    */
   public static readUsers(
