@@ -2,6 +2,13 @@ import uuid
 from datetime import datetime
 from sqlmodel import Field, SQLModel
 
+
+# JSON login
+class LoginRequest(SQLModel):
+    email: str
+    password: str
+
+
 # Generic message
 class Message(SQLModel):
     message: str
