@@ -1,4 +1,4 @@
-from .common import BaseTable
+from .common import BaseTable, Message, NewPassword, Token, TokenPayload, LoginRequest
 from .user import User, UserCreate, UserPublic, UserUpdate, UserListResponse
 from .domain import (
     Domain,
