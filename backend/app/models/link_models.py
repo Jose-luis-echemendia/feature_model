@@ -9,6 +9,7 @@ class ConfigurationFeatureLink(SQLModel, table=True):
     """
 
     __tablename__ = "configuration_features"
+
     configuration_id: uuid.UUID = Field(
         foreign_key="configurations.id", primary_key=True
     )

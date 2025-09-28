@@ -26,6 +26,7 @@ class FeatureRelationCreate(SQLModel):
 
 
 class FeatureRelation(BaseTable, FeatureRelationBase, table=True):
+    
     __tablename__ = "feature_relations"
 
     feature_model_version: "FeatureModelVersion" = Relationship(

@@ -20,6 +20,7 @@ class FeatureGroupBase(SQLModel):
 
 
 class FeatureGroup(BaseTable, FeatureGroupBase, table=True):
+    
     __tablename__ = "feature_groups"
 
     # Relación de vuelta a la versión del modelo

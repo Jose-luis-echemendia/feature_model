@@ -31,6 +31,7 @@ class FeatureModelVersionUpdate(SQLModel):
 
 
 class FeatureModelVersion(BaseTable, FeatureModelVersionBase, table=True):
+    
     __tablename__ = "feature_model_versions"
 
     feature_model: "FeatureModel" = Relationship(back_populates="versions")
