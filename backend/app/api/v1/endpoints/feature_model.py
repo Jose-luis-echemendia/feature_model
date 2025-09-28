@@ -14,10 +14,11 @@ from app.models.feature_model import (
 router = APIRouter(prefix="/feature-models", tags=["feature-models"])
 
 
-@router.get("/", response_model=FeatureModelListResponse)
+@router.get(
+    "/", dependencies=[Depends(VerifiedUser)], response_model=FeatureModelListResponse
+)
 def read_feature_models(
     session: SessionDep,
-    current_user: VerifiedUser,
     skip: int = 0,
     limit: int = 100,
     domain_id: uuid.UUID | None = None,
@@ -65,9 +66,13 @@ def create_feature_model(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/{model_id}/", response_model=FeatureModelPublic)
+@router.get(
+    "/{model_id}/",
+    dependencies=[Depends(VerifiedUser)],
+    response_model=FeatureModelPublic,
+)
 def read_feature_model(
-    *, model_id: uuid.UUID, session: SessionDep, current_user: VerifiedUser
+    *, model_id: uuid.UUID, session: SessionDep
 ) -> FeatureModelPublic:
     """
     Get a specific feature model by ID.
@@ -112,8 +117,11 @@ def delete_feature_model(
     """
     Delete a feature model.
     """
-    # La lógica de permisos es similar a la de actualización
-    # ...
-    raise HTTPException(
-        status_code=501, detail="Delete operation not fully implemented yet."
-    )
+    db_model = crud.get_feature_model(session=session, feature_model_id=model_id)
+    if not db_model:
+        raise HTTPException(status_code=404, detail="Feature Model not found")
+    if db_model.owner_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    crud.delete_feature_model(session=session, db_feature_model=db_model)
+    return Message(detail="Feature Model deleted successfully.")
