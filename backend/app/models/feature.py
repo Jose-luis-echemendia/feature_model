@@ -9,6 +9,7 @@ from .common import BaseTable, PaginatedResponse
 if TYPE_CHECKING:
     from .feature_model_version import FeatureModelVersion
     from .configuration import Configuration
+    from .link_models import ConfigurationFeatureLink
     from .feature_relation import FeatureRelation
 
 
@@ -20,7 +21,7 @@ class FeatureBase(SQLModel):
     type: FeatureType
     feature_model_version_id: uuid.UUID = Field(foreign_key="feature_model_versions.id")
     # Clave foránea para la jerarquía padre-hijo (auto-referencia)
-    parent_id: uuid.UUID | None = Field(default=None, foreign_key="feature.id")
+    parent_id: uuid.UUID | None = Field(default=None, foreign_key="features.id")
 
 
 # ---------------------------------------------------------------------------
@@ -46,7 +47,7 @@ class Feature(BaseTable, FeatureBase, table=True):
 
     # Relaciones muchos-a-muchos con Configuration
     configurations: list["Configuration"] = Relationship(
-        back_populates="features", link_model="configuration_features"
+        back_populates="features", link_model=ConfigurationFeatureLink
     )
 
     # Relaciones donde esta feature es el origen o el destino
