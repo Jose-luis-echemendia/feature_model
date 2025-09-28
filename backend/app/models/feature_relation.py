@@ -3,40 +3,48 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.enums import RelationType
+from app.enums import FeatureRelationType
 from .common import BaseTable
 
 if TYPE_CHECKING:
     from .feature import Feature
+    from .feature_model_version import FeatureModelVersion
 
 
 class FeatureRelationBase(SQLModel):
-    feature_id: uuid.UUID = Field(foreign_key="feature.id")
-    related_feature_id: uuid.UUID = Field(foreign_key="feature.id")
-    relation_type: RelationType
+    type: FeatureRelationType = Field(index=True)
+    source_feature_id: uuid.UUID = Field(foreign_key="feature.id", index=True)
+    target_feature_id: uuid.UUID = Field(foreign_key="feature.id", index=True)
+    feature_model_version_id: uuid.UUID = Field(foreign_key="feature_model_versions.id")
 
 
-class FeatureRelationCreate(FeatureRelationBase):
-    pass
-
-
-class FeatureRelationUpdate(SQLModel):
-    relation_type: RelationType | None = None
+class FeatureRelationCreate(SQLModel):
+    type: FeatureRelationType
+    source_feature_id: uuid.UUID
+    target_feature_id: uuid.UUID
+    # La versión del modelo se infiere de las features, no se pasa directamente
 
 
 class FeatureRelation(BaseTable, FeatureRelationBase, table=True):
-    
     __tablename__ = "feature_relations"
-    
-    source_feature: "Feature" = Relationship(
-        back_populates="relations",
-        sa_relationship_kwargs={"foreign_keys": "[FeatureRelation.feature_id]"}
+
+    feature_model_version: "FeatureModelVersion" = Relationship(
+        back_populates="feature_relations"
     )
-    related_feature: "Feature" = Relationship(
-        back_populates="related_to",
-        sa_relationship_kwargs={"foreign_keys": "[FeatureRelation.related_feature_id]"}
+
+    source_feature: "Feature" = Relationship(
+        back_populates="source_relations",
+        sa_relationship_kwargs={"foreign_keys": "[FeatureRelation.source_feature_id]"},
+    )
+    target_feature: "Feature" = Relationship(
+        back_populates="target_relations",
+        sa_relationship_kwargs={"foreign_keys": "[FeatureRelation.target_feature_id]"},
     )
 
 
 class FeatureRelationPublic(FeatureRelationBase):
     id: uuid.UUID
+
+
+class FeatureRelationUpdate(SQLModel):
+    pass  # Las relaciones no se actualizan, se crean o eliminan

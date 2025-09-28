@@ -27,7 +27,7 @@ class FeatureType(str, Enum):
     OR = "or"
 
 
-class RelationType(str, Enum):
+class FeatureFeatureRelationType(str, Enum):
     """
     Tipo de relación entre dos características.
     - requires: Una característica requiere de otra.
