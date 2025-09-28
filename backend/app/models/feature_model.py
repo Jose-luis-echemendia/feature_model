@@ -1,13 +1,15 @@
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel, Column, JSON
 
-from app.models import PaginatedResponse
+from app.models import PaginatedResponse, BaseTable
 
-# Adelantamos la declaración de User y Domain para evitar importaciones circulares
-from app.models import User, Feature, Domain, BaseTable
+if TYPE_CHECKING:
+    from .user import User
+    from .domain import Domain
+    from .feature import Feature
 
 
 # ---------------------------------------------------------------------------
@@ -22,7 +24,7 @@ class FeatureModelBase(SQLModel):
 # Modelo de la Tabla de Base de Datos
 # ---------------------------------------------------------------------------
 class FeatureModel(BaseTable, FeatureModelBase, table=True):
-    
+
     __tablename__ = "feature_model"
 
     # Relaciones
@@ -31,10 +33,12 @@ class FeatureModel(BaseTable, FeatureModelBase, table=True):
 
     domain: "Domain" = Relationship(back_populates="feature_models")
     owner: "User" = Relationship()
-    
-    # Relación con las características (features)
-    features: list["Feature"] = Relationship(back_populates="feature_model", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
+    # Relación con las características (features)
+    features: list["Feature"] = Relationship(
+        back_populates="feature_model",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
 
 
 # ---------------------------------------------------------------------------

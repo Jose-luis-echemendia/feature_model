@@ -13,7 +13,7 @@ from .feature_model import (
     FeatureModelPublic,
     FeatureModelUpdate,
 )
-from .feature import Feature, FeatureCreate, FeaturePublic, FeatureUpdate
+from .feature import Feature, FeatureCreate, FeaturePublic, FeatureUpdate, FeaturePublicWithChildren
 from .feature_relation import (
     FeatureRelation,
     FeatureRelationCreate,
