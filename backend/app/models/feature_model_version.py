@@ -1,9 +1,10 @@
 import uuid
 from typing import TYPE_CHECKING, Any
 
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, Relationship, SQLModel, Column
+from sqlalchemy.dialects.postgresql import JSONB
 
-from .common import BaseTable, PaginatedResponse
+from .common import BaseTable
 
 if TYPE_CHECKING:
     from .feature_model import FeatureModel
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
 class FeatureModelVersionBase(SQLModel):
     version_number: int = Field(default=1, index=True)
     is_active: bool = Field(default=False)
-    snapshot: dict[str, Any] | None = Field(default=None)
+    snapshot: dict[str, Any] | None = Field(default=None, sa_column=Column(JSONB))
     feature_model_id: uuid.UUID = Field(foreign_key="feature_model.id")
 
 
