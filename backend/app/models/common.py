@@ -1,37 +1,58 @@
 import uuid
 from datetime import datetime
+from typing import Generic, TypeVar
+
+from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
+# ---------------------------------------------------------------------------
+# Modelos Base y Genéricos
+# ---------------------------------------------------------------------------
 
-# JSON login
-class LoginRequest(SQLModel):
-    email: str
-    password: str
+# Define un tipo genérico para usar en PaginatedResponse
+T = TypeVar("T")
 
 
-# Generic message
-class Message(SQLModel):
+class PaginatedResponse(BaseModel, Generic[T]):
+    """
+    Modelo genérico para respuestas de API que incluyen paginación.
+    """
+
+    count: int
+    data: list[T]
+
+
+class BaseTable(SQLModel):
+    """Modelo base para tablas que incluye campos comunes como id y timestamps."""
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    updated_at: datetime | None = Field(default=None)
+
+
+class Message(BaseModel):
     message: str
 
-# JSON payload containing access token
-class Token(SQLModel):
+
+# ---------------------------------------------------------------------------
+# Modelos para Autenticación y Tokens
+# ---------------------------------------------------------------------------
+
+
+class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
-# Contents of JWT token
-class TokenPayload(SQLModel):
-    sub: str | None = None
 
-class NewPassword(SQLModel):
+class TokenPayload(BaseModel):
+    sub: uuid.UUID | None = None
+
+
+class NewPassword(BaseModel):
     token: str
-    new_password: str = Field(min_length=8, max_length=40)
-    
+    new_password: str
 
-# TABLA BASE CON CAMPOS COMUNES PARA EL RESTO DE TABLAS
-class BaseTable(SQLModel):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True, nullable=False)
-    is_active: bool = Field(default=True, nullable=False)
-    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
-    updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False, sa_column_kwargs={"onupdate": datetime.utcnow},)
-    
-    
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str

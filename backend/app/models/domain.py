@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from .common import BaseTable
+from .common import BaseTable, PaginatedResponse
 
 # Evita importaciones circulares para las anotaciones de tipo
 if TYPE_CHECKING:
@@ -41,11 +41,12 @@ class DomainPublic(DomainBase):
     id: uuid.UUID
 
 
-class DomainListResponse(DomainBase):
-    data: list[DomainPublic]
-    count: int
+class DomainListResponse(PaginatedResponse[DomainPublic]):
+   pass
     
 
 # Modelo público con relaciones anidadas
 class DomainPublicWithFeatureModels(DomainPublic):
     feature_models: list["FeatureModelPublic"] = []
+
+

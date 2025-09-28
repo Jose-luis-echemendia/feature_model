@@ -4,7 +4,7 @@ from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
 
 from app.enums import UserRole
-from .common import BaseTable
+from .common import BaseTable, PaginatedResponse
 
 
 # Shared properties
@@ -53,9 +53,8 @@ class UserPublic(UserBase):
 
 
 
-class UserListResponse(SQLModel):
+class UserListResponse(PaginatedResponse[UserPublic]):
     """
     Respuesta para listar los usuarios.
     """
-    data: list[UserPublic]
-    count: int
+    pass

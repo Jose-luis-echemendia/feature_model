@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from .common import BaseTable
+from .common import BaseTable, PaginatedResponse
 
 if TYPE_CHECKING:
     from .feature_model import FeatureModel
@@ -12,11 +12,13 @@ if TYPE_CHECKING:
 
 # --- Modelo para la Tabla Intermedia (Junction Table) ---
 class ConfigurationFeature(SQLModel, table=True):
-    
+
     __tablename__ = "configuration_features"
-    
+
     # No hereda de BaseTable, es una tabla de enlace simple
-    configuration_id: uuid.UUID = Field(foreign_key="configuration.id", primary_key=True)
+    configuration_id: uuid.UUID = Field(
+        foreign_key="configuration.id", primary_key=True
+    )
     feature_id: uuid.UUID = Field(foreign_key="feature.id", primary_key=True)
     # enabled: bool = Field(default=True) # Puedes añadir campos extra a la relación
 
@@ -40,21 +42,24 @@ class ConfigurationUpdate(SQLModel):
 
 
 class Configuration(BaseTable, ConfigurationBase, table=True):
-    
+
     __tablename__ = "configurations"
-    
+
     # Relación de vuelta a FeatureModel
     feature_model: "FeatureModel" = Relationship(back_populates="configurations")
-    
+
     # Relación muchos-a-muchos con Feature, usando la tabla intermedia
     features: list["Feature"] = Relationship(
-        back_populates="configurations", 
-        link_model=ConfigurationFeature
+        back_populates="configurations", link_model=ConfigurationFeature
     )
 
 
 class ConfigurationPublic(ConfigurationBase):
     id: uuid.UUID
+
+
+class ConfigurationListResponse(PaginatedResponse[ConfigurationPublic]):
+    pass
 
 
 class ConfigurationPublicWithFeatures(ConfigurationPublic):

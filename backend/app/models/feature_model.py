@@ -4,7 +4,7 @@ from typing import Optional
 
 from sqlmodel import Field, Relationship, SQLModel, Column, JSON
 
-from app.models.common import PaginatedResponse
+from app.models import PaginatedResponse
 
 # Adelantamos la declaración de User y Domain para evitar importaciones circulares
 from app.models import User, Feature, Domain, BaseTable
