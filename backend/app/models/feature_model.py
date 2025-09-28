@@ -1,49 +1,60 @@
 import uuid
-from typing import TYPE_CHECKING
+from datetime import datetime
+from typing import Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from .common import BaseTable
+from app.models.common import PaginatedResponse
 
-if TYPE_CHECKING:
-    from .domain import Domain, DomainPublic
-    from .feature import Feature, FeaturePublic
-    from .configuration import Configuration, ConfigurationPublic
+# Adelantamos la declaración de User y Domain para evitar importaciones circulares
+from app.models.user import User
+from app.models.domain import Domain
 
 
+# ---------------------------------------------------------------------------
+# Modelo Base para FeatureModel
+# ---------------------------------------------------------------------------
 class FeatureModelBase(SQLModel):
-    name: str = Field(max_length=100)
-    description: str | None = Field(default=None)
-    domain_id: uuid.UUID = Field(foreign_key="domain.id")
+    name: str = Field(index=True, max_length=100)
+    description: Optional[str] = Field(default=None, max_length=255)
 
 
-class FeatureModelCreate(FeatureModelBase):
-    pass
+# ---------------------------------------------------------------------------
+# Modelo de la Tabla de Base de Datos
+# ---------------------------------------------------------------------------
+class FeatureModel(FeatureModelBase, table=True):
+    __tablename__ = "feature_model"
 
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    updated_at: Optional[datetime] = Field(default=None)
 
-class FeatureModelUpdate(SQLModel):
-    name: str | None = Field(default=None, max_length=100)
-    description: str | None = Field(default=None)
+    # Relaciones
+    domain_id: uuid.UUID = Field(foreign_key="domain.id", nullable=False)
+    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
 
-
-class FeatureModel(BaseTable, FeatureModelBase, table=True):
-    
-    __tablename__ = "feature_models"
-    
-    # Relación de vuelta a Domain
     domain: "Domain" = Relationship(back_populates="feature_models")
-    
-    # Relación uno-a-muchos con Feature
-    features: list["Feature"] = Relationship(back_populates="feature_model")
-    
-    # Relación uno-a-muchos con Configuration
-    configurations: list["Configuration"] = Relationship(back_populates="feature_model")
+    owner: "User" = Relationship()
+
+
+# ---------------------------------------------------------------------------
+# Modelos para la API (Pydantic)
+# ---------------------------------------------------------------------------
+class FeatureModelCreate(FeatureModelBase):
+    domain_id: uuid.UUID
+
+
+class FeatureModelUpdate(FeatureModelBase):
+    name: Optional[str] = None
+    description: Optional[str] = None
 
 
 class FeatureModelPublic(FeatureModelBase):
     id: uuid.UUID
+    owner_id: uuid.UUID
+    domain_id: uuid.UUID
+    created_at: datetime
 
-class FeatureModelPublicWithDetails(FeatureModelPublic):
-    domain: "DomainPublic"
-    features: list["FeaturePublic"] = []
-    configurations: list["ConfigurationPublic"] = []
+
+class FeatureModelListResponse(PaginatedResponse[FeatureModelPublic]):
+    pass

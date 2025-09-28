@@ -26,3 +26,13 @@ from .domain import (
     get_domains_count,
     search_domains,
 )
+
+from .feature_model import (
+    get_feature_model,
+    get_feature_models_by_domain,
+    get_all_feature_models,
+    create_feature_model,
+    update_feature_model,
+    delete_feature_model,
+    count_feature_models,
+)
