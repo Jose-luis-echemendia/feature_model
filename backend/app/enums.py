@@ -6,10 +6,11 @@ class UserRole(str, Enum):
     Enums para definir los roles del usuario
     """
 
-    admin = "admin"
-    model_designer = "model_designer"
-    configurator = "configurator"
-    viewer = "viewer"
+    ADMIN = "admin"
+    MODEL_DESIGNER = "model_designer"
+    CONFIGURATOR = "configurator"
+    VIEWER = "viewer"
+
 
 class FeatureType(str, Enum):
     """
@@ -19,10 +20,11 @@ class FeatureType(str, Enum):
     - alternative: Grupo de características donde solo una puede ser elegida.
     - or: Grupo de características donde al menos una debe ser elegida.
     """
-    mandatory = "mandatory"
-    optional = "optional"
-    alternative = "alternative"
-    or_group = "or"  # Usamos or_group para evitar conflicto con la palabra clave 'or'
+
+    MANDATORY = "mandatory"
+    OPTIONAL = "optional"
+    ALTERNATIVE = "alternative"
+    OR = "or"
 
 
 class RelationType(str, Enum):
@@ -31,5 +33,6 @@ class RelationType(str, Enum):
     - requires: Una característica requiere de otra.
     - excludes: Una característica es incompatible con otra.
     """
-    requires = "requires"
-    excludes = "excludes"
+
+    REQUIRED = "requires"
+    EXCLUDES = "excludes"

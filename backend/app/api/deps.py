@@ -181,27 +181,27 @@ def role_required(allowed_roles: list[UserRole]) -> Callable[[CurrentUser], User
 # Dependencias predefinidas para roles comunes
 def get_admin_user() -> Callable[[CurrentUser], User]:
     """Dependencia para usuarios administradores."""
-    return role_required([UserRole.admin])
+    return role_required([UserRole.ADMIN])
 
 
 def get_model_designer_user() -> Callable[[CurrentUser], User]:
     """Dependencia para usuarios diseñadores de modelos."""
-    return role_required([UserRole.model_designer, UserRole.admin])
+    return role_required([UserRole.MODEL_DESIGNER, UserRole.ADMIN])
 
 
 def get_configurator_user() -> Callable[[CurrentUser], User]:
     """Dependencia para usuarios configuradores"""
-    return role_required([UserRole.configurator, UserRole.admin])
+    return role_required([UserRole.CONFIGURATOR, UserRole.ADMIN])
 
 
 def get_viewer_user() -> Callable[[CurrentUser], User]:
     """Dependencia para usuarios observadores"""
-    return role_required([UserRole.viewer, UserRole.admin])
+    return role_required([UserRole.VIEWER, UserRole.ADMIN])
 
 
 def get_verified_user() -> Callable[[CurrentUser], User]:
     """Dependencia para usuarios verificados (no guests)."""
-    return role_required([UserRole.admin, UserRole.model_designer, UserRole.configurator, UserRole.viewer])
+    return role_required([UserRole.ADMIN, UserRole.MODEL_DESIGNER, UserRole.CONFIGURATOR, UserRole.VIEWER])
 
 
 # Atajos comunes
