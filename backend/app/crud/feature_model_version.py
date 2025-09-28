@@ -1,4 +1,5 @@
 import uuid
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
 from app.models import (
@@ -42,27 +43,36 @@ def create_new_version_from_existing(
     :param return_id_map: Si es True, devuelve también el mapa de IDs antiguos a nuevos.
     :return: La nueva versión del modelo creada.
     """
-    session.refresh(source_version, ["features", "feature_relations"])
+    # 1. Cargar todas las features y relaciones de la versión de origen en una sola consulta
+    # para evitar múltiples accesos a la BD (lazy loading).
+    source_version_with_data = session.exec(
+        select(FeatureModelVersion)
+        .options(
+            selectinload(FeatureModelVersion.features),
+            selectinload(FeatureModelVersion.feature_relations),
+        )
+        .where(FeatureModelVersion.id == source_version.id)
+    ).one()
 
-    # 1. Crear la nueva entidad FeatureModelVersion
+    # 2. Crear la nueva entidad FeatureModelVersion
     latest_version_num = get_latest_version_number(
-        session=session, feature_model_id=source_version.feature_model_id
+        session=session, feature_model_id=source_version_with_data.feature_model_id
     )
     new_version = FeatureModelVersion(
-        feature_model_id=source_version.feature_model_id,
+        feature_model_id=source_version_with_data.feature_model_id,
         version_number=latest_version_num + 1,
         created_by_id=user.id,
         is_active=False,  # Las nuevas versiones son borradores por defecto
     )
     session.add(new_version)
-    session.commit()
-    session.refresh(new_version)
+    session.flush()  # Obtenemos el ID de la nueva versión sin hacer commit
 
-    # 2. Duplicar todas las features de la versión de origen a la nueva
+    # 3. Duplicar todas las features en memoria primero
     # Mapeo para mantener la correspondencia entre los IDs antiguos y los nuevos
     old_to_new_feature_id_map: dict[uuid.UUID, uuid.UUID] = {}
+    new_features_map: dict[uuid.UUID, Feature] = {}
 
-    for old_feature in source_version.features:
+    for old_feature in source_version_with_data.features:
         # Creamos una nueva feature con los mismos datos pero asociada a la nueva versión
         new_feature_data = old_feature.model_dump(
             exclude={"id", "created_at", "updated_at", "feature_model_version_id"}
@@ -70,33 +80,31 @@ def create_new_version_from_existing(
         new_feature = Feature(
             **new_feature_data, feature_model_version_id=new_version.id
         )
-        session.add(new_feature)
-        session.flush()  # Usamos flush para obtener el nuevo ID sin hacer commit
-
-        # Guardamos la correspondencia de IDs
+        # Generamos un ID de cliente para poder mapear antes de hacer flush
+        new_feature.id = uuid.uuid4()
         old_to_new_feature_id_map[old_feature.id] = new_feature.id
+        new_features_map[new_feature.id] = new_feature
 
-    # 3. Re-mapear los parent_id en las nuevas features
-    # Hacemos un SELECT de las nuevas features para actualizarlas
-    new_features_list = session.exec(
-        select(Feature).where(Feature.feature_model_version_id == new_version.id)
-    ).all()
-    for feature in new_features_list:
-        if feature.parent_id and feature.parent_id in old_to_new_feature_id_map:
-            feature.parent_id = old_to_new_feature_id_map[feature.parent_id]
-            session.add(feature)
+    # 4. Re-mapear los parent_id en las nuevas features (aún en memoria)
+    for new_feature in new_features_map.values():
+        if new_feature.parent_id and new_feature.parent_id in old_to_new_feature_id_map:
+            new_feature.parent_id = old_to_new_feature_id_map[new_feature.parent_id]
 
-    # 4. Duplicar todas las relaciones, usando los nuevos IDs de features
-    for old_relation in source_version.feature_relations:
+    session.add_all(new_features_map.values())
+
+    # 5. Duplicar todas las relaciones, usando los nuevos IDs de features
+    new_relations = []
+    for old_relation in source_version_with_data.feature_relations:
         new_relation = FeatureRelation(
             feature_model_version_id=new_version.id,
             source_feature_id=old_to_new_feature_id_map[old_relation.source_feature_id],
             target_feature_id=old_to_new_feature_id_map[old_relation.target_feature_id],
             type=old_relation.type,
         )
-        session.add(new_relation)
+        new_relations.append(new_relation)
+    session.add_all(new_relations)
 
-    # 5. Hacer commit de todos los cambios (nuevas features, parents y relaciones)
+    # 6. Hacer commit de todos los cambios (versión, features, y relaciones) en una sola transacción
     session.commit()
     session.refresh(new_version)
 
