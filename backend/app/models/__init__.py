@@ -26,5 +26,4 @@ from .configuration import (
     ConfigurationCreate,
     ConfigurationPublic,
     ConfigurationUpdate,
-    ConfigurationFeature,
 )

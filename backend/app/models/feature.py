@@ -5,11 +5,11 @@ from sqlmodel import Field, Relationship, SQLModel
 
 from app.enums import FeatureType
 from .common import BaseTable, PaginatedResponse
+from .link_models import ConfigurationFeatureLink
 
 if TYPE_CHECKING:
     from .feature_model_version import FeatureModelVersion
     from .configuration import Configuration
-    from .link_models import ConfigurationFeatureLink
     from .feature_relation import FeatureRelation
 
 
