@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.enums import FeatureType
-from .common import BaseTable
+from .common import BaseTable, PaginatedResponse
 from .configuration import ConfigurationFeature
 
 if TYPE_CHECKING:
@@ -12,7 +12,9 @@ if TYPE_CHECKING:
     from .feature_relation import FeatureRelation
     from .configuration import Configuration
 
-
+# ---------------------------------------------------------------------------
+# Modelo Base para Feature
+# ---------------------------------------------------------------------------
 class FeatureBase(SQLModel):
     name: str = Field(max_length=100)
     type: FeatureType
@@ -21,15 +23,10 @@ class FeatureBase(SQLModel):
     parent_id: uuid.UUID | None = Field(default=None, foreign_key="feature.id")
 
 
-class FeatureCreate(FeatureBase):
-    pass
 
-
-class FeatureUpdate(SQLModel):
-    name: str | None = Field(default=None, max_length=100)
-    type: FeatureType | None = None
-    parent_id: uuid.UUID | None = None
-
+# ---------------------------------------------------------------------------
+# Modelo de la Tabla de Base de Datos
+# ---------------------------------------------------------------------------
 
 class Feature(BaseTable, FeatureBase, table=True):
 
@@ -62,10 +59,26 @@ class Feature(BaseTable, FeatureBase, table=True):
         back_populates="features", link_model=ConfigurationFeature
     )
 
+# ---------------------------------------------------------------------------
+# Modelos para la API (Pydantic)
+# ---------------------------------------------------------------------------
+
+class FeatureCreate(FeatureBase):
+    pass
+
+
+class FeatureUpdate(SQLModel):
+    name: str | None = Field(default=None, max_length=100)
+    type: FeatureType | None = None
+    parent_id: uuid.UUID | None = None
+
 
 class FeaturePublic(FeatureBase):
     id: uuid.UUID
 
+
+class FeatureListResponse(PaginatedResponse[FeaturePublic]):
+    pass
 
 # Modelo público recursivo para mostrar la jerarquía completa
 class FeaturePublicWithChildren(FeaturePublic):
