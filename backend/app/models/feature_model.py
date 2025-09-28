@@ -7,8 +7,7 @@ from sqlmodel import Field, Relationship, SQLModel
 from app.models.common import PaginatedResponse
 
 # Adelantamos la declaración de User y Domain para evitar importaciones circulares
-from app.models.user import User
-from app.models.domain import Domain
+from app.models import User, Domain, BaseTable
 
 
 # ---------------------------------------------------------------------------
@@ -22,12 +21,9 @@ class FeatureModelBase(SQLModel):
 # ---------------------------------------------------------------------------
 # Modelo de la Tabla de Base de Datos
 # ---------------------------------------------------------------------------
-class FeatureModel(FeatureModelBase, table=True):
+class FeatureModel(BaseTable, FeatureModelBase, table=True):
+    
     __tablename__ = "feature_model"
-
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
-    updated_at: Optional[datetime] = Field(default=None)
 
     # Relaciones
     domain_id: uuid.UUID = Field(foreign_key="domain.id", nullable=False)
