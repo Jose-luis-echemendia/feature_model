@@ -36,3 +36,4 @@ from .feature_model import (
     delete_feature_model,
     count_feature_models,
 )
+from .feature import get_features_as_tree, get_feature, get_features_by_model, create_feature, update_feature, delete_feature

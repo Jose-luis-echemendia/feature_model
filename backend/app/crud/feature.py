@@ -1,7 +1,7 @@
 from uuid import UUID
 from sqlmodel import Session, select
 
-from app.models import Feature, FeatureCreate, FeatureUpdate
+from app.models import Feature, FeatureCreate, FeatureUpdate, FeaturePublicWithChildren
 
 
 def get_feature(*, session: Session, feature_id: UUID) -> Feature | None:
@@ -22,10 +22,34 @@ def get_features_by_model(
     return session.exec(statement).all()
 
 
+def get_features_as_tree(
+    *, session: Session, feature_model_id: UUID, skip: int = 0, limit: int = 100
+) -> list[FeaturePublicWithChildren]:
+    """
+    Obtiene las features de un modelo y las devuelve estructuradas como un árbol.
+    """
+    features_list = get_features_by_model(
+        session=session, feature_model_id=feature_model_id, skip=skip, limit=limit
+    )
+
+    feature_map = {
+        str(f.id): FeaturePublicWithChildren.model_validate(f) for f in features_list
+    }
+    root_features = []
+
+    for feature_public in feature_map.values():
+        if feature_public.parent_id:
+            parent_id_str = str(feature_public.parent_id)
+            if parent_id_str in feature_map:
+                feature_map[parent_id_str].children.append(feature_public)
+        else:
+            root_features.append(feature_public)
+
+    return root_features
+
+
 def create_feature(*, session: Session, feature_create: FeatureCreate) -> Feature:
     """Crear una nueva feature."""
-    # Aquí se podrían añadir validaciones, como verificar que el parent_id
-    # pertenece al mismo feature_model_id.
     db_obj = Feature.model_validate(feature_create)
     session.add(db_obj)
     session.commit()
@@ -38,7 +62,7 @@ def update_feature(
 ) -> Feature:
     """Actualizar una feature existente."""
     update_data = feature_in.model_dump(exclude_unset=True)
-    
+
     # Evitar que una feature se convierta en su propio padre
     if "parent_id" in update_data and update_data["parent_id"] == db_feature.id:
         raise ValueError("A feature cannot be its own parent.")
@@ -57,4 +81,3 @@ def delete_feature(*, session: Session, db_feature: Feature) -> Feature:
     session.delete(db_feature)
     session.commit()
     return db_feature
-
