@@ -10,6 +10,7 @@ from .link_models import ConfigurationFeatureLink
 if TYPE_CHECKING:
     from .feature_model_version import FeatureModelVersion
     from .configuration import Configuration
+    from .feature_group import FeatureGroup
     from .feature_relation import FeatureRelation
 
 
@@ -22,6 +23,8 @@ class FeatureBase(SQLModel):
     feature_model_version_id: uuid.UUID = Field(foreign_key="feature_model_versions.id")
     # Clave foránea para la jerarquía padre-hijo (auto-referencia)
     parent_id: uuid.UUID | None = Field(default=None, foreign_key="features.id")
+    # Clave foránea para indicar pertenencia a un grupo XOR/OR
+    group_id: uuid.UUID | None = Field(default=None, foreign_key="feature_groups.id")
 
 
 # ---------------------------------------------------------------------------
@@ -44,6 +47,12 @@ class Feature(BaseTable, FeatureBase, table=True):
         sa_relationship_kwargs=dict(remote_side="Feature.id"),
     )
     children: list["Feature"] = Relationship(back_populates="parent")
+
+    # Relación con el grupo al que pertenece esta feature
+    group: Optional["FeatureGroup"] = Relationship(back_populates="member_features")
+
+    # Relación con los grupos de hijos que esta feature define
+    child_groups: list["FeatureGroup"] = Relationship(back_populates="parent_feature")
 
     # Relaciones muchos-a-muchos con Configuration
     configurations: list["Configuration"] = Relationship(
@@ -75,6 +84,7 @@ class FeatureUpdate(SQLModel):
     name: str | None = Field(default=None, max_length=100)
     type: FeatureType | None = None
     parent_id: uuid.UUID | None = None
+    group_id: uuid.UUID | None = None
 
 
 class FeaturePublic(FeatureBase):

@@ -21,6 +21,11 @@ from .feature_relation import (
     FeatureRelationPublic,
     FeatureRelationUpdate,
 )
+from .feature_group import (
+    FeatureGroup,
+    FeatureGroupCreate,
+    FeatureGroupPublic,
+)
 from .configuration import (
     Configuration,
     ConfigurationCreate,

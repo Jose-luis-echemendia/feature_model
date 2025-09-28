@@ -9,6 +9,7 @@ from .common import BaseTable
 if TYPE_CHECKING:
     from .feature_model import FeatureModel
     from .feature import Feature
+    from .feature_group import FeatureGroup
     from .feature_relation import FeatureRelation
     from .configuration import Configuration
     from .user import User
@@ -40,6 +41,9 @@ class FeatureModelVersion(BaseTable, FeatureModelVersionBase, table=True):
 
     # Relaciones de vuelta desde los elementos que pertenecen a esta versión
     features: list["Feature"] = Relationship(back_populates="feature_model_version")
+    feature_groups: list["FeatureGroup"] = Relationship(
+        back_populates="feature_model_version"
+    )
     feature_relations: list["FeatureRelation"] = Relationship(
         back_populates="feature_model_version"
     )

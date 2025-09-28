@@ -17,12 +17,19 @@ class FeatureType(str, Enum):
     Tipo de una característica dentro de un Feature Model.
     - mandatory: Obligatoria, siempre debe estar presente.
     - optional: Opcional, puede o no ser seleccionada.
-    - alternative: Grupo de características donde solo una puede ser elegida.
-    - or: Grupo de características donde al menos una debe ser elegida.
     """
 
     MANDATORY = "mandatory"
     OPTIONAL = "optional"
+
+
+class FeatureGroupType(str, Enum):
+    """
+    Tipos de grupos de características.
+    alternative (XOR): Solo se puede elegir una de las características del grupo.
+    or (OR): Se puede elegir una o más características del grupo.
+    """
+
     ALTERNATIVE = "alternative"
     OR = "or"
 

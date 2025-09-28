@@ -5,6 +5,7 @@ from sqlmodel import Session, select
 from app.models import (
     Feature,
     FeatureModelVersion,
+    FeatureGroup,
     FeatureRelation,
     User,
 )
@@ -49,6 +50,7 @@ def create_new_version_from_existing(
         select(FeatureModelVersion)
         .options(
             selectinload(FeatureModelVersion.features),
+            selectinload(FeatureModelVersion.feature_groups),
             selectinload(FeatureModelVersion.feature_relations),
         )
         .where(FeatureModelVersion.id == source_version.id)
@@ -90,9 +92,33 @@ def create_new_version_from_existing(
         if new_feature.parent_id and new_feature.parent_id in old_to_new_feature_id_map:
             new_feature.parent_id = old_to_new_feature_id_map[new_feature.parent_id]
 
-    session.add_all(new_features_map.values())
+    # 5. Duplicar los grupos de features (aún en memoria)
+    old_to_new_group_id_map: dict[uuid.UUID, uuid.UUID] = {}
+    new_groups_map: dict[uuid.UUID, FeatureGroup] = {}
+    for old_group in source_version_with_data.feature_groups:
+        new_group_data = old_group.model_dump(
+            exclude={"id", "created_at", "updated_at", "feature_model_version_id"}
+        )
+        # Re-mapear el parent_feature_id al nuevo ID
+        new_group_data["parent_feature_id"] = old_to_new_feature_id_map[
+            old_group.parent_feature_id
+        ]
+        new_group = FeatureGroup(
+            **new_group_data, feature_model_version_id=new_version.id
+        )
+        new_group.id = uuid.uuid4()
+        old_to_new_group_id_map[old_group.id] = new_group.id
+        new_groups_map[new_group.id] = new_group
 
-    # 5. Duplicar todas las relaciones, usando los nuevos IDs de features
+    # 6. Re-mapear los group_id en las nuevas features (aún en memoria)
+    for new_feature in new_features_map.values():
+        if new_feature.group_id and new_feature.group_id in old_to_new_group_id_map:
+            new_feature.group_id = old_to_new_group_id_map[new_feature.group_id]
+
+    session.add_all(new_features_map.values())
+    session.add_all(new_groups_map.values())
+
+    # 7. Duplicar todas las relaciones, usando los nuevos IDs de features
     new_relations = []
     for old_relation in source_version_with_data.feature_relations:
         new_relation = FeatureRelation(
@@ -104,7 +130,7 @@ def create_new_version_from_existing(
         new_relations.append(new_relation)
     session.add_all(new_relations)
 
-    # 6. Hacer commit de todos los cambios (versión, features, y relaciones) en una sola transacción
+    # 8. Hacer commit de todos los cambios en una sola transacción
     session.commit()
     session.refresh(new_version)
 
