@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from .feature_model import FeatureModel
     from .feature import Feature
     from .feature_group import FeatureGroup
+    from .constraint import Constraint
     from .feature_relation import FeatureRelation
     from .configuration import Configuration
     from .user import User
@@ -31,7 +32,7 @@ class FeatureModelVersionUpdate(SQLModel):
 
 
 class FeatureModelVersion(BaseTable, FeatureModelVersionBase, table=True):
-    
+
     __tablename__ = "feature_model_versions"
 
     feature_model: "FeatureModel" = Relationship(back_populates="versions")
@@ -46,6 +47,9 @@ class FeatureModelVersion(BaseTable, FeatureModelVersionBase, table=True):
         back_populates="feature_model_version"
     )
     feature_relations: list["FeatureRelation"] = Relationship(
+        back_populates="feature_model_version"
+    )
+    constraints: list["Constraint"] = Relationship(
         back_populates="feature_model_version"
     )
     configurations: list["Configuration"] = Relationship(

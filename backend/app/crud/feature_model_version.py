@@ -6,6 +6,7 @@ from app.models import (
     Feature,
     FeatureModelVersion,
     FeatureGroup,
+    Constraint,
     FeatureRelation,
     User,
 )
@@ -54,6 +55,7 @@ def create_new_version_from_existing(
         .options(
             selectinload(FeatureModelVersion.features),
             selectinload(FeatureModelVersion.feature_groups),
+            selectinload(FeatureModelVersion.constraints),
             selectinload(FeatureModelVersion.feature_relations),
         )
         .where(FeatureModelVersion.id == source_version.id)
@@ -121,7 +123,27 @@ def create_new_version_from_existing(
     session.add_all(new_features_map.values())
     session.add_all(new_groups_map.values())
 
-    # 7. Duplicar todas las relaciones, usando los nuevos IDs de features
+    # 7. Duplicar todas las constraints complejas
+    new_constraints = []
+    for old_constraint in source_version_with_data.constraints:
+        new_constraint_data = old_constraint.model_dump(
+            exclude={
+                "id",
+                "created_at",
+                "updated_at",
+                "feature_model_version_id",
+                "created_by_id",
+            }
+        )
+        new_constraint = Constraint(
+            **new_constraint_data,
+            feature_model_version_id=new_version.id,
+            created_by_id=user.id,
+        )
+        new_constraints.append(new_constraint)
+    session.add_all(new_constraints)
+
+    # 8. Duplicar todas las relaciones, usando los nuevos IDs de features
     new_relations = []
     for old_relation in source_version_with_data.feature_relations:
         new_relation = FeatureRelation(
@@ -133,7 +155,7 @@ def create_new_version_from_existing(
         new_relations.append(new_relation)
     session.add_all(new_relations)
 
-    # 8. Hacer commit de todos los cambios en una sola transacción
+    # 9. Hacer commit de todos los cambios en una sola transacción
     session.commit()
     session.refresh(new_version)
 

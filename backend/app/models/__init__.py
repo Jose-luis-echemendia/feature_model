@@ -26,6 +26,7 @@ from .feature_group import (
     FeatureGroupCreate,
     FeatureGroupPublic,
 )
+from .constraint import Constraint, ConstraintCreate, ConstraintPublic
 from .configuration import (
     Configuration,
     ConfigurationCreate,
