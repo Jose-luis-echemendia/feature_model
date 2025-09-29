@@ -109,13 +109,12 @@ def create_domain(
 # ---------------------------------------------------------------------------
 
 
-@router.patch("/{domain_id}/", response_model=DomainPublic)
+@router.patch("/{domain_id}/", dependencies=[Depends(AdminUser)], response_model=DomainPublic)
 def update_domain(
     *,
     domain_id: uuid.UUID,
     session: SessionDep,
     domain_in: DomainUpdate,
-    admin: AdminUser,  # ← Solo admin puede actualizar
 ) -> DomainPublic:
     """
     Update a domain.
