@@ -1,16 +1,18 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app import crud, models
+from app import crud
+from app.crud import feature_model_version as crud_version
+from app.crud import feature_group as crud_group
 from app.api.deps import SessionDep, ModelDesignerUser, VerifiedUser
-from app.models.common import Message
-from app.models.feature import (
+from app.models import (
     FeatureCreate,
     FeaturePublic,
     FeatureUpdate,
     FeaturePublicWithChildren,
+    Message
 )
-from app.crud import feature_model_version as crud_version
+
 
 router = APIRouter(prefix="/features", tags=["features"])
 
@@ -129,6 +131,21 @@ def update_feature(
         and not current_user.is_superuser
     ):
         raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    # Validar que si se pasa un group_id, este pertenezca a la misma versión que la feature
+    if feature_in.group_id:
+        group = crud_group.get_feature_group(session=session, group_id=feature_in.group_id)
+        if not group:
+            raise HTTPException(status_code=404, detail="Group not found.")
+        if group.feature_model_version_id != db_feature.feature_model_version_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Feature and Group must belong to the same model version.",
+            )
+        # Adicionalmente, el padre del grupo debe ser el padre de la feature
+        if group.parent_feature_id != db_feature.parent_id:
+            raise HTTPException(status_code=400, detail="Feature cannot be assigned to a group of another parent.")
+
 
     try:
         # La función ahora devuelve la feature en la *nueva* versión

@@ -3,8 +3,8 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 
 from app import crud
-from app.models.common import Message
 from app.api.deps import SessionDep, get_current_user, AdminUser
+from app.models.common import Message
 from app.models.domain import (
     DomainPublic,
     DomainListResponse,

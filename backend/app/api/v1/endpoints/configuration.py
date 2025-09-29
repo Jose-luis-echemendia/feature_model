@@ -4,19 +4,20 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app import crud
 from app.api.deps import SessionDep
-from app.models import (
+from app.models.configuration import (
     ConfigurationCreate,
     ConfigurationPublic,
     ConfigurationPublicWithFeatures,
     ConfigurationUpdate,
-    Message,
 )
 
 router = APIRouter()
 
 
 @router.post("/", response_model=ConfigurationPublic)
-def create_configuration(*, session: SessionDep, configuration_in: ConfigurationCreate):
+def create_configuration(
+    *, session: SessionDep, configuration_in: ConfigurationCreate
+) -> ConfigurationPublic:
     """
     Crea una nueva configuración.
     """
@@ -27,7 +28,9 @@ def create_configuration(*, session: SessionDep, configuration_in: Configuration
 
 
 @router.get("/{id}", response_model=ConfigurationPublicWithFeatures)
-def read_configuration(*, session: SessionDep, id: uuid.UUID):
+def read_configuration(
+    *, session: SessionDep, id: uuid.UUID
+) -> ConfigurationPublicWithFeatures:
     """
     Obtiene una configuración por su ID.
     """
@@ -42,7 +45,7 @@ def read_configuration(*, session: SessionDep, id: uuid.UUID):
 @router.put("/{id}", response_model=ConfigurationPublic)
 def update_configuration(
     *, session: SessionDep, id: uuid.UUID, configuration_in: ConfigurationUpdate
-):
+) -> ConfigurationPublic:
     """
     Actualiza una configuración.
     """

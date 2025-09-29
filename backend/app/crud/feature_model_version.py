@@ -33,7 +33,10 @@ def create_new_version_from_existing(
     source_version: FeatureModelVersion,
     user: User,
     return_id_map: bool = False,
-) -> FeatureModelVersion | tuple[FeatureModelVersion, dict[uuid.UUID, uuid.UUID]]:
+) -> (
+    FeatureModelVersion
+    | tuple[FeatureModelVersion, dict[uuid.UUID, uuid.UUID], dict[uuid.UUID, uuid.UUID]]
+):
     """
     Crea una nueva versión de un modelo de características, clonando todas las
     features y relaciones de una versión de origen. (Copy-On-Write)
@@ -42,7 +45,7 @@ def create_new_version_from_existing(
     :param source_version: La versión del modelo a partir de la cual se creará la nueva.
     :param user: El usuario que realiza la operación.
     :param return_id_map: Si es True, devuelve también el mapa de IDs antiguos a nuevos.
-    :return: La nueva versión del modelo creada.
+    :return: La nueva versión del modelo creada, y opcionalmente los mapas de IDs.
     """
     # 1. Cargar todas las features y relaciones de la versión de origen en una sola consulta
     # para evitar múltiples accesos a la BD (lazy loading).
@@ -135,5 +138,5 @@ def create_new_version_from_existing(
     session.refresh(new_version)
 
     if return_id_map:
-        return new_version, old_to_new_feature_id_map
+        return new_version, old_to_new_feature_id_map, old_to_new_group_id_map
     return new_version
