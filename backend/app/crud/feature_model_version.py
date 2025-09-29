@@ -1,6 +1,5 @@
 import uuid
 from sqlalchemy.orm import selectinload
-from datetime import datetime
 from sqlmodel import Session, select
 
 from app.models import (

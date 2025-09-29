@@ -17,7 +17,10 @@ from app.crud.feature_model_version import (
 
 def get_feature(*, session: Session, feature_id: UUID) -> Feature | None:
     """Obtener una feature por ID."""
-    return session.get(Feature, feature_id)
+    statement = select(Feature).where(
+        Feature.id == feature_id, Feature.is_active == True
+    )
+    return session.exec(statement).first()
 
 
 def get_features_by_version(
@@ -26,6 +29,7 @@ def get_features_by_version(
     """Obtener todas las features de una versión de modelo específica."""
     statement = (
         select(Feature)
+        .where(Feature.is_active == True)
         .where(Feature.feature_model_version_id == feature_model_version_id)
         .offset(skip)
         .limit(limit)

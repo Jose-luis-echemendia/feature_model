@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from sqlmodel import Session, select
 
 from app.models import (
@@ -72,7 +73,11 @@ def delete_constraint(
     constraint_to_delete = session.exec(statement).first()
 
     if constraint_to_delete:
-        session.delete(constraint_to_delete)
+        # Lógica de Soft Delete
+        constraint_to_delete.is_active = False
+        constraint_to_delete.deleted_at = datetime.utcnow()
+        constraint_to_delete.updated_by_id = user.id
+        session.add(constraint_to_delete)
         session.commit()
     else:
         session.commit()

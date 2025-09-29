@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from sqlmodel import Session, select
 
 from app.models import (
@@ -98,7 +99,11 @@ def delete_feature_relation(
     relation_to_delete = session.exec(statement).first()
 
     if relation_to_delete:
-        session.delete(relation_to_delete)
+        # Lógica de Soft Delete
+        relation_to_delete.is_active = False
+        relation_to_delete.deleted_at = datetime.utcnow()
+        relation_to_delete.updated_by_id = user.id
+        session.add(relation_to_delete)
         session.commit()
     else:
         # Esto tampoco debería pasar. Podríamos loggear una advertencia.

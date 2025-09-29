@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from sqlmodel import Session, select
 
 from app.models import (
@@ -7,6 +8,7 @@ from app.models import (
     User,
 )
 from app.crud.feature_model_version import create_new_version_from_existing
+
 
 def get_feature_group(*, session: Session, group_id: uuid.UUID) -> FeatureGroup | None:
     """Obtener un grupo de características por su ID."""
@@ -86,10 +88,13 @@ def delete_feature_group(
     group_to_delete = session.exec(statement).first()
 
     if group_to_delete:
-        # Al borrar el grupo, las features que pertenecían a él en la nueva versión
-        # quedarán con group_id=None gracias a la lógica de clonado y la FK.
-        # SQLAlchemy se encarga de desasociar los `member_features` antes de borrar.
-        session.delete(group_to_delete)
+        # Lógica de Soft Delete
+        group_to_delete.is_active = False
+        group_to_delete.deleted_at = datetime.utcnow()
+        group_to_delete.updated_by_id = user.id
+        # NOTA: Las features que eran miembros de este grupo ahora apuntarán a un grupo inactivo.
+        # Esto es correcto, ya que la nueva versión es un snapshot.
+        session.add(group_to_delete)
         session.commit()
     else:
         # Esto no debería pasar. Hacemos commit de la nueva versión de todas formas.
