@@ -1,4 +1,5 @@
 from uuid import UUID
+from datetime import datetime
 from sqlmodel import Session, select
 
 from app.models import (
@@ -95,6 +96,8 @@ def create_feature(
 
     # 5. Crear la nueva feature y guardarla
     db_obj = Feature.model_validate(new_feature_data)
+    # Asignar el creador
+    db_obj.created_by_id = user.id
     session.add(db_obj)
     session.commit()
     session.refresh(db_obj)
@@ -158,6 +161,9 @@ def update_feature(
 
     # 4. Aplicar los datos actualizados y guardar
     new_feature_to_update.sqlmodel_update(update_data)
+    # Registrar la auditoría de la actualización
+    new_feature_to_update.updated_at = datetime.utcnow()
+    new_feature_to_update.updated_by_id = user.id
     session.add(new_feature_to_update)
     session.commit()
     session.refresh(new_feature_to_update)

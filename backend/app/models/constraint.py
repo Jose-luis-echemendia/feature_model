@@ -25,9 +25,6 @@ class Constraint(BaseTable, ConstraintBase, table=True):
         back_populates="constraints"
     )
 
-    created_by_id: uuid.UUID | None = Field(default=None, foreign_key="user.id")
-    created_by: Optional["User"] = Relationship()
-
 
 class ConstraintCreate(SQLModel):
     feature_model_version_id: uuid.UUID

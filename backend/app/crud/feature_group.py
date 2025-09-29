@@ -46,6 +46,7 @@ def create_feature_group(
         min_cardinality=group_in.min_cardinality,
         max_cardinality=group_in.max_cardinality,
         feature_model_version_id=new_version.id,
+        created_by_id=user.id,
     )
 
     session.add(new_group)

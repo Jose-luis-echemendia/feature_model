@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 
 class FeatureModelVersionBase(SQLModel):
     version_number: int = Field(default=1, index=True)
-    is_active: bool = Field(default=False)
     snapshot: dict[str, Any] | None = Field(default=None, sa_column=Column(JSONB))
     feature_model_id: uuid.UUID = Field(foreign_key="feature_model.id")
 
@@ -36,10 +35,6 @@ class FeatureModelVersion(BaseTable, FeatureModelVersionBase, table=True):
     __tablename__ = "feature_model_versions"
 
     feature_model: "FeatureModel" = Relationship(back_populates="versions")
-
-    # Relación con el usuario que creó la versión
-    created_by_id: uuid.UUID | None = Field(default=None, foreign_key="user.id")
-    created_by: "User" = Relationship()
 
     # Relaciones de vuelta desde los elementos que pertenecen a esta versión
     features: list["Feature"] = Relationship(back_populates="feature_model_version")

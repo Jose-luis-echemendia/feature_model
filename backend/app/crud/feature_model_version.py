@@ -1,5 +1,6 @@
 import uuid
 from sqlalchemy.orm import selectinload
+from datetime import datetime
 from sqlmodel import Session, select
 
 from app.models import (
@@ -68,6 +69,7 @@ def create_new_version_from_existing(
     new_version = FeatureModelVersion(
         feature_model_id=source_version_with_data.feature_model_id,
         version_number=latest_version_num + 1,
+        # created_by_id se hereda de BaseTable y se asigna aquí
         created_by_id=user.id,
         is_active=False,  # Las nuevas versiones son borradores por defecto
     )
@@ -82,10 +84,21 @@ def create_new_version_from_existing(
     for old_feature in source_version_with_data.features:
         # Creamos una nueva feature con los mismos datos pero asociada a la nueva versión
         new_feature_data = old_feature.model_dump(
-            exclude={"id", "created_at", "updated_at", "feature_model_version_id"}
+            exclude={
+                "id",
+                "created_at",
+                "updated_at",
+                "deleted_at",
+                "is_active",
+                "created_by_id",
+                "updated_by_id",
+                "feature_model_version_id",
+            }
         )
         new_feature = Feature(
-            **new_feature_data, feature_model_version_id=new_version.id
+            **new_feature_data,
+            feature_model_version_id=new_version.id,
+            created_by_id=user.id,
         )
         # Generamos un ID de cliente para poder mapear antes de hacer flush
         new_feature.id = uuid.uuid4()
@@ -102,14 +115,25 @@ def create_new_version_from_existing(
     new_groups_map: dict[uuid.UUID, FeatureGroup] = {}
     for old_group in source_version_with_data.feature_groups:
         new_group_data = old_group.model_dump(
-            exclude={"id", "created_at", "updated_at", "feature_model_version_id"}
+            exclude={
+                "id",
+                "created_at",
+                "updated_at",
+                "deleted_at",
+                "is_active",
+                "created_by_id",
+                "updated_by_id",
+                "feature_model_version_id",
+            }
         )
         # Re-mapear el parent_feature_id al nuevo ID
         new_group_data["parent_feature_id"] = old_to_new_feature_id_map[
             old_group.parent_feature_id
         ]
         new_group = FeatureGroup(
-            **new_group_data, feature_model_version_id=new_version.id
+            **new_group_data,
+            feature_model_version_id=new_version.id,
+            created_by_id=user.id,
         )
         new_group.id = uuid.uuid4()
         old_to_new_group_id_map[old_group.id] = new_group.id
@@ -131,8 +155,11 @@ def create_new_version_from_existing(
                 "id",
                 "created_at",
                 "updated_at",
-                "feature_model_version_id",
+                "deleted_at",
+                "is_active",
                 "created_by_id",
+                "updated_by_id",
+                "feature_model_version_id",
             }
         )
         new_constraint = Constraint(
@@ -151,6 +178,7 @@ def create_new_version_from_existing(
             source_feature_id=old_to_new_feature_id_map[old_relation.source_feature_id],
             target_feature_id=old_to_new_feature_id_map[old_relation.target_feature_id],
             type=old_relation.type,
+            created_by_id=user.id,
         )
         new_relations.append(new_relation)
     session.add_all(new_relations)

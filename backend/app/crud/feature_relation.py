@@ -57,6 +57,7 @@ def create_feature_relation(
         source_feature_id=old_to_new_id_map[relation_in.source_feature_id],
         target_feature_id=old_to_new_id_map[relation_in.target_feature_id],
         feature_model_version_id=new_version.id,
+        created_by_id=user.id,
     )
 
     session.add(new_relation)

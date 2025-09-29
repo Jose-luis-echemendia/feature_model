@@ -1,9 +1,12 @@
 import uuid
 from datetime import datetime
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, TYPE_CHECKING, Optional
 
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
+
+if TYPE_CHECKING:
+    from .user import User
 
 # ---------------------------------------------------------------------------
 # Modelos Base y Genéricos
@@ -27,7 +30,16 @@ class BaseTable(SQLModel):
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
-    updated_at: datetime | None = Field(default=None)
+    updated_at: Optional[datetime] = Field(default=None)
+    deleted_at: Optional[datetime] = Field(default=None)
+    is_active: bool = Field(default=True, index=True)
+
+    # Campos de auditoría de usuario
+    created_by_id: Optional[uuid.UUID] = Field(default=None, foreign_key="users.id")
+    updated_by_id: Optional[uuid.UUID] = Field(default=None, foreign_key="users.id")
+
+    created_by: Optional["User"] = Field(default=None, foreign_key="users.id")
+    updated_by: Optional["User"] = Field(default=None, foreign_key="users.id")
 
 
 class Message(BaseModel):
