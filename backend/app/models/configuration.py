@@ -16,6 +16,9 @@ class ConfigurationBase(SQLModel):
     name: str = Field(max_length=100)
     description: str | None = Field(default=None)
     feature_model_version_id: uuid.UUID = Field(foreign_key="feature_model_versions.id")
+    feature_model_version_id: uuid.UUID = Field(
+        foreign_key="feature_model_versions.id", index=True
+    )
 
 
 class ConfigurationCreate(ConfigurationBase):

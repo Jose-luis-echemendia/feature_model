@@ -2,6 +2,7 @@ import uuid
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Index, UniqueConstraint
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Column, Field, Relationship, SQLModel
 
@@ -24,6 +25,10 @@ class FeatureBase(SQLModel):
     type: FeatureType
     metadata: dict | None = Field(default=None, sa_column=Column(JSONB))
     feature_model_version_id: uuid.UUID = Field(foreign_key="feature_model_versions.id")
+    metadata: dict | None = Field(default=None, sa_column=Column(JSONB, index=True, sa_column_kwargs={"postgresql_using": "gin"}))
+    feature_model_version_id: uuid.UUID = Field(
+        foreign_key="feature_model_versions.id", index=True
+    )
     # Clave foránea para la jerarquía padre-hijo (auto-referencia)
     parent_id: uuid.UUID | None = Field(default=None, foreign_key="features.id")
     # Clave foránea para indicar pertenencia a un grupo XOR/OR
