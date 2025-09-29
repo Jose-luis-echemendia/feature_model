@@ -12,7 +12,6 @@ from app.crud.feature_model_version import (
     create_new_version_from_existing,
     get_feature_model_version,
 )
-from app.crud.feature_group import get_feature_group
 
 
 def get_feature(*, session: Session, feature_id: UUID) -> Feature | None:
@@ -145,6 +144,9 @@ def update_feature(
     # 3.2. Validar y re-mapear group_id si se está cambiando
     if "group_id" in update_data and update_data["group_id"]:
         # El group_id que llega en el payload es de la versión antigua.
+        # Importación local para romper el ciclo
+        from app.crud.feature_group import get_feature_group
+
         # Verificamos que el grupo exista en la versión original.
         old_group = get_feature_group(session=session, group_id=update_data["group_id"])
         if not old_group or old_group.feature_model_version_id != source_version.id:

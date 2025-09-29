@@ -1,5 +1,5 @@
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field, Relationship, SQLModel
@@ -26,7 +26,7 @@ class Constraint(BaseTable, ConstraintBase, table=True):
     )
 
     created_by_id: uuid.UUID | None = Field(default=None, foreign_key="user.id")
-    created_by: "User" | None = Relationship()
+    created_by: Optional["User"] = Relationship()
 
 
 class ConstraintCreate(SQLModel):

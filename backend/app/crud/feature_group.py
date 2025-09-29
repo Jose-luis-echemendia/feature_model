@@ -7,8 +7,6 @@ from app.models import (
     User,
 )
 from app.crud.feature_model_version import create_new_version_from_existing
-from app.crud.feature import get_feature
-
 
 def get_feature_group(*, session: Session, group_id: uuid.UUID) -> FeatureGroup | None:
     """Obtener un grupo de características por su ID."""
@@ -22,6 +20,9 @@ def create_feature_group(
     Crea un nuevo grupo de características usando la estrategia "copy-on-write".
     Crea una nueva versión del modelo y añade el grupo en esa versión.
     """
+    # Importación local para romper el ciclo
+    from app.crud.feature import get_feature
+
     # 1. Validar que la feature padre existe
     parent_feature = get_feature(session=session, feature_id=group_in.parent_feature_id)
     if not parent_feature:
