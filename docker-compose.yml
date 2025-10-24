@@ -1,9 +1,7 @@
 services:
-
   # SERVICIO DE POSTGRESQL PARA LA BASE DE DATOS
   db:
     image: postgres:17
-    restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -26,7 +24,6 @@ services:
   # SERVICIO DE ADMINER PARA LA GESTIÓN DE LA BASE DE DATOS
   adminer:
     image: adminer
-    restart: always
     networks:
       - traefik-public
       - default
@@ -49,18 +46,17 @@ services:
 
   # SERVICIO DE PRESTART PARA LA INICIALIZACIÓN DE LA BASE DE DATOS Y OTROS AJUSTES ANTES DE INICIAR EL BACKEND
   prestart:
-    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}"
     build:
       context: ./backend
     volumes:
-      - ./backend/app:/app/app  
+      - ./backend/app:/app/app
     networks:
       - traefik-public
       - default
     depends_on:
       db:
         condition: service_healthy
-        restart: true
     command: bash scripts/prestart.sh
     env_file:
       - .env
@@ -86,21 +82,18 @@ services:
   # SERVICIO DE REDIS PARA LA GESTIÓN DE TAREAS ASÍNCRONAS Y CACHE
   redis:
     image: redis:7-alpine
-    restart: always
     volumes:
       - redis_data:/data
 
   # SERVICIO DEL BACKEND
   backend:
-    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
-    restart: always
+    image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}"
     networks:
       - traefik-public
       - default
     depends_on:
       db:
         condition: service_healthy
-        restart: true
       prestart:
         condition: service_completed_successfully
     env_file:
@@ -125,7 +118,13 @@ services:
       - SENTRY_DSN=${SENTRY_DSN}
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8000/api/v1/utils/health-check/",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -133,7 +132,7 @@ services:
     build:
       context: ./backend
     volumes:
-      - ./backend/app:/app/app  
+      - ./backend/app:/app/app
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
@@ -154,10 +153,9 @@ services:
 
   # SERVICIO DEL WORKER DE CELERY PARA TAREAS ASÍNCRONAS
   celery_worker:
-    image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}" 
+    image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}"
     build:
       context: ./backend
-    restart: always 
     command: celery -A app.celery.celery_app worker --loglevel=info
     volumes:
       - ./backend/app:/app/app
@@ -169,8 +167,7 @@ services:
 
   # SERVICIO DEL FRONTEND
   frontend:
-    image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
-    restart: always
+    image: "${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}"
     networks:
       - traefik-public
       - default
