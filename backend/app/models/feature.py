@@ -11,10 +11,13 @@ from .common import BaseTable, PaginatedResponse
 from .link_models import ConfigurationFeatureLink
 
 if TYPE_CHECKING:
-    from .feature_model_version import FeatureModelVersion
+    from .resource import Resource
     from .configuration import Configuration
+    from .feature_model_version import FeatureModelVersion
     from .feature_group import FeatureGroup
     from .feature_relation import FeatureRelation
+    from .tag import Tag 
+    from .link_models import FeatureTagLink 
 
 
 # ---------------------------------------------------------------------------
@@ -33,7 +36,8 @@ class FeatureBase(SQLModel):
     parent_id: uuid.UUID | None = Field(default=None, foreign_key="features.id")
     # Clave foránea para indicar pertenencia a un grupo XOR/OR
     group_id: uuid.UUID | None = Field(default=None, foreign_key="feature_groups.id")
-
+    # Clave foránea para indicar si la características es un recurso (ARCHIVO MEDIA)
+    resource_id: uuid.UUID | None = Field(default=None, foreign_key="resources.id")
 
 
 # ---------------------------------------------------------------------------
@@ -43,13 +47,26 @@ class FeatureBase(SQLModel):
 
 class Feature(BaseTable, FeatureBase, table=True):
 
+    # ------------------ METADATA FOR TABLE ----------------------------------------
+
     __tablename__ = "features"
+    
+    __table_args__ = (
+        UniqueConstraint(
+            "feature_model_version_id", "name", name="uq_feature_version_name"
+        ),
+    )
+    
+    tags: list["Tag"] = Relationship(back_populates="features", link_model=FeatureTagLink)
+    
+    
+    # ------------------ RELATIONSHIP ----------------------------------------
 
     # Relación de vuelta a FeatureModelVersion
     feature_model_version: "FeatureModelVersion" = Relationship(
         back_populates="features"
     )
-
+    
     # Relaciones para la jerarquía (auto-referencia)
     parent: Optional["Feature"] = Relationship(
         back_populates="children",
@@ -77,18 +94,15 @@ class Feature(BaseTable, FeatureBase, table=True):
         back_populates="target_feature",
         sa_relationship_kwargs={"foreign_keys": "[FeatureRelation.target_feature_id]"},
     )
+    
+    # Relacion Para poder acceder al objeto Resource completo desde una Feature
+    resource: "Resource" | None = Relationship(back_populates="features")
 
-    __table_args__ = (
-        UniqueConstraint(
-            "feature_model_version_id", "name", name="uq_feature_version_name"
-        ),
-    )
 
 
 # ---------------------------------------------------------------------------
 # Modelos para la API (Pydantic)
 # ---------------------------------------------------------------------------
-
 
 class FeatureCreate(FeatureBase):
     # Hereda todo de FeatureBase, no necesita campos adicionales para la creación

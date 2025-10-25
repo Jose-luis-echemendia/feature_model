@@ -9,6 +9,8 @@ from .link_models import ConfigurationFeatureLink
 if TYPE_CHECKING:
     from .feature_model_version import FeatureModelVersion
     from .feature import Feature, FeaturePublicWithChildren
+    from .tag import Tag, TagPublic 
+    from .link_models import ConfigurationTagLink
 
 
 # --- Modelo Principal de Configuration ---
@@ -35,6 +37,8 @@ class ConfigurationUpdate(SQLModel):
 class Configuration(BaseTable, ConfigurationBase, table=True):
 
     __tablename__ = "configurations"
+    
+    tags: list["Tag"] = Relationship(back_populates="configurations", link_model=ConfigurationTagLink)
 
     # Relación de vuelta a FeatureModelVersion
     feature_model_version: "FeatureModelVersion" = Relationship(
@@ -57,3 +61,4 @@ class ConfigurationListResponse(PaginatedResponse[ConfigurationPublic]):
 
 class ConfigurationPublicWithFeatures(ConfigurationPublic):
     features: list["FeaturePublicWithChildren"] = []
+    tags: list["TagPublic"] = []
