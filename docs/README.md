@@ -18,7 +18,7 @@ Este proyecto es el resultado de nuestro trabajo de tesis para optar por el tít
 
 | Rol             | Autor                                   | Tesis Individual                                                                              | Contacto                                   | Tutor Específico           |
 | --------------- | --------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------- |
-| 🚀 **Backend**  | José Luis Echemendía López              | _"Desarrollo de un sistema gestor de modelos de características utilizando FastAPI y PostgreSQL"_ | josee@estudiantes.uci.cu                  | M. Sc. Yadira Ramírez Rodríguez Ing. Liany Sobrino Miranda |
+| 🚀 **Backend**  | José Luis Echemendía López              | _"Desarrollo de un sistema gestor de modelos de características utilizando FastAPI y PostgreSQL"_ | josee@estudiantes.uci.cu                  | M. Sc. Yadira Ramírez Rodríguez<br>Ing. Liany Sobrino Miranda |
 | 🎨 **Frontend** | Ernes [Tu Apellido] [Tu Apellido] | _"Implementación de una interfaz visual para la configuración de itinerarios curriculares con Next.js"_ | evdiaz@estudiantes.uci.cu                      | M. Sc. Yadira Ramírez Rodríguez |
 
 ---
