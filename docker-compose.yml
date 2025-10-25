@@ -1,7 +1,7 @@
 services:
   # SERVICIO DE POSTGRESQL PARA LA BASE DE DATOS
   db:
-    image: postgres:17
+    image: postgres:18
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
