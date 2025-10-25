@@ -69,62 +69,166 @@ Aquí se detalla el propósito de cada tabla que conforma la arquitectura de nue
 
 ---
 
-# 💡 5 Analogías para Dominar el Sistema
+# 💡 7 Analogías para Dominar el Sistema
 
-Para comprender la arquitectura, pensemos en ella como un sistema para crear experiencias de aprendizaje asombrosas.
 
-### 1. El Arquitecto de Grados Universitarios 🏛️
-Nuestra plataforma es la herramienta del Decano para diseñar los planes de estudio de toda la facultad.
+creame analogias como estas, o  que sean parecidas asi, dedicadas a la educacion
 
-*   **`Domain` ➜ La Facultad** (ej: "Facultad de Ingeniería").
-*   **`FeatureModel` ➜ La Plantilla del Grado** (ej: "Grado en Ingeniería Informática"), creada por el **Director de Carrera (`MODEL_DESIGNER`)**.
-*   **`Feature` ➜ La Asignatura o el Semestre** (ej: `Cálculo I`).
-*   **`FeatureRelation` ➜ Los Prerrequisitos** ("'Cálculo II' `REQUIRES` 'Cálculo I'").
-*   **`Resource` ➜ El Material de Estudio** (El PDF del libro, el enlace al simulador de laboratorio).
-*   **`Tag` ➜ La Clasificación Académica** ("Nivel Básico", "Requiere Habilidades Analíticas").
-*   **`REVIEWER` ➜ El Comité Académico** que aprueba el plan de estudios.
-*   **`Configuration` ➜ El Expediente Personalizado** de un alumno, diseñado por su **Tutor Académico (`CONFIGURATOR`)**.
 
-### 2. El Constructor de Cursos Online (Estilo MOOC) 💻
-Somos la herramienta de autor para crear cursos flexibles en plataformas como Coursera o edX.
+### Analogía 1: El Arquitecto de Grados Universitarios
 
-*   **`Domain` ➜ La Categoría del Curso** (ej: "Desarrollo de Software").
-*   **`FeatureModel` ➜ El Curso Maestro Completo** (ej: "Python: de Principiante a Experto"), diseñado por el **Instructor Principal (`MODEL_DESIGNER`)** y sus **Asistentes (`MODEL_EDITOR`)**.
-*   **`Feature` ➜ El Módulo, la Lección o la Tarea**.
-*   **`FeatureGroup` ➜ La Especialización** (`XOR`: Elige el proyecto de "Análisis de Datos" *o* "Desarrollo Web").
-*   **`Resource` ➜ El Video de la Lección** (el archivo `.mp4`) o el PDF con ejercicios.
-*   **`Tag` ➜ El Perfil del Contenido** ("Para Principiantes", "Video-Lección", "Evaluación").
-*   **`Configuration` ➜ La Versión del Curso para un Público** (ej: "Curso de Python para Analistas de Datos").
+Piensa en tu sistema como la herramienta que usa el decano de una facultad para diseñar y adaptar los planes de estudio de toda la universidad.
 
-### 3. El Diseñador de Formación Corporativa 📈
-Somos la herramienta de RRHH para crear planes de desarrollo y onboarding para empleados.
+*   **`Domain`**: La **Facultad o Escuela** (ej: "Facultad de Ingeniería", "Escuela de Artes y Humanidades"). Es el contenedor de nivel más alto.
 
-*   **`Domain` ➜ El Área Funcional** (ej: "Ventas", "Tecnología").
-*   **`FeatureModel` ➜ El Programa de Desarrollo Profesional** (ej: "Plan de Carrera para Ingenieros").
-*   **`Feature` ➜ La Competencia o la Actividad de Formación** (ej: `Habilidad: Comunicación Efectiva`).
-*   **`Resource` ➜ El Material del Taller** (el video del curso de compliance, la presentación del taller).
-*   **`Tag` ➜ La Competencia Clave** ("Liderazgo", "Habilidad Blanda", "Obligatorio para Ventas").
-*   **`REVIEWER` ➜ El Director de RRHH** que da el visto bueno al plan.
-*   **`Configuration` ➜ El Plan de Formación Personalizado** para un empleado.
+*   **`FeatureModel`**: La **plantilla maestra de un Grado o Carrera** (ej: "Grado en Ingeniería Informática"). Define la estructura completa y todas las asignaturas y caminos posibles.
 
-### 4. El Constructor de Kits de Aprendizaje LEGO® 🧱
-Nuestra plataforma es como la fábrica de LEGO®, donde diseñamos kits educativos que otros pueden construir.
+*   **`Feature`**:
+    *   **Jerarquía**: Una **Asignatura** o un **Semestre**. Por ejemplo, la feature `Semestre 1` es padre de las features `Cálculo I`, `Álgebra Lineal` y `Fundamentos de Programación`.
+    *   **Tipo**:
+        *   `Cálculo I` es **obligatoria (`mandatory`)**.
+        *   `Robótica Avanzada` es **opcional (`optional`)**.
+        *   Las asignaturas de una mención o especialización (ej: "Inteligencia Artificial" vs. "Ciberseguridad") son parte de un grupo **alternativo (`XOR`)**: debes elegir una rama, no ambas.
 
-*   **`Domain` ➜ La Línea de Productos** (`LEGO® Education`, `LEGO® Mindstorms`).
-*   **`FeatureModel` ➜ El Manual de Instrucciones** para un kit (ej: "Kit de Robótica Básico").
-*   **`Feature` ➜ Un Tipo de Pieza o un Paso de Montaje** (un "bloque rojo 2x4", un "sensor de color").
-*   **`Resource` ➜ El Diseño CAD de una Pieza Especial** que puede ser usada en múltiples kits.
-*   **`FeatureRelation` ➜ Las Reglas de Ensamblaje** ("El motor debe conectarse al engranaje principal").
-*   **`Tag` ➜ La Información de la Caja** ("Edades 9-14", "Nivel Experto").
-*   **`Configuration` ➜ El Robot Terminado**, ensamblado por un **Estudiante (`CONFIGURATOR`)** siguiendo las instrucciones.
+*   **`FeatureRelation`**: Los **prerrequisitos académicos**. La asignatura `Cálculo II` (`source`) **requiere (`requires`)** haber cursado `Cálculo I` (`target`).
 
-### 5. El Director de Orquesta Sinfónica 🎼
-Somos el podio desde donde un director puede componer y adaptar una sinfonía (un curso completo).
+*   **`Configuration`**: Un **Plan de Estudios Específico y Válido**. Puede ser el "Plan recomendado para la Mención en Inteligencia Artificial 2024" o el "Expediente Académico Personalizado de la alumna Sofía Pérez".
 
-*   **`Domain` ➜ El Período Musical** ("Barroco", "Clásico", "Romántico").
-*   **`FeatureModel` ➜ La Partitura Maestra** de una sinfonía, con todas las secciones y variaciones posibles. La crea el **Compositor (`MODEL_DESIGNER`)**.
-*   **`Feature` ➜ Una Sección o Instrumento** (la "Sección de Cuerdas", el "Solo de Oboe").
-*   **`FeatureGroup` ➜ Variaciones de Interpretación** (`XOR`: Tocar la sección "Adagio" *o* la versión "Allegro").
-*   **`Resource` ➜ La Particella de un Músico** (la hoja de música específica para el primer violín).
-*   **`Tag` ➜ El Carácter de la Música** ("Enérgico", "Melancólico", "Virtuoso").
-*   **`Configuration` ➜ La Interpretación en un Concierto Específico**, adaptada por el **Director (`CONFIGURATOR`)** según la acústica de la sala y la ocasión.
+*   **`Configuration_Feature`**: La **lista final de asignaturas** que componen ese plan de estudios específico.
+
+---
+
+### Analogía 2: El Constructor de Cursos Online (Estilo MOOC)
+
+Imagina que eres un creador de cursos para una plataforma como Coursera o edX. Tu sistema es la herramienta de autor para ensamblar cursos flexibles.
+
+*   **`Domain`**: La **Categoría General del Curso** (ej: "Desarrollo de Software", "Marketing Digital").
+
+*   **`FeatureModel`**: El **curso maestro completo** (ej: "Curso Definitivo de Python: de Principiante a Experto"). Contiene todos los módulos y recursos posibles que podrías ofrecer.
+
+*   **`Feature`**:
+    *   **Jerarquía**: Un **Módulo**, una **Lección** o un **Recurso**. El módulo `Estructuras de Datos` es padre de las lecciones `Listas y Tuplas` y `Diccionarios`. La lección `Listas y Tuplas` es padre de los recursos `Video Explicativo` y `Cuaderno de Jupyter`.
+    *   **Tipo**:
+        *   El `Módulo 1: Introducción` es **obligatorio (`mandatory`)**.
+        *   El `Módulo 7: Tópicos Avanzados` es **opcional (`optional`)**.
+        *   El tipo de proyecto final (ej: "Análisis de Datos" vs. "Aplicación Web") es **alternativo (`XOR`)**.
+
+*   **`FeatureRelation`**: La **secuencia de aprendizaje lógica**. La lección `Programación Orientada a Objetos` (`source`) **requiere (`requires`)** haber completado la lección `Funciones y Métodos` (`target`).
+
+*   **`Configuration`**: Una **versión específica del curso para un público objetivo**. Por ejemplo, "Curso de Python para Analistas de Datos", que incluye los módulos básicos, los de análisis de datos y el proyecto de datos, pero omite los módulos de desarrollo web.
+
+*   **`Configuration_Feature`**: El **conjunto exacto de lecciones y recursos** que se incluyen en esa versión del curso.
+
+---
+
+### Analogía 3: El Diseñador de Planes de Formación Corporativa
+
+Visualiza tu sistema como la herramienta del departamento de Recursos Humanos para crear planes de desarrollo y onboarding para los empleados de una empresa.
+
+*   **`Domain`**: El **Departamento o Área Funcional** (ej: "Ventas", "Operaciones", "Tecnología").
+
+*   **`FeatureModel`**: El **Programa de Desarrollo Profesional completo** (ej: "Plan de Carrera para Ingeniero de Software").
+
+*   **`Feature`**:
+    *   **Jerarquía**: Una **Competencia**, una **Habilidad** o una **Actividad de Formación**. La competencia `Liderazgo` es padre de las habilidades `Comunicación Efectiva` y `Gestión de Proyectos`. `Comunicación Efectiva` es padre de las actividades `Curso de Oratoria` y `Taller de Feedback`.
+    *   **Tipo**:
+        *   El curso `Seguridad de la Información` es **obligatorio (`mandatory`)** para todos.
+        *   Un `Curso de Idiomas` es **opcional (`optional`)**.
+        *   La ruta de formación (ej: `Ruta Técnica` vs. `Ruta de Gestión`) es **alternativa (`XOR`)**.
+
+*   **`FeatureRelation`**: Los **niveles de competencia**. El taller `Gestión de Proyectos Avanzada` (`source`) **requiere (`requires`)** haber completado el curso `Introducción a Metodologías Ágiles` (`target`).
+
+*   **`Configuration`**: El **Plan de Formación Personalizado para un Empleado**. Por ejemplo, "Plan de Onboarding de 90 días para David, Ingeniero Junior" o "Plan de Desarrollo 2025 para Laura, futura Jefa de Equipo".
+
+*   **`Configuration_Feature`**: La **lista concreta de cursos, talleres y mentorías** asignadas a ese empleado para un período determinado.
+
+---
+
+### Analogía 4: El Chef de Itinerarios de Aprendizaje Personalizados
+
+Imagina que eres un "chef pedagógico" que crea "recetas de aprendizaje" a medida para cada estudiante, adaptándose a sus necesidades y gustos.
+
+*   **`Domain`**: La **Materia o Área de Estudio** (ej: "Álgebra", "Historia del Arte").
+
+*   **`FeatureModel`**: El **Libro de Recetas Maestro** para un objetivo de aprendizaje (ej: "Dominar la Fotosíntesis"). Contiene todos los "ingredientes" y "pasos" posibles.
+
+*   **`Feature`**:
+    *   **Jerarquía**: Un **Concepto Clave**, un **Tipo de Contenido** o una **Actividad Práctica**. El concepto `Fase Luminosa` es padre de los tipos de contenido `Explicación en Video`, `Lectura de Texto` e `Infografía Interactiva`.
+    *   **Tipo**:
+        *   `Concepto: Cloroplastos` es un ingrediente **obligatorio (`mandatory`)**.
+        *   `Actividad: Experimento en Casa` es **opcional (`optional`)**.
+        *   El formato de evaluación final (`Examen Tipo Test` vs. `Ensayo Escrito`) es **alternativo (`XOR`)**, adaptándose al estilo del estudiante.
+
+*   **`FeatureRelation`**: Las **reglas de la cocina pedagógica**. La actividad `Resolver Problemas Complejos` (`source`) **requiere (`requires`)** el contenido `Teoría Fundamental` (`target`). No puedes cocinar el plato principal sin los ingredientes base.
+
+*   **`Configuration`**: La **Receta de Aprendizaje a Medida** para un estudiante. Por ejemplo, "Plan de estudio sobre la Fotosíntesis para Alex, que prefiere aprender con videos y practicar con ejercicios interactivos".
+
+*   **`Configuration_Feature`**: La **combinación exacta de videos, lecturas y quizzes** que conforman el itinerario personalizado de Alex.
+
+
+### Analogía 5: El Planificador de Currículos Escolares 🏫
+
+Piensa en el sistema como la herramienta que utiliza un jefe de estudios o un comité pedagógico para diseñar el plan de estudios anual de un colegio.
+
+*   **`Domain`**: El **Nivel Educativo** (ej: "Educación Primaria", "Educación Secundaria Obligatoria").
+
+*   **`FeatureModel`**: La **plantilla curricular completa para un curso y asignatura** (ej: "Plan Anual de Matemáticas para 5º Grado"). Define todas las unidades, temas y competencias a cubrir.
+
+*   **`Feature`**:
+    *   **Jerarquía**: Un **Trimestre**, una **Unidad Didáctica** o una **Lección Específica**. Por ejemplo, `1er Trimestre` es padre de la unidad `Números y Operaciones`, que a su vez es padre de la lección `División con dos cifras`.
+    *   **Tipo**:
+        *   La unidad `Geometría Plana` es **obligatoria (`mandatory`)**.
+        *   Una unidad de `Introducción a la Probabilidad` podría ser **opcional (`optional`)** o de refuerzo.
+        *   Al final de una unidad, se puede ofrecer la elección entre un `Examen Escrito` o un `Proyecto en Grupo` como evaluación, siendo un grupo **alternativo (`XOR`)**.
+
+*   **`FeatureRelation`**: La **secuencia lógica de contenidos**. La lección `Resolución de Ecuaciones` (`source`) **requiere (`requires`)** haber completado la lección `Operaciones con Polinomios` (`target`).
+
+*   **`Configuration`**: El **plan de clases real de un profesor para el año escolar**. Por ejemplo, "Programación de aula del Profesor García para 5ºB", que puede adaptar el ritmo o incluir actividades opcionales según las necesidades de su clase.
+
+*   **`Configuration_Feature`**: La **lista secuencial y detallada de lecciones y evaluaciones** que el Profesor García impartirá durante el año.
+
+---
+
+### Analogía 6: El Diseñador de Rutas de Aprendizaje de Idiomas 🗺️
+
+Imagina que eres el diseñador de una aplicación como Duolingo o Babbel, creando el camino completo para que un estudiante domine un nuevo idioma.
+
+*   **`Domain`**: El **Idioma a aprender** (ej: "Inglés", "Francés", "Alemán").
+
+*   **`FeatureModel`**: El **"Árbol de Habilidades" completo del idioma** (ej: "Ruta de Aprendizaje: de Cero a B2 en Inglés"). Contiene todos los niveles, habilidades y lecciones.
+
+*   **`Feature`**:
+    *   **Jerarquía**: Un **Nivel del MCER**, una **Habilidad** o una **Micro-lección**. Por ejemplo, el nivel `A2 (Elemental)` es padre de las habilidades `Gramática`, `Vocabulario` y `Comprensión Auditiva`. `Gramática` es padre de lecciones como `El Pasado Simple` y `Los Comparativos`.
+    *   **Tipo**:
+        *   La lección `Verbo 'To Be'` es **obligatoria (`mandatory`)**.
+        *   Un módulo de `Inglés de Negocios` es **opcional (`optional`)**.
+        *   Se podría ofrecer una especialización en `Inglés Americano` vs. `Inglés Británico`, siendo una elección **alternativa (`XOR`)**.
+
+*   **`FeatureRelation`**: La **progresión gramatical**. La lección `Pasado Perfecto` (`source`) **requiere (`requires`)** tener dominada la lección `Pasado Simple` (`target`).
+
+*   **`Configuration`**: El **plan de estudio personalizado para un usuario específico**. Por ejemplo, "Plan de María para su viaje a Londres", que prioriza las lecciones de vocabulario de viajes y comprensión auditiva.
+
+*   **`Configuration_Feature`**: El **conjunto exacto de micro-lecciones y ejercicios** que la aplicación presenta a María en su ruta de aprendizaje.
+
+---
+
+### Analogía 7: El Arquitecto de Certificaciones Profesionales 🛠️
+
+Visualiza el sistema como la herramienta de un instituto de formación profesional para diseñar programas que otorgan certificaciones basadas en competencias prácticas y teóricas.
+
+*   **`Domain`**: El **Área Profesional** (ej: "Electricidad Industrial", "Desarrollo Web Full-Stack", "Gastronomía").
+
+*   **`FeatureModel`**: El **itinerario completo para una certificación** (ej: "Certificación Oficial en Soldadura TIG"). Define todos los módulos teóricos, prácticos y de seguridad.
+
+*   **`Feature`**:
+    *   **Jerarquía**: Un **Módulo Teórico**, una **Competencia Práctica** o una **Sesión de Taller**. El módulo `Seguridad en el Taller` es padre de la lección `Uso de Equipo de Protección Individual (EPI)`. El módulo `Técnicas de Soldadura` es padre de la competencia `Soldadura en posición vertical`.
+    *   **Tipo**:
+        *   El módulo `Seguridad en el Taller` es **obligatorio (`mandatory`)**.
+        *   Un taller sobre `Soldadura de Materiales Exóticos` es **opcional (`optional`)**.
+        *   El proyecto final puede ser un `Examen Práctico Supervisado` o la `Presentación de un Portfolio de Proyectos`, siendo una elección **alternativa (`XOR`)**.
+
+*   **`FeatureRelation`**: La **dependencia entre teoría y práctica**. La competencia práctica `Realizar soldadura en techo` (`source`) **requiere (`requires`)** haber aprobado el módulo teórico `Fundamentos de la Metalurgia` (`target`).
+
+*   **`Configuration`**: El **expediente formativo de un aprendiz**. Por ejemplo, "Plan de Formación de Carlos", que podría convalidar módulos si ya tiene una certificación previa en un área relacionada.
+
+*   **`Configuration_Feature`**: La **lista de todos los módulos, prácticas de taller y evaluaciones** que Carlos debe completar para obtener su certificación.
