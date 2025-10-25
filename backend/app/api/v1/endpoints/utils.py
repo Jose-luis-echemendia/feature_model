@@ -93,9 +93,10 @@ def read_enums():
     """
     return {
         "userRoles": format_enum_for_frontend(enums.UserRole),
-        "productCategories": format_enum_for_frontend(enums.ProductCategory),
-        "orderStatuses": format_enum_for_frontend(enums.OrderStatus),
-        "paymentMethods": format_enum_for_frontend(enums.PaymentMethod),
-        "pizzaBakingOptions": format_enum_for_frontend(enums.PizzaBakingOption),
-        "genericSizes": format_enum_for_frontend(enums.GenericSize),
+        "resourceType": format_enum_for_frontend(enums.ResourceType),
+        "resourceStatus": format_enum_for_frontend(enums.ResourceStatus),
+        "licenseType": format_enum_for_frontend(enums.LicenseType),
+        "featureType": format_enum_for_frontend(enums.FeatureType),
+        "featureGroupType": format_enum_for_frontend(enums.FeatureGroupType),
+        "featureRelationType": format_enum_for_frontend(enums.FeatureRelationType),
     }

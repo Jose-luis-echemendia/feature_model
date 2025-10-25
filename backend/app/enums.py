@@ -27,6 +27,7 @@ class ResourceStatus(str, Enum):
     PUBLISHED = "published"  # Activo y disponible para ser usado
     ARCHIVED = "archived"  # Obsoleto, no se recomienda para nuevos cursos
 
+
 class LicenseType(str, Enum):
     """Tipo de licencia del recurso."""
     COPYRIGHT = "copyright"  # Todos los derechos reservados
@@ -34,6 +35,7 @@ class LicenseType(str, Enum):
     CREATIVE_COMMONS_BY_SA = "cc_by_sa" # CC - Atribución-CompartirIgual
     PUBLIC_DOMAIN = "public_domain" # Dominio Público
     INTERNAL_USE = "internal_use" # Solo para uso interno de la organización
+
 
 class FeatureType(str, Enum):
     """
