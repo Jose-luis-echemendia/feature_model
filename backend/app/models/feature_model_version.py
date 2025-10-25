@@ -5,6 +5,7 @@ from sqlmodel import Field, Relationship, SQLModel, Column
 from sqlalchemy.dialects.postgresql import JSONB
 
 from .common import BaseTable
+from app.enums import ModelStatus
 
 if TYPE_CHECKING:
     from .feature_model import FeatureModel
@@ -20,7 +21,7 @@ class FeatureModelVersionBase(SQLModel):
     version_number: int = Field(default=1, index=True)
     snapshot: dict[str, Any] | None = Field(default=None, sa_column=Column(JSONB))
     feature_model_id: uuid.UUID = Field(foreign_key="feature_model.id")
-
+    status: ModelStatus = Field(default=ModelStatus.DRAFT)
 
 class FeatureModelVersionCreate(SQLModel):
     feature_model_id: uuid.UUID

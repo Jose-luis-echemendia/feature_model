@@ -8,8 +8,10 @@ class UserRole(str, Enum):
 
     ADMIN = "admin"
     MODEL_DESIGNER = "model_designer"
+    MODEL_EDITOR = "model_editor"
     CONFIGURATOR = "configurator"
     VIEWER = "viewer"
+    REVIEWER = "reviewer"
 
 
 class ResourceType(str, Enum):
@@ -68,3 +70,10 @@ class FeatureRelationType(str, Enum):
 
     REQUIRED = "requires"
     EXCLUDES = "excludes"
+
+
+class ModelStatus(str, Enum):
+    DRAFT = "draft"          # En proceso de diseño, solo visible para su creador (y admins).
+    IN_REVIEW = "in_review"  # Listo para revisión, visible para los REVIEWERS.
+    PUBLISHED = "published"  # Aprobado y visible para los CONFIGURATORS.
+    ARCHIVED = "archived"    # Obsoleto, ya no se puede usar para nuevas configuraciones.

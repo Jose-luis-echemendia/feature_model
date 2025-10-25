@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from .user import User
     from .domain import Domain
     from .feature import Feature
+    from .link_models import FeatureModelCollaborator
 
 
 # ---------------------------------------------------------------------------
@@ -38,6 +39,11 @@ class FeatureModel(BaseTable, FeatureModelBase, table=True):
     features: list["Feature"] = Relationship(
         back_populates="feature_model",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
+    
+    collaborators: list["User"] = Relationship(
+        back_populates="collaborating_feature_models",
+        link_model=FeatureModelCollaborator
     )
 
 
