@@ -1,223 +1,130 @@
 
-### 1. Objetivo Principal del Sistema
 
-El objetivo es crear una plataforma para **modelar, configurar y gestionar Líneas de Producto de --- (Software Product Lines - SPL)** en el ámbito educativo.
+# 🏛️ Arquitectura y Filosofía de la Plataforma
 
+Nuestra plataforma es una poderosa **"Cocina Pedagógica"** donde los educadores pueden diseñar, construir y personalizar itinerarios de aprendizaje. Esta arquitectura nos permite pasar de un modelo rígido de "talla única" a uno flexible y adaptativo.
 
+## 📈 Desglose de la Lógica de Negocio
 
-### 2. ### Desglose de la Lógica de Negocio y su Propósito. Resumen de Cada Tabla (Esquema Actual)
+El flujo de trabajo sigue un proceso lógico y colaborativo, similar a la creación de una receta gourmet:
 
-Aquí tienes una descripción de cada tabla y su propósito en tu sistema.
-
-#### **Tabla `User`**
-*   **Objetivo Principal:** Gestionar la identidad y los permisos de las personas que usan la aplicación.
-*   **Propósito:** Es la tabla de autenticación y autorización. Define quién puede entrar y qué puede hacer (crear modelos, crear configuraciones, etc.). El campo `role` es clave para diferenciar entre un profesor y un alumno.
-
-#### **Tabla `Domain`**
-*   **Objetivo Principal:** Agrupar `FeatureModels` por área de conocimiento o materia.
-*   **Propósito:** Sirve como una carpeta de alto nivel. Permite organizar el contenido, por ejemplo, "Matemáticas", "Historia", "Diseño de Videojuegos". Sin ella, todos los modelos estarían en una única lista, lo cual sería caótico.
-
-#### **Tabla `FeatureModel`**
-*   **Objetivo Principal:** Definir la plantilla o el "problema" a resolver. Es el concepto central que un profesor crea.
-*   **Propósito:** Representa un ejercicio o proyecto específico, como "Diseñar un Coche Eléctrico" o "Configurar un Ordenador". Contiene el nombre y la descripción general del problema. Es el padre de todas sus versiones.
-
-#### **Tabla `FeatureModelVersion`**
-*   **Objetivo Principal:** Guardar una "foto" inmutable de un `FeatureModel` en un momento dado.
-*   **Propósito:** Es crucial. Permite que un profesor pueda mejorar o cambiar un modelo (`v2`, `v3`) sin afectar las tareas que ya están en curso usando una versión anterior (`v1`). Todos los componentes del modelo (`Features`, `Relations`, `Constraints`) se asocian a una versión específica, no al modelo general.
-
-#### **Tabla `Feature`**
-*   **Objetivo Principal:** Representar una característica, opción o componente individual que un usuario puede seleccionar.
-*   **Propósito:** Son los "bloques de construcción" del modelo. Cada `Feature` puede ser obligatoria, opcional, etc. La estructura jerárquica (`parent_id`) crea el árbol de características, que es la visualización principal del modelo.
-
-#### **Tabla `FeatureGroup`**
-*   **Objetivo Principal:** Definir relaciones de variabilidad entre un grupo de `Features` hijas.
-*   **Propósito:** Impone reglas sobre cómo se pueden elegir las características hijas de un mismo padre.
-    *   **XOR (`group_type`):** "Elige solo una de estas opciones" (Ej: Tipo de motor: Gasolina, Diésel, Eléctrico).
-    *   **OR (`group_type`):** "Elige una o más de estas opciones" (Ej: Extras del coche: GPS, Techo solar, Asientos de cuero).
-
-#### **Tabla `FeatureRelation`**
-*   **Objetivo Principal:** Definir restricciones entre dos `Features` cualesquiera en el árbol, sin importar dónde estén.
-*   **Propósito:** Modela dependencias complejas.
-    *   **Requires (`type`):** "Si eliges A, estás obligado a elegir B" (Ej: "Elegir 'Modo Turbo' requiere 'Motor de Alto Rendimiento'").
-    *   **Excludes (`type`):** "Si eliges A, no puedes elegir B" (Ej: "Elegir 'Transmisión Manual' excluye 'Control de Crucero Adaptativo'").
-
-#### **Tabla `Constraint`**
-*   **Objetivo Principal:** Definir reglas complejas que no se pueden expresar fácilmente con `FeatureRelation`.
-*   **Propósito:** Es una vía de escape para lógica muy avanzada, escrita en un formato textual (`expr_text`). Por ejemplo: "(FeatureA y FeatureB) -> FeatureC". Para un contexto educativo, es posible que no la uses mucho al principio, pero es bueno tenerla para casos avanzados.
-
-#### **Tabla `Configuration`**
-*   **Objetivo Principal:** Almacenar una selección de `Features` hecha por un usuario que es válida según las reglas del `FeatureModelVersion`.
-*   **Propósito:** Es la **solución del alumno**. Representa el "animal diseñado", el "coche configurado" o la "respuesta" al problema planteado por el profesor. Es el artefacto principal que se crearía, guardaría y, con las mejoras sugeridas, se evaluaría.
-
-#### **Tabla `ConfigurationFeatureLink`**
-*   **Objetivo Principal:** Conectar una `Configuration` con todas las `Features` que fueron seleccionadas en ella.
-*   **Propósito:** Es una tabla de unión técnica para implementar la relación muchos-a-muchos entre configuraciones y características. Una configuración tiene muchas características, y una característica puede estar en muchas configuraciones diferentes.
-
-
-
-
-### Analogías para Entenderlo Mejor
-
-
-### Analogía 1: El Arquitecto de Grados Universitarios
-
-Piensa en tu sistema como la herramienta que usa el decano de una facultad para diseñar y adaptar los planes de estudio de toda la universidad.
-
-*   **`Domain`**: La **Facultad o Escuela** (ej: "Facultad de Ingeniería", "Escuela de Artes y Humanidades"). Es el contenedor de nivel más alto.
-
-*   **`FeatureModel`**: La **plantilla maestra de un Grado o Carrera** (ej: "Grado en Ingeniería Informática"). Define la estructura completa y todas las asignaturas y caminos posibles.
-
-*   **`Feature`**:
-    *   **Jerarquía**: Una **Asignatura** o un **Semestre**. Por ejemplo, la feature `Semestre 1` es padre de las features `Cálculo I`, `Álgebra Lineal` y `Fundamentos de Programación`.
-    *   **Tipo**:
-        *   `Cálculo I` es **obligatoria (`mandatory`)**.
-        *   `Robótica Avanzada` es **opcional (`optional`)**.
-        *   Las asignaturas de una mención o especialización (ej: "Inteligencia Artificial" vs. "Ciberseguridad") son parte de un grupo **alternativo (`XOR`)**: debes elegir una rama, no ambas.
-
-*   **`FeatureRelation`**: Los **prerrequisitos académicos**. La asignatura `Cálculo II` (`source`) **requiere (`requires`)** haber cursado `Cálculo I` (`target`).
-
-*   **`Configuration`**: Un **Plan de Estudios Específico y Válido**. Puede ser el "Plan recomendado para la Mención en Inteligencia Artificial 2024" o el "Expediente Académico Personalizado de la alumna Sofía Pérez".
-
-*   **`Configuration_Feature`**: La **lista final de asignaturas** que componen ese plan de estudios específico.
+1.  **El Dominio 📂 (`Domain`):** Todo comienza en una "cocina" o área de conocimiento, como "Ciencias" o "Humanidades".
+2.  **La Receta Maestra 📜 (`FeatureModel`):** Un **Diseñador** (`MODEL_DESIGNER`) crea una plantilla maestra, la "receta" base con todos los ingredientes y pasos posibles para un curso o grado. Esta receta tiene un dueño y puede tener colaboradores (`MODEL_EDITOR`).
+3.  **Los Ingredientes y Pasos 🧱 (`Feature`):** La receta se desglosa en componentes: módulos, lecciones, actividades. Estos se organizan jerárquicamente.
+4.  **Las Reglas de Cocina 🔀🔗 (`FeatureGroup` & `FeatureRelation`):** Se establecen reglas: "Elige solo uno de estos postres" (Grupo `XOR`), "Necesitas cocinar las verduras antes de añadir la salsa" (Relación `REQUIRES`).
+5.  **El Contenido Real 📚 (`Resource`):** Cada paso se enriquece con contenido tangible: un video, un PDF, un quiz. Estos recursos son reutilizables en múltiples recetas.
+6.  **Las Etiquetas Descriptivas 🏷️ (`Tag`):** A los ingredientes y a la receta final se les añaden etiquetas como "Para principiantes", "Visual", "Práctico" para facilitar la búsqueda y la personalización.
+7.  **El Visto Bueno del Chef ✅ (`REVIEWER`):** Una vez que la receta está lista (`FeatureModelVersion` en `IN_REVIEW`), un revisor la prueba y le da el sello de aprobación, publicándola (`PUBLISHED`).
+8.  **El Plato Servido 🎓 (`Configuration`):** Finalmente, un **Configurador** (`CONFIGURATOR`) toma la receta aprobada y prepara un "plato" específico: un itinerario de aprendizaje a medida para un grupo o individuo.
 
 ---
 
-### Analogía 2: El Constructor de Cursos Online (Estilo MOOC)
+## 📋 Resumen de Cada Tabla: El ADN del Aprendizaje
 
-Imagina que eres un creador de cursos para una plataforma como Coursera o edX. Tu sistema es la herramienta de autor para ensamblar cursos flexibles.
+Aquí se detalla el propósito de cada tabla que conforma la arquitectura de nuestra plataforma.
 
-*   **`Domain`**: La **Categoría General del Curso** (ej: "Desarrollo de Software", "Marketing Digital").
+### 👤 Tabla `User`
+*   **🎯 Propósito Principal:** Gestionar la **identidad, autenticación y permisos** de cada persona que interactúa con el sistema. Es la puerta de entrada a la plataforma.
+*   **🔑 Clave Educativa:** El campo `role` define qué puede ver y hacer cada usuario, separando claramente las responsabilidades entre quienes diseñan el currículo, quienes lo aprueban y quienes lo consumen.
 
-*   **`FeatureModel`**: El **curso maestro completo** (ej: "Curso Definitivo de Python: de Principiante a Experto"). Contiene todos los módulos y recursos posibles que podrías ofrecer.
+### 📂 Tabla `Domain`
+*   **🎯 Propósito Principal:** Actuar como un **contenedor de alto nivel** para organizar los `FeatureModel` por área de conocimiento, facultad o departamento.
+*   **🔑 Clave Educativa:** Evita el caos al permitir una clasificación lógica de la oferta académica (ej: "Ingeniería", "Artes", "Formación Corporativa").
 
-*   **`Feature`**:
-    *   **Jerarquía**: Un **Módulo**, una **Lección** o un **Recurso**. El módulo `Estructuras de Datos` es padre de las lecciones `Listas y Tuplas` y `Diccionarios`. La lección `Listas y Tuplas` es padre de los recursos `Video Explicativo` y `Cuaderno de Jupyter`.
-    *   **Tipo**:
-        *   El `Módulo 1: Introducción` es **obligatorio (`mandatory`)**.
-        *   El `Módulo 7: Tópicos Avanzados` es **opcional (`optional`)**.
-        *   El tipo de proyecto final (ej: "Análisis de Datos" vs. "Aplicación Web") es **alternativo (`XOR`)**.
+### 📜 Tabla `FeatureModel`
+*   **🎯 Propósito Principal:** Representar la **plantilla curricular maestra** de un curso, grado o plan de formación. Es el "lienzo" donde se define todo el espacio de posibilidades pedagógicas.
+*   **🔑 Clave Educativa:** El `owner_id` establece la propiedad y responsabilidad del diseño. Su relación con `FeatureModelCollaborator` habilita el trabajo en equipo entre docentes.
 
-*   **`FeatureRelation`**: La **secuencia de aprendizaje lógica**. La lección `Programación Orientada a Objetos` (`source`) **requiere (`requires`)** haber completado la lección `Funciones y Métodos` (`target`).
+### 📸 Tabla `FeatureModelVersion`
+*   **🎯 Propósito Principal:** Guardar una **"foto" inmutable (snapshot)** de un `FeatureModel` en un momento específico. Todo el diseño (features, reglas, etc.) se asocia a una versión.
+*   **🔑 Clave Educativa:** El campo `status` (`DRAFT`, `IN_REVIEW`, `PUBLISHED`) es el motor del **flujo de trabajo de aprobación académica**. Permite evolucionar los planes de estudio sin afectar a los estudiantes que cursan versiones anteriores.
 
-*   **`Configuration`**: Una **versión específica del curso para un público objetivo**. Por ejemplo, "Curso de Python para Analistas de Datos", que incluye los módulos básicos, los de análisis de datos y el proyecto de datos, pero omite los módulos de desarrollo web.
+### 🧱 Tabla `Feature`
+*   **🎯 Propósito Principal:** Es la **unidad mínima de aprendizaje**: un módulo, una lección, una actividad práctica, un examen.
+*   **🔑 Clave Educativa:** Su naturaleza jerárquica (`parent_id`) crea la estructura del curso (Semestre > Asignatura > Tema > Lección). Su enlace a `Resource` (`resource_id`) lo conecta con el material de estudio real.
 
-*   **`Configuration_Feature`**: El **conjunto exacto de lecciones y recursos** que se incluyen en esa versión del curso.
+### 🔀 Tabla `FeatureGroup`
+*   **🎯 Propósito Principal:** Definir **puntos de decisión pedagógica** para un conjunto de `Features` hijas.
+*   **🔑 Clave Educativa:** Permite crear itinerarios flexibles: **`XOR`** para especializaciones o menciones (elige solo una), y **`OR`** para actividades o recursos opcionales.
 
----
+### 🔗 Tabla `FeatureRelation`
+*   **🎯 Propósito Principal:** Establecer **prerrequisitos y secuencias de aprendizaje** entre dos `Features` cualesquiera.
+*   **🔑 Clave Educativa:** Modela la lógica académica fundamental (`REQUIRES`: "Para cursar 'Cálculo II', se requiere 'Cálculo I'") y las incompatibilidades (`EXCLUDES`).
 
-### Analogía 3: El Diseñador de Planes de Formación Corporativa
+### 🎓 Tabla `Configuration`
+*   **🎯 Propósito Principal:** Representar el **itinerario de aprendizaje final y concreto**: un plan de estudios personalizado, un curso a medida, o la ruta formativa de un empleado.
+*   **🔑 Clave Educativa:** Es la **solución** tangible generada a partir de un `FeatureModel`. Es el plan de estudios que un estudiante seguirá.
 
-Visualiza tu sistema como la herramienta del departamento de Recursos Humanos para crear planes de desarrollo y onboarding para los empleados de una empresa.
+### 📚 Tabla `Resource` (Biblioteca de Objetos de Aprendizaje)
+*   **🎯 Propósito Principal:** Funcionar como un **catálogo centralizado de contenido educativo reutilizable** (videos, lecturas, simulaciones, quizzes).
+*   **🔑 Clave Educativa:** **Separa la estructura curricular del material de estudio.** Un video explicativo sobre la "Célula" puede ser reutilizado en cursos de Biología, Química y Medicina. Sus metadatos (`status`, `license`, `language`) permiten una gestión profesional de los activos de aprendizaje.
 
-*   **`Domain`**: El **Departamento o Área Funcional** (ej: "Ventas", "Operaciones", "Tecnología").
+### 🏷️ Tabla `Tag` (Etiquetas Pedagógicas)
+*   **🎯 Propósito Principal:** Proporcionar **metadatos semánticos** para clasificar y encontrar contenido según criterios pedagógicos.
+*   **🔑 Clave Educativa:** Es la base para el **aprendizaje adaptativo**. Permite etiquetar `Features` y `Resources` por "Nivel de Dificultad" (Básico, Avanzado), "Estilo de Aprendizaje" (Visual, Práctico), o "Competencia" (Pensamiento Crítico, Colaboración).
 
-*   **`FeatureModel`**: El **Programa de Desarrollo Profesional completo** (ej: "Plan de Carrera para Ingeniero de Software").
-
-*   **`Feature`**:
-    *   **Jerarquía**: Una **Competencia**, una **Habilidad** o una **Actividad de Formación**. La competencia `Liderazgo` es padre de las habilidades `Comunicación Efectiva` y `Gestión de Proyectos`. `Comunicación Efectiva` es padre de las actividades `Curso de Oratoria` y `Taller de Feedback`.
-    *   **Tipo**:
-        *   El curso `Seguridad de la Información` es **obligatorio (`mandatory`)** para todos.
-        *   Un `Curso de Idiomas` es **opcional (`optional`)**.
-        *   La ruta de formación (ej: `Ruta Técnica` vs. `Ruta de Gestión`) es **alternativa (`XOR`)**.
-
-*   **`FeatureRelation`**: Los **niveles de competencia**. El taller `Gestión de Proyectos Avanzada` (`source`) **requiere (`requires`)** haber completado el curso `Introducción a Metodologías Ágiles` (`target`).
-
-*   **`Configuration`**: El **Plan de Formación Personalizado para un Empleado**. Por ejemplo, "Plan de Onboarding de 90 días para David, Ingeniero Junior" o "Plan de Desarrollo 2025 para Laura, futura Jefa de Equipo".
-
-*   **`Configuration_Feature`**: La **lista concreta de cursos, talleres y mentorías** asignadas a ese empleado para un período determinado.
-
----
-
-### Analogía 4: El Chef de Itinerarios de Aprendizaje Personalizados
-
-Imagina que eres un "chef pedagógico" que crea "recetas de aprendizaje" a medida para cada estudiante, adaptándose a sus necesidades y gustos.
-
-*   **`Domain`**: La **Materia o Área de Estudio** (ej: "Álgebra", "Historia del Arte").
-
-*   **`FeatureModel`**: El **Libro de Recetas Maestro** para un objetivo de aprendizaje (ej: "Dominar la Fotosíntesis"). Contiene todos los "ingredientes" y "pasos" posibles.
-
-*   **`Feature`**:
-    *   **Jerarquía**: Un **Concepto Clave**, un **Tipo de Contenido** o una **Actividad Práctica**. El concepto `Fase Luminosa` es padre de los tipos de contenido `Explicación en Video`, `Lectura de Texto` e `Infografía Interactiva`.
-    *   **Tipo**:
-        *   `Concepto: Cloroplastos` es un ingrediente **obligatorio (`mandatory`)**.
-        *   `Actividad: Experimento en Casa` es **opcional (`optional`)**.
-        *   El formato de evaluación final (`Examen Tipo Test` vs. `Ensayo Escrito`) es **alternativo (`XOR`)**, adaptándose al estilo del estudiante.
-
-*   **`FeatureRelation`**: Las **reglas de la cocina pedagógica**. La actividad `Resolver Problemas Complejos` (`source`) **requiere (`requires`)** el contenido `Teoría Fundamental` (`target`). No puedes cocinar el plato principal sin los ingredientes base.
-
-*   **`Configuration`**: La **Receta de Aprendizaje a Medida** para un estudiante. Por ejemplo, "Plan de estudio sobre la Fotosíntesis para Alex, que prefiere aprender con videos y practicar con ejercicios interactivos".
-
-*   **`Configuration_Feature`**: La **combinación exacta de videos, lecturas y quizzes** que conforman el itinerario personalizado de Alex.
-
-
-
-### Analogía 5: Coche
-
-Piensa en el **configurador de un coche en una página web**:
-
-*   **`domain`**: El tipo de vehículo (ej: "Coches", "Motos").
-*   **`feature_model`**: El modelo específico (ej: "SUV Modelo X").
-*   **`feature`**:
-    *   **Jerarquía**: La característica `Motor` tiene hijos como `Motor a Gasolina` y `Motor Híbrido`.
-    *   **Tipo**: `Motor` es `mandatory`, pero la elección entre `Gasolina` e `Híbrido` es `alternative`. `Techo solar` es `optional`.
-*   **`feature_relation`**: La característica `Llantas Deportivas de 20"` (`requires`) `Suspensión Deportiva`.
-*   **`configuration`**: "Mi Coche SUV Modelo X Personalizado".
-*   **`configuration_feature`**: La lista final de opciones que elegiste (Motor Híbrido, Techo Solar, Llantas Deportivas, Suspensión Deportiva, etc.).
-
-
-
-
-
-### 2. Resumen de las Tablas con la Nueva Lógica
-
-Aquí está el "para qué" de cada tabla en tu nuevo contexto de **diseño instruccional**:
-
-*   **`User`**:
-    *   **Quién:** Diseñador Instruccional, Administrador Académico, Jefe de Formación.
-    *   **Objetivo:** Gestionar quién tiene permiso para crear y modificar las plantillas de cursos.
-
-*   **`Domain`**:
-    *   **Qué:** Un área de conocimiento o facultad. (Ej: "Tecnología", "Humanidades", "Ventas").
-    *   **Objetivo:** Organizar las plantillas de cursos (`FeatureModel`) en categorías lógicas.
-
-*   **`FeatureModel`**:
-    *   **Qué:** La plantilla maestra para un curso, un grado completo o un plan de formación. (Ej: "Máster en Ciberseguridad").
-    *   **Objetivo:** Contener todas las posibles variantes, módulos y reglas de un programa educativo. Es el "lienzo" del diseñador.
-
-*   **`FeatureModelVersion`**:
-    *   **Qué:** Una "edición" del plan de estudios. (Ej: "Plan de Estudios 2024", "Plan de Estudios 2025").
-    *   **Objetivo:** Permitir la evolución de los programas educativos (añadir/quitar módulos) sin romper los itinerarios ya generados con versiones anteriores. Esencial para la gestión académica a largo plazo.
-
-*   **`Feature`**:
-    *   **Qué:** El bloque de construcción fundamental del aprendizaje: un **módulo, una lección, una actividad, un recurso, una evaluación**.
-    *   **Objetivo:** Representar cada pieza del rompecabezas educativo. El campo `metadata` aquí es **CRÍTICO**: puede contener el ID del video, el enlace a un PDF, la duración estimada, los objetivos de aprendizaje de esa lección, etc.
-
-*   **`FeatureGroup`**:
-    *   **Qué:** Reglas de selección para un conjunto de componentes educativos.
-    *   **Objetivo:**
-        *   **XOR:** Definir **rutas de especialización excluyentes**. (Ej: Elige la especialidad en "Frontend" O "Backend").
-        *   **OR:** Ofrecer un **catálogo de actividades opcionales o complementarias**. (Ej: Elige al menos dos de estos cuatro casos de estudio).
-
-*   **`FeatureRelation`**:
-    *   **Qué:** Una dependencia directa entre dos componentes.
-    *   **Objetivo:** Modelar **prerrequisitos** (`REQUIRES`) de forma explícita. (Ej: La lección "Funciones Avanzadas" requiere la lección "Fundamentos de Funciones"). También puede modelar **incompatibilidades** (`EXCLUDES`).
-
-*   **`Constraint`**:
-    *   **Qué:** Reglas pedagógicas complejas.
-    *   **Objetivo:** Definir lógicas que van más allá de los prerrequisitos simples. (Ej: "Para obtener el certificado, el alumno debe completar el Proyecto Final O (el Módulo de Prácticas Y el Examen Teórico)").
-
-*   **`Configuration`**:
-    *   **Qué:** Un **plan de estudios o itinerario de aprendizaje final y concreto**. (Ej: "Plan de Estudios para el Grupo A - 2024", "Itinerario Personalizado para María García").
-    *   **Objetivo:** Representar el **resultado final del proceso de diseño**: una ruta de aprendizaje válida, coherente y lista para ser "consumida" por un estudiante.
-
-*   **`ConfigurationFeatureLink`**:
-    *   **Qué:** La lista detallada de todos los módulos, lecciones y actividades que componen un itinerario específico.
-    *   **Objetivo:** Conectar técnicamente el plan de estudios (`Configuration`) con sus componentes (`Feature`).
+### 🖇️ Tablas de Asociación (`*Link`, `*Collaborator`)
+*   **🎯 Propósito Principal:** Actuar como el **"pegamento" técnico** que conecta las tablas en relaciones complejas de muchos-a-muchos.
+*   **🔑 Clave Educativa:** Hacen posibles las funcionalidades clave: la colaboración en equipo, la composición de los itinerarios y el etiquetado múltiple.
 
 ---
 
+# 💡 5 Analogías para Dominar el Sistema
 
+Para comprender la arquitectura, pensemos en ella como un sistema para crear experiencias de aprendizaje asombrosas.
 
+### 1. El Arquitecto de Grados Universitarios 🏛️
+Nuestra plataforma es la herramienta del Decano para diseñar los planes de estudio de toda la facultad.
 
-Tu base de datos es una base excelente para construir un **motor de personalización de aprendizaje a escala**. Permite a las instituciones educativas o empresas pasar de un modelo de "talla única para todos" a la creación masiva de "currículos a medida". ¡Es un proyecto muy potente
+*   **`Domain` ➜ La Facultad** (ej: "Facultad de Ingeniería").
+*   **`FeatureModel` ➜ La Plantilla del Grado** (ej: "Grado en Ingeniería Informática"), creada por el **Director de Carrera (`MODEL_DESIGNER`)**.
+*   **`Feature` ➜ La Asignatura o el Semestre** (ej: `Cálculo I`).
+*   **`FeatureRelation` ➜ Los Prerrequisitos** ("'Cálculo II' `REQUIRES` 'Cálculo I'").
+*   **`Resource` ➜ El Material de Estudio** (El PDF del libro, el enlace al simulador de laboratorio).
+*   **`Tag` ➜ La Clasificación Académica** ("Nivel Básico", "Requiere Habilidades Analíticas").
+*   **`REVIEWER` ➜ El Comité Académico** que aprueba el plan de estudios.
+*   **`Configuration` ➜ El Expediente Personalizado** de un alumno, diseñado por su **Tutor Académico (`CONFIGURATOR`)**.
 
+### 2. El Constructor de Cursos Online (Estilo MOOC) 💻
+Somos la herramienta de autor para crear cursos flexibles en plataformas como Coursera o edX.
+
+*   **`Domain` ➜ La Categoría del Curso** (ej: "Desarrollo de Software").
+*   **`FeatureModel` ➜ El Curso Maestro Completo** (ej: "Python: de Principiante a Experto"), diseñado por el **Instructor Principal (`MODEL_DESIGNER`)** y sus **Asistentes (`MODEL_EDITOR`)**.
+*   **`Feature` ➜ El Módulo, la Lección o la Tarea**.
+*   **`FeatureGroup` ➜ La Especialización** (`XOR`: Elige el proyecto de "Análisis de Datos" *o* "Desarrollo Web").
+*   **`Resource` ➜ El Video de la Lección** (el archivo `.mp4`) o el PDF con ejercicios.
+*   **`Tag` ➜ El Perfil del Contenido** ("Para Principiantes", "Video-Lección", "Evaluación").
+*   **`Configuration` ➜ La Versión del Curso para un Público** (ej: "Curso de Python para Analistas de Datos").
+
+### 3. El Diseñador de Formación Corporativa 📈
+Somos la herramienta de RRHH para crear planes de desarrollo y onboarding para empleados.
+
+*   **`Domain` ➜ El Área Funcional** (ej: "Ventas", "Tecnología").
+*   **`FeatureModel` ➜ El Programa de Desarrollo Profesional** (ej: "Plan de Carrera para Ingenieros").
+*   **`Feature` ➜ La Competencia o la Actividad de Formación** (ej: `Habilidad: Comunicación Efectiva`).
+*   **`Resource` ➜ El Material del Taller** (el video del curso de compliance, la presentación del taller).
+*   **`Tag` ➜ La Competencia Clave** ("Liderazgo", "Habilidad Blanda", "Obligatorio para Ventas").
+*   **`REVIEWER` ➜ El Director de RRHH** que da el visto bueno al plan.
+*   **`Configuration` ➜ El Plan de Formación Personalizado** para un empleado.
+
+### 4. El Constructor de Kits de Aprendizaje LEGO® 🧱
+Nuestra plataforma es como la fábrica de LEGO®, donde diseñamos kits educativos que otros pueden construir.
+
+*   **`Domain` ➜ La Línea de Productos** (`LEGO® Education`, `LEGO® Mindstorms`).
+*   **`FeatureModel` ➜ El Manual de Instrucciones** para un kit (ej: "Kit de Robótica Básico").
+*   **`Feature` ➜ Un Tipo de Pieza o un Paso de Montaje** (un "bloque rojo 2x4", un "sensor de color").
+*   **`Resource` ➜ El Diseño CAD de una Pieza Especial** que puede ser usada en múltiples kits.
+*   **`FeatureRelation` ➜ Las Reglas de Ensamblaje** ("El motor debe conectarse al engranaje principal").
+*   **`Tag` ➜ La Información de la Caja** ("Edades 9-14", "Nivel Experto").
+*   **`Configuration` ➜ El Robot Terminado**, ensamblado por un **Estudiante (`CONFIGURATOR`)** siguiendo las instrucciones.
+
+### 5. El Director de Orquesta Sinfónica 🎼
+Somos el podio desde donde un director puede componer y adaptar una sinfonía (un curso completo).
+
+*   **`Domain` ➜ El Período Musical** ("Barroco", "Clásico", "Romántico").
+*   **`FeatureModel` ➜ La Partitura Maestra** de una sinfonía, con todas las secciones y variaciones posibles. La crea el **Compositor (`MODEL_DESIGNER`)**.
+*   **`Feature` ➜ Una Sección o Instrumento** (la "Sección de Cuerdas", el "Solo de Oboe").
+*   **`FeatureGroup` ➜ Variaciones de Interpretación** (`XOR`: Tocar la sección "Adagio" *o* la versión "Allegro").
+*   **`Resource` ➜ La Particella de un Músico** (la hoja de música específica para el primer violín).
+*   **`Tag` ➜ El Carácter de la Música** ("Enérgico", "Melancólico", "Virtuoso").
+*   **`Configuration` ➜ La Interpretación en un Concierto Específico**, adaptada por el **Director (`CONFIGURATOR`)** según la acústica de la sala y la ocasión.
