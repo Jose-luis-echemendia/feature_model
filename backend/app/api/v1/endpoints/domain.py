@@ -15,9 +15,9 @@ from app.models.domain import (
 router = APIRouter(prefix="/domains", tags=["domains"])
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para leer (listar) la información de los dominios. (accesible para todos los roles)
-# ---------------------------------------------------------------------------
+# ======================================================================================
+#       --- Endpoint para leer (listar) la información de los dominios. ---
+# ======================================================================================
 
 
 @router.get(
@@ -28,7 +28,7 @@ router = APIRouter(prefix="/domains", tags=["domains"])
 def read_domains(
     session: SessionDep, skip: int = 0, limit: int = 100
 ) -> DomainListResponse:
-    """Retrieve domains
+    """read domains (accesible para todos los roles)
 
     Args:
         session (SessionDep): _description_

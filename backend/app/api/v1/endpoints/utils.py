@@ -1,10 +1,14 @@
 # endpoints for Root and Utils
 
 from fastapi import APIRouter, Depends
+from fastapi_cache.decorator import cache
+
 from pydantic.networks import EmailStr
 
+from app import enums
+from app.models import Message, AllEnumsResponse
+from app.services import format_enum_for_frontend
 from app.core.config import settings
-from app.models.common import Message
 from app.api.deps import get_current_active_superuser
 from app.utils import generate_test_email, send_email
 
@@ -66,3 +70,32 @@ def get_roles() -> list[str]:
     """
     from app.enums import UserRole 
     return [role.value for role in UserRole]
+
+
+# ---------------------------------------------------------------------------
+#           --- Endpoint para obtener los enums del sistema ---
+# ---------------------------------------------------------------------------
+    
+@router.get(
+    "/options/",
+    response_model=AllEnumsResponse,
+    summary="Obtener todas las opciones (enums) para los selectores del frontend"
+)
+@cache(expire=86400)
+def read_enums():
+    """
+    Proporciona una lista consolidada de todos los valores de enumeración
+    utilizados en la aplicación.
+
+    Esto es útil para poblar dinámicamente los menús desplegables,
+    filtros y otros componentes en el frontend sin tener que codificar
+    estos valores.
+    """
+    return {
+        "userRoles": format_enum_for_frontend(enums.UserRole),
+        "productCategories": format_enum_for_frontend(enums.ProductCategory),
+        "orderStatuses": format_enum_for_frontend(enums.OrderStatus),
+        "paymentMethods": format_enum_for_frontend(enums.PaymentMethod),
+        "pizzaBakingOptions": format_enum_for_frontend(enums.PizzaBakingOption),
+        "genericSizes": format_enum_for_frontend(enums.GenericSize),
+    }

@@ -2,7 +2,7 @@ import uuid
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy import Index, UniqueConstraint
+from sqlalchemy import UniqueConstraint
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Column, Field, Relationship, SQLModel
 

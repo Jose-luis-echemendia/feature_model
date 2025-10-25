@@ -1,15 +1,13 @@
 import uuid
 from datetime import datetime
-from typing import Generic, TypeVar, TYPE_CHECKING, Optional
+from typing import Generic, TypeVar, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from sqlmodel import Field, SQLModel
 
-if TYPE_CHECKING:
-    from .user import User
 
 # ---------------------------------------------------------------------------
-# Modelos Base y Genéricos
+#               --- Modelos Base y Genéricos ---
 # ---------------------------------------------------------------------------
 
 # Define un tipo genérico para usar en PaginatedResponse
@@ -21,8 +19,10 @@ class PaginatedResponse(BaseModel, Generic[T]):
     Modelo genérico para respuestas de API que incluyen paginación.
     """
 
-    count: int
-    data: list[T]
+    total: int      # El número total de ítems en la base de datos.
+    page: int       # El número de la página actual que se está devolviendo.
+    size: int       # El número de ítems en esta página específica (puede ser menor que el 'limit').
+    data: list[T]   # Los ítems de la página actual.
 
 
 class BaseTable(SQLModel):
@@ -32,14 +32,12 @@ class BaseTable(SQLModel):
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     updated_at: Optional[datetime] = Field(default=None)
     deleted_at: Optional[datetime] = Field(default=None)
-    is_active: bool = Field(default=True, index=True)
+    is_active: bool = Field(default=True, index=True) # is_deleted
 
     # Campos de auditoría de usuario
     created_by_id: Optional[uuid.UUID] = Field(default=None, foreign_key="users.id")
     updated_by_id: Optional[uuid.UUID] = Field(default=None, foreign_key="users.id")
-
-    created_by: Optional["User"] = Field(default=None, foreign_key="users.id")
-    updated_by: Optional["User"] = Field(default=None, foreign_key="users.id")
+    deleted_by_id: Optional[uuid.UUID] = Field(default=None, foreign_key="users.id")
 
 
 class Message(BaseModel):
@@ -47,7 +45,7 @@ class Message(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Modelos para Autenticación y Tokens
+#           --- Modelos para Autenticación y Tokens ---
 # ---------------------------------------------------------------------------
 
 
@@ -66,5 +64,66 @@ class NewPassword(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    username: str
+    email: EmailStr
     password: str
+
+
+# Usamos TypeVar para crear un tipo genérico que pueda contener cualquier dato
+DataType = TypeVar("DataType")
+
+
+# ----------------------------------------------------------------------------
+#                       --- Modelo para respuestas de la API ---
+# ----------------------------------------------------------------------------
+
+
+# ----------------------------------------------------------------------------
+#                       --- Modelo para Errores ---
+# ----------------------------------------------------------------------------
+class ErrorDetail(BaseModel):
+    http_code: int
+    error_code: int
+    category: str
+    description: str
+    request_id: str
+
+
+class ErrorResponse(BaseModel):
+    object: str
+    code: int
+    status: str = "error"
+    message: ErrorDetail
+
+
+# ----------------------------------------------------------------------------
+#                       --- Modelo para Éxitos ---
+# ----------------------------------------------------------------------------
+
+
+# Este es un modelo genérico. `data` puede ser un User, una lista de Products, etc.
+class SuccessResponse(BaseModel, Generic[DataType]):
+    object: str
+    code: int = 200
+    status: str = "success"
+    data: DataType
+
+# ----------------------------------------------------------------------------
+#                       --- Modelo para los ENUMS del sistema ---
+# ----------------------------------------------------------------------------
+
+
+class EnumValue(BaseModel):
+    """Modelo para representar un par valor/etiqueta de un enum."""
+    value: str
+    label: str
+    
+    
+class AllEnumsResponse(BaseModel):
+    """Modelo de respuesta que contiene todas las listas de enums."""
+    userRoles: list[EnumValue]
+    productCategories: list[EnumValue]
+    orderStatuses: list[EnumValue]
+    pizzaBakingOptions: list[EnumValue]
+    genericSizes: list[EnumValue]
+    
+    

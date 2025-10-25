@@ -3,6 +3,9 @@ from fastapi import APIRouter
 from app.core.config import settings
 from app.api.v1.endpoints import user, login, private, utils, domain
 
+# ========================================================================
+#           --- ROUTER PRINCIPAL PARA LA API RESTful V1 ---
+# ========================================================================
 api_router = APIRouter()
 
 # Incluir cada router 

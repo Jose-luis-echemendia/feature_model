@@ -12,6 +12,13 @@ class UserRole(str, Enum):
     VIEWER = "viewer"
 
 
+class ResourceType(str, Enum):
+    VIDEO = "video"
+    PDF = "pdf"
+    QUIZ = "quiz"
+    EXTERNAL_LINK = "external_link"
+    TEXT_CONTENT = "text_content"
+
 class FeatureType(str, Enum):
     """
     Tipo de una característica dentro de un Feature Model.

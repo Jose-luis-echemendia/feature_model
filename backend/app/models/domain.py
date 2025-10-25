@@ -10,11 +10,28 @@ if TYPE_CHECKING:
     from .feature_model import FeatureModel, FeatureModelPublic
 
 
-# Propiedades compartidas
+# ========================================================================
+#        --- Propiedades compartidas (Modelo Base) para Domain ---
+# ========================================================================
 class DomainBase(SQLModel):
     name: str = Field(max_length=100, index=True)
     description: str | None = Field(default=None)
+    
 
+# ========================================================================
+#        --- Modelo de la base de datos para Domain ---
+# ========================================================================
+class Domain(BaseTable, DomainBase, table=True):
+
+    __tablename__ = "domains"
+
+    # Relación uno-a-muchos: Un dominio tiene muchos modelos de características
+    feature_models: list["FeatureModel"] = Relationship(back_populates="domain")
+
+
+# ========================================================================
+#        --- Modelos para Entrada de Datos (API Input) para Domain ---
+# ========================================================================
 
 # Propiedades para la creación vía API
 class DomainCreate(DomainBase):
@@ -27,14 +44,10 @@ class DomainUpdate(SQLModel):
     description: str | None = Field(default=None)
 
 
-# Modelo de la base de datos
-class Domain(BaseTable, DomainBase, table=True):
 
-    __tablename__ = "domains"
-
-    # Relación uno-a-muchos: Un dominio tiene muchos modelos de características
-    feature_models: list["FeatureModel"] = Relationship(back_populates="domain")
-
+# ========================================================================
+#           --- Modelos para Salida de Datos (API Responses) ---
+# ========================================================================
 
 # Propiedades para retornar vía API
 class DomainPublic(DomainBase):

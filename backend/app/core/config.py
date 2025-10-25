@@ -61,6 +61,8 @@ class Settings(BaseSettings):
     # REDIS
     REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
+    REDIS_URL: str = f"{REDIS_HOST}://pizza-template-redis-1:{REDIS_PORT}"
+    
 
     @computed_field  # type: ignore[prop-decorator]
     @property
