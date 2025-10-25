@@ -1,11 +1,3 @@
-¡Por supuesto! Un `README.md` es la carta de presentación de tu proyecto. Para una tesis, debe ser impecable: informativo, profesional y claro.
-
-He preparado una plantilla completa y estilizada para ti. Solo necesitas reemplazar los marcadores `[...]` con tu información específica y, opcionalmente, añadir imágenes de las tecnologías si lo deseas.
-
-Aquí tienes el código Markdown listo para copiar y pegar en tu `README.md`.
-
----
-
 #  CuriConfig: Configurador Dinámico de Itinerarios Curriculares 🎓
 
 ![Estado del Proyecto](https://img.shields.io/badge/estado-en%20desarrollo-yellow)
