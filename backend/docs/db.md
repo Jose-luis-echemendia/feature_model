@@ -72,9 +72,6 @@ Aquí se detalla el propósito de cada tabla que conforma la arquitectura de nue
 # 💡 7 Analogías para Dominar el Sistema
 
 
-creame analogias como estas, o  que sean parecidas asi, dedicadas a la educacion
-
-
 ### Analogía 1: El Arquitecto de Grados Universitarios
 
 Piensa en tu sistema como la herramienta que usa el decano de una facultad para diseñar y adaptar los planes de estudio de toda la universidad.
