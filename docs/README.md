@@ -12,14 +12,14 @@
 Este proyecto es el resultado de nuestro trabajo de tesis para optar por el título de Ingeniería en Ciencias Informáticas.
 
 *   **Título General del Proyecto:** "Plataforma para la Configuración de Modelos de Características Aplicada al Diseño Curricular"
-*   **Promotora y Tutora General:** Dra. Yadira Ramírez Rodríguez ([email protected])
+*   **Promotora y Tutora General:** M. Sc. Yadira Ramírez Rodríguez (yramirezr@uci.cu)
 
 ### 👨‍💻 Tesistas y Autores
 
 | Rol             | Autor                                   | Tesis Individual                                                                              | Contacto                                   | Tutor Específico           |
 | --------------- | --------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------- |
-| 🚀 **Backend**  | José Luis Echemendía López              | _"Desarrollo de un sistema gestor de modelos de características utilizando FastAPI y PostgreSQL"_ | `[Tu Email de José Luis]`                  | Dra. Yadira Ramírez Rodríguez |
-| 🎨 **Frontend** | Ernes [Tu Apellido] [Tu Apellido] | _"Implementación de una interfaz visual para la configuración de itinerarios curriculares con Next.js"_ | `[Tu Email de Ernes]`                      | Dra. Yadira Ramírez Rodríguez |
+| 🚀 **Backend**  | José Luis Echemendía López              | _"Desarrollo de un sistema gestor de modelos de características utilizando FastAPI y PostgreSQL"_ | josee@estudiantes.uci.cu                  | M. Sc. Yadira Ramírez Rodríguez Ing. Liany Sobrino Miranda |
+| 🎨 **Frontend** | Ernes [Tu Apellido] [Tu Apellido] | _"Implementación de una interfaz visual para la configuración de itinerarios curriculares con Next.js"_ | evdiaz@estudiantes.uci.cu                      | M. Sc. Yadira Ramírez Rodríguez |
 
 ---
 
