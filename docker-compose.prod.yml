@@ -130,7 +130,6 @@ services:
 
   # SERVICIO DEL WORKER DE CELERY PARA TAREAS ASÍNCRONAS
   celery_worker:
-    image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}"
     build:
       context: ./backend
     command: celery -A app.celery.celery_app worker --loglevel=info'

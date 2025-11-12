@@ -157,9 +157,7 @@ services:
   # SERVICIO DEL FRONTEND
   frontend:
     build:
-      context: ./frontend
-      target: development # Opcional, pero recomendado
-    
+      context: ./frontend    
     volumes:
       - ./frontend:/app
       - /app/node_modules
