@@ -4,14 +4,12 @@ from typing import TYPE_CHECKING
 from sqlmodel import Field, Relationship, SQLModel
 
 from .common import BaseTable, PaginatedResponse
-from .link_models import ConfigurationFeatureLink
+from .link_models import ConfigurationFeatureLink, ConfigurationTagLink
 
 if TYPE_CHECKING:
     from .feature_model_version import FeatureModelVersion
     from .feature import Feature, FeaturePublicWithChildren
     from .tag import Tag, TagPublic 
-    from .link_models import ConfigurationTagLink
-
 
 # --- Modelo Principal de Configuration ---
 class ConfigurationBase(SQLModel):
