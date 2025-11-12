@@ -8,7 +8,7 @@ from sqlmodel import Column, Field, Relationship, SQLModel
 
 from app.enums import FeatureType
 from .common import BaseTable, PaginatedResponse
-from .link_models import ConfigurationFeatureLink
+from .link_models import ConfigurationFeatureLink, FeatureTagLink
 
 if TYPE_CHECKING:
     from .resource import Resource
@@ -17,8 +17,6 @@ if TYPE_CHECKING:
     from .feature_group import FeatureGroup
     from .feature_relation import FeatureRelation
     from .tag import Tag 
-    from .link_models import FeatureTagLink 
-
 
 # ---------------------------------------------------------------------------
 # Modelo Base para Feature
@@ -26,18 +24,18 @@ if TYPE_CHECKING:
 class FeatureBase(SQLModel):
     name: str = Field(max_length=100)
     type: FeatureType
-    metadata: dict | None = Field(default=None, sa_column=Column(JSONB))
+    metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
     feature_model_version_id: uuid.UUID = Field(foreign_key="feature_model_versions.id")
-    metadata: dict | None = Field(default=None, sa_column=Column(JSONB, index=True, sa_column_kwargs={"postgresql_using": "gin"}))
+    metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB, index=True, sa_column_kwargs={"postgresql_using": "gin"}))
     feature_model_version_id: uuid.UUID = Field(
         foreign_key="feature_model_versions.id", index=True
     )
     # Clave foránea para la jerarquía padre-hijo (auto-referencia)
-    parent_id: uuid.UUID | None = Field(default=None, foreign_key="features.id")
+    parent_id: Optional[uuid.UUID] = Field(default=None, foreign_key="features.id")
     # Clave foránea para indicar pertenencia a un grupo XOR/OR
-    group_id: uuid.UUID | None = Field(default=None, foreign_key="feature_groups.id")
+    group_id: Optional[uuid.UUID] = Field(default=None, foreign_key="feature_groups.id")
     # Clave foránea para indicar si la características es un recurso (ARCHIVO MEDIA)
-    resource_id: uuid.UUID | None = Field(default=None, foreign_key="resources.id")
+    resource_id: Optional[uuid.UUID] = Field(default=None, foreign_key="resources.id")
 
 
 # ---------------------------------------------------------------------------
@@ -96,7 +94,7 @@ class Feature(BaseTable, FeatureBase, table=True):
     )
     
     # Relacion Para poder acceder al objeto Resource completo desde una Feature
-    resource: "Resource" | None = Relationship(back_populates="features")
+    resource: Optional["Resource"] = Relationship(back_populates="features")
 
 
 
@@ -110,10 +108,10 @@ class FeatureCreate(FeatureBase):
 
 
 class FeatureUpdate(SQLModel):
-    name: str | None = Field(default=None, max_length=100)
-    type: FeatureType | None = None
-    parent_id: uuid.UUID | None = None
-    group_id: uuid.UUID | None = None
+    name: Optional[str] = Field(default=None, max_length=100)
+    type: Optional[FeatureType] = None
+    parent_id: Optional[uuid.UUID] = None
+    group_id: Optional[uuid.UUID] = None
 
 
 class FeaturePublic(FeatureBase):

@@ -5,12 +5,12 @@ from typing import Optional, TYPE_CHECKING
 from sqlmodel import Field, Relationship, SQLModel, Column, JSON
 
 from app.models import PaginatedResponse, BaseTable
+from .link_models import FeatureModelCollaborator
 
 if TYPE_CHECKING:
     from .user import User
     from .domain import Domain
     from .feature import Feature
-    from .link_models import FeatureModelCollaborator
 
 
 # ---------------------------------------------------------------------------

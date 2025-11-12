@@ -6,11 +6,10 @@ from sqlmodel import Field, SQLModel, Relationship
 
 from app.enums import UserRole
 from .common import BaseTable, PaginatedResponse
-
+from .link_models import FeatureModelCollaborator
 
 if TYPE_CHECKING:
     from .feature_model import FeatureModel
-    from .link_models import FeatureModelCollaborator
 
 
 
