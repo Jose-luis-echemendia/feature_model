@@ -82,9 +82,6 @@ services:
   # SERVICIO DEL BACKEND
   backend:
     image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}"
-    networks:
-      - traefik-public
-      - default
     depends_on:
       db:
         condition: service_healthy
