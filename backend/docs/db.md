@@ -67,7 +67,6 @@ Aquí se detalla el propósito de cada tabla que conforma la arquitectura de nue
 *   **🎯 Propósito Principal:** Actuar como el **"pegamento" técnico** que conecta las tablas en relaciones complejas de muchos-a-muchos.
 *   **🔑 Clave Educativa:** Hacen posibles las funcionalidades clave: la colaboración en equipo, la composición de los itinerarios y el etiquetado múltiple.
 
----
 
 # 💡 7 Analogías para Dominar el Sistema
 
