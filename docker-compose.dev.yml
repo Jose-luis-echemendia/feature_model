@@ -23,7 +23,6 @@ services:
 
   # SERVICIO DE PRESTART PARA LA INICIALIZACIÓN DE LA BASE DE DATOS Y OTROS AJUSTES ANTES DE INICIAR EL BACKEND
   prestart:
-    image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}"
     build:
       context: ./backend
     volumes:
@@ -81,7 +80,6 @@ services:
 
   # SERVICIO DEL BACKEND
   backend:
-    image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}"
     depends_on:
       db:
         condition: service_healthy
@@ -130,7 +128,6 @@ services:
 
   # SERVICIO DEL WORKER DE CELERY PARA TAREAS ASÍNCRONAS
   celery_worker:
-    image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}"
     build:
       context: ./backend
     command: celery -A app.celery.celery_app worker --loglevel=info
@@ -159,7 +156,6 @@ services:
 
   # SERVICIO DEL FRONTEND
   frontend:
-    image: "DOCKERIMAGEFRONTEND?Variablenotset:DOCKERI​MAGEF​RONTEND?Variablenotset:{TAG-latest}"
     build:
       context: ./frontend
       target: development # Opcional, pero recomendado
