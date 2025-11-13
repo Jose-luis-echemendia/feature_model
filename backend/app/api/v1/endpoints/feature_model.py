@@ -1,4 +1,7 @@
 import uuid
+
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app import crud
@@ -21,7 +24,7 @@ def read_feature_models(
     session: SessionDep,
     skip: int = 0,
     limit: int = 100,
-    domain_id: uuid.UUID | None = None,
+    domain_id: Optional[uuid.UUID] = None,
 ) -> FeatureModelListResponse:
     """
     Retrieve all feature models.
