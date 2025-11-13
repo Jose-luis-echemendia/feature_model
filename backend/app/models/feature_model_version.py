@@ -1,5 +1,5 @@
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from sqlmodel import Field, Relationship, SQLModel, Column
 from sqlalchemy.dialects.postgresql import JSONB
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class FeatureModelVersionBase(SQLModel):
     version_number: int = Field(default=1, index=True)
-    snapshot: dict[str, Any] | None = Field(default=None, sa_column=Column(JSONB))
+    snapshot: Optional[dict[str, Any]] = Field(default=None, sa_column=Column(JSONB))
     feature_model_id: uuid.UUID = Field(foreign_key="feature_model.id")
     status: ModelStatus = Field(default=ModelStatus.DRAFT)
 
@@ -28,7 +28,7 @@ class FeatureModelVersionCreate(SQLModel):
 
 
 class FeatureModelVersionUpdate(SQLModel):
-    is_active: bool | None = None
+    is_active: Optional[bool] = None
 
 
 class FeatureModelVersion(BaseTable, FeatureModelVersionBase, table=True):
@@ -56,4 +56,4 @@ class FeatureModelVersion(BaseTable, FeatureModelVersionBase, table=True):
 class FeatureModelVersionPublic(FeatureModelVersionBase):
     id: uuid.UUID
     created_at: Any  # Para que Pydantic lo valide
-    created_by_id: uuid.UUID | None
+    created_by_id: Optional[uuid.UUID]

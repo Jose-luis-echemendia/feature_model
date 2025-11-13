@@ -55,7 +55,7 @@ class Token(BaseModel):
 
 
 class TokenPayload(BaseModel):
-    sub: uuid.UUID | None = None
+    sub: Optional[uuid.UUID] = None
 
 
 class NewPassword(BaseModel):

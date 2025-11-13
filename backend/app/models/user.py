@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from .feature_model import FeatureModel
 
 
-
 # Shared properties
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
@@ -32,12 +31,12 @@ class UserRegister(SQLModel):
 
 # Properties to receive via API on update, all are optional
 class UserUpdate(UserBase):
-    email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
-    password: str | None = Field(default=None, min_length=8, max_length=40)
+    email: EmailOptional[str] = Field(default=None, max_length=255)  # type: ignore
+    password: Optional[str] = Field(default=None, min_length=8, max_length=40)
 
 
 class UserUpdateMe(SQLModel):
-    email: EmailStr | None = Field(default=None, max_length=255)
+    email: EmailOptional[str] = Field(default=None, max_length=255)
 
 
 class UpdatePassword(SQLModel):
@@ -49,15 +48,14 @@ class UpdatePassword(SQLModel):
 class User(BaseTable, UserBase, table=True):
 
     # ------------------ METADATA FOR TABLE ----------------------------------------
-    
+
     __tablename__ = "users"
 
     hashed_password: str
-    
-    
+
     # ------------------ RELATIONSHIP ----------------------------------------
     # --- audit fields ---
-    
+
     # Relación para el usuario que creó este registro (many-to-one)
     created_by: Optional["User"] = Relationship(
         back_populates="created_users",
@@ -101,17 +99,15 @@ class User(BaseTable, UserBase, table=True):
         sa_relationship_kwargs={"foreign_keys": "User.deleted_by_id"},
     )
 
-    
     # Modelos en los que este usuario es un propietario de un modelo
     owned_feature_models: list["FeatureModel"] = Relationship(
         back_populates="owner",
-        sa_relationship_kwargs={"foreign_keys": "[FeatureModel.owner_id]"}
+        sa_relationship_kwargs={"foreign_keys": "[FeatureModel.owner_id]"},
     )
 
     # Modelos en los que este usuario es un colaborador
     collaborating_feature_models: list["FeatureModel"] = Relationship(
-        back_populates="collaborators",
-        link_model=FeatureModelCollaborator
+        back_populates="collaborators", link_model=FeatureModelCollaborator
     )
 
 
@@ -120,9 +116,9 @@ class UserPublic(UserBase):
     id: uuid.UUID
 
 
-
 class UserListResponse(PaginatedResponse[UserPublic]):
     """
     Respuesta para listar los usuarios.
     """
+
     pass

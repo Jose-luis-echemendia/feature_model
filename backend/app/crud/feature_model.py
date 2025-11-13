@@ -1,18 +1,20 @@
-from uuid import UUID
+import uuid
+
+from typing import Optional
 from sqlmodel import Session, select
 
 from app.models import FeatureModel, FeatureModelCreate, FeatureModelUpdate
 
 
 def get_feature_model(
-    *, session: Session, feature_model_id: UUID
+    *, session: Session, feature_model_id: uuid.UUID
 ) -> FeatureModel | None:
     """Obtener un feature model por ID"""
     return session.get(FeatureModel, feature_model_id)
 
 
 def get_feature_model_by_name(
-    *, session: Session, name: str, domain_id: UUID
+    *, session: Session, name: str, domain_id: uuid.UUID
 ) -> FeatureModel | None:
     """Obtener un feature model por nombre dentro de un dominio específico"""
     statement = select(FeatureModel).where(
@@ -22,7 +24,7 @@ def get_feature_model_by_name(
 
 
 def get_feature_models_by_domain(
-    *, session: Session, domain_id: UUID, skip: int = 0, limit: int = 100
+    *, session: Session, domain_id: uuid.UUID, skip: int = 0, limit: int = 100
 ) -> list[FeatureModel]:
     """Obtener lista de feature models para un dominio específico con paginación"""
     statement = (
@@ -43,7 +45,7 @@ def get_all_feature_models(
 
 
 def create_feature_model(
-    *, session: Session, feature_model_create: FeatureModelCreate, owner_id: UUID
+    *, session: Session, feature_model_create: FeatureModelCreate, owner_id: uuid.UUID
 ) -> FeatureModel:
     """Crear un nuevo feature model"""
     # Verificar si ya existe un modelo con el mismo nombre en el mismo dominio
@@ -103,7 +105,7 @@ def delete_feature_model(
     return db_feature_model
 
 
-def count_feature_models(*, session: Session, domain_id: UUID | None = None) -> int:
+def count_feature_models(*, session: Session, domain_id: Optional[uuid.UUID] = None) -> int:
     """Contar el número total de feature models, opcionalmente filtrando por dominio"""
     statement = select(FeatureModel)
     if domain_id:
