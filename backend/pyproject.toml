@@ -24,6 +24,9 @@ dependencies = [
     "celery[redis] (>=5.5.3,<6.0.0)",
     "fastapi-cache2[redis] (>=0.2.2,<0.3.0)",
     "weasyprint (>=66.0,<67.0)",
+    "sqladmin (>=0.21.0,<0.22.0)",
+    "boto3 (>=1.40.58,<2.0.0)",
+    "aioboto3 (>=13.3.0,<14.0.0)",
 ]
 
 [tool.uv]

@@ -1,9 +1,18 @@
+import logging
+
 from sqlmodel import Session, create_engine, select
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.core.config import settings
+from app.models import AppSetting
+
+logger = logging.getLogger(__name__)
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+a_engine = create_async_engine(str(settings.SQLALCHEMY_DATABASE_URI), echo=False)
 
+
+from app.core.data import settings_data
 
 # make sure all SQLModel models are imported (app.models) before initializing DB
 # otherwise, SQLModel might fail to initialize relationships properly
@@ -20,6 +29,10 @@ def init_db(session: Session) -> None:
     # SQLModel.metadata.create_all(engine)
 
     from app.models.user import User, UserCreate
+    
+    logger.info("Starting database initialization...")
+
+    _create_settings(session)
 
     user = session.exec(
         select(User).where(User.email == settings.FIRST_SUPERUSER)
@@ -34,3 +47,20 @@ def init_db(session: Session) -> None:
         from app import crud
 
         user = crud.create_user(session=session, user_create=user_in)
+
+    logger.info("Database initialization and seeding completed successfully.")
+    
+    
+def _create_settings(session: Session):
+    if session.exec(select(AppSetting)).first():
+        logger.info("Settings already exist, skipping creation.")
+        return
+    
+    logger.info("Creating app settings...")
+    for key, value, description in settings_data:
+        setting = AppSetting(key=key, value=str(value), description=description)
+        session.add(setting)
+        logger.debug(f"Adding setting: {key}={value}")
+    
+    session.commit()
+    logger.info("App settings created.") 

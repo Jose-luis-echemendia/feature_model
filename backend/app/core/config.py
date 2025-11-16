@@ -58,7 +58,15 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
 
-    # REDIS
+    # --- S3/MinIO Settings ---
+    S3_ENDPOINT: str
+    S3_ACCESS_KEY: str
+    S3_SECRET_KEY: str
+    S3_BUCKET_NAME: str
+    S3_USE_SSL: bool = True 
+    S3_PUBLIC_DOMAIN: str | None = None
+
+    # --- REDIS Settings ---
     REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
     REDIS_URL: str = f"{REDIS_HOST}://pizza-template-redis-1:{REDIS_PORT}"
