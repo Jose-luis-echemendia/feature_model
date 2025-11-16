@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from typing import Annotated, Callable
+from typing import Annotated, Callable, AsyncGenerator
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -7,20 +7,44 @@ from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 from pydantic import ValidationError
 from sqlmodel import Session
+from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from app.core import security
-from app.core.config import settings
-from app.core.db import engine
 from app.models.common import TokenPayload
 from app.models.user import User
 from app.enums import UserRole
-from app import crud  # Importar el CRUD que creamos
+from app.core import security
+from app import crud
+
+from app.core.config import settings
+from app.core.db import engine, a_engine
+
 
 # Configuración OAuth2
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token",
     auto_error=False  # Permite manejar tokens opcionales
 )
+
+TokenDep = Annotated[str, Depends(reusable_oauth2)]
+OptionalTokenDep = Annotated[str | None, Depends(reusable_oauth2)]
+        
+        
+     
+            
+AsyncSessionLocal = async_sessionmaker(
+    bind=a_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+          
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        yield session
+
+
+AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]
+
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -33,8 +57,6 @@ def get_db() -> Generator[Session, None, None]:
 
 
 SessionDep = Annotated[Session, Depends(get_db)]
-TokenDep = Annotated[str, Depends(reusable_oauth2)]
-OptionalTokenDep = Annotated[str | None, Depends(reusable_oauth2)]
 
 
 def get_current_user(session: SessionDep, token: TokenDep) -> User:
