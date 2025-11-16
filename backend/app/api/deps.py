@@ -20,7 +20,10 @@ from app.core.config import settings
 from app.core.db import engine, a_engine
 
 
-# Configuración OAuth2
+# ========================================================================
+#     --- DEPENDENCIAS PARA OAUTH2 ---
+# ========================================================================
+   
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token",
     auto_error=False  # Permite manejar tokens opcionales
@@ -30,22 +33,27 @@ TokenDep = Annotated[str, Depends(reusable_oauth2)]
 OptionalTokenDep = Annotated[str | None, Depends(reusable_oauth2)]
         
         
-     
-            
+# ========================================================================
+#     --- DEPENDENCIAS PARA OBTENER LA SESSION DE LA BD ---
+# ========================================================================
+       
+# --- DEPENDENCIAS PARA ASYNC SESSION ---         
+
 AsyncSessionLocal = async_sessionmaker(
     bind=a_engine,
     class_=AsyncSession,
     expire_on_commit=False,
 )
           
-async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+async def a_get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         yield session
 
 
-AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]
+AsyncSessionDep = Annotated[AsyncSession, Depends(a_get_db)]
 
 
+# --- DEPENDENCIAS PARA SYNC SESSION ---
 
 def get_db() -> Generator[Session, None, None]:
     """Dependency para obtener sesión de base de datos."""
@@ -58,6 +66,11 @@ def get_db() -> Generator[Session, None, None]:
 
 SessionDep = Annotated[Session, Depends(get_db)]
 
+
+# ========================================================================
+#     --- DEPENDENCIAS PARA USUARIOS AUTENTICADOS ---
+# ========================================================================
+   
 
 def get_current_user(session: SessionDep, token: TokenDep) -> User:
     """
@@ -137,6 +150,11 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 OptionalUser = Annotated[User | None, Depends(get_optional_user)]
 
 
+# ========================================================================
+#     --- DEPENDENCIAS PARA SUPER USUARIOS ---
+# ========================================================================
+   
+
 def get_current_active_superuser(current_user: CurrentUser) -> User:
     """
     Verificar que el usuario actual sea superusuario activo.
@@ -160,6 +178,11 @@ def get_current_active_superuser(current_user: CurrentUser) -> User:
 
 CurrentSuperUser = Annotated[User, Depends(get_current_active_superuser)]
 
+
+# ========================================================================
+#     --- DEPENDENCIAS PARA LOS ROLES DEL SISTEMA ---
+# ========================================================================
+   
 
 def role_required(allowed_roles: list[UserRole]) -> Callable[[CurrentUser], User]:
     """
@@ -233,3 +256,12 @@ ConfiguratorUser = Annotated[User, Depends(get_configurator_user())]
 ViewerUser = Annotated[User, Depends(get_viewer_user())]
 VerifiedUser = Annotated[User, Depends(get_verified_user())]
 
+
+
+# ========================================================================
+#     --- DEPENDENCIAS PARA LA GESTIÓN DE VARIABLES DE CONFIGURACIÓN ---
+# ========================================================================
+    
+from app.services.settings import SettingsService   
+def get_settings_service(session: SessionDep) -> SettingsService:
+    return SettingsService(session=session)
