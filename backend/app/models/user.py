@@ -1,9 +1,18 @@
+"""Modelos y esquemas relacionados con usuarios de la plataforma.
+
+Define la entidad `User` (tabla `users`) junto con los modelos auxiliares
+para creación, actualización y respuestas públicas. Incluye relaciones de
+auditoría y asociaciones con feature models (propiedad/colaboración).
+"""
+
 import uuid
 from typing import TYPE_CHECKING, Optional
 
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel, Relationship
 
+
+# --- imports APP ---
 from app.enums import UserRole
 from .common import BaseTable, PaginatedResponse
 from .link_models import FeatureModelCollaborator
@@ -11,43 +20,27 @@ from .link_models import FeatureModelCollaborator
 if TYPE_CHECKING:
     from .feature_model import FeatureModel
 
+# ========================================================================
+#           --- Modelo de Usuario base ---
+# ========================================================================
 
 # Shared properties
 class UserBase(SQLModel):
+
+    # ------------------ FIELDs ----------------------------------------
+
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_superuser: bool = False
     role: UserRole = Field(default=UserRole.VIEWER)
 
 
-# Properties to receive via API on creation
-class UserCreate(UserBase):
-    password: str = Field(min_length=8, max_length=40)
-
-
-class UserRegister(SQLModel):
-    email: EmailStr = Field(max_length=255)
-    password: str = Field(min_length=8, max_length=40)
-
-
-# Properties to receive via API on update, all are optional
-class UserUpdate(UserBase):
-    email: EmailOptional[str] = Field(default=None, max_length=255)  # type: ignore
-    password: Optional[str] = Field(default=None, min_length=8, max_length=40)
-
-
-class UserUpdateMe(SQLModel):
-    email: EmailOptional[str] = Field(default=None, max_length=255)
-
-
-class UpdatePassword(SQLModel):
-    current_password: str = Field(min_length=8, max_length=40)
-    new_password: str = Field(min_length=8, max_length=40)
-
-
+# ========================================================================
+#           --- Modelo para la tabla física de User ---
+# ========================================================================
 # Database model, database table inferred from class name
 class User(BaseTable, UserBase, table=True):
 
-    # ------------------ METADATA FOR TABLE ----------------------------------------
+    # ------------------ METADATA FOR TABLE ----------------------------------
 
     __tablename__ = "users"
 
@@ -109,6 +102,41 @@ class User(BaseTable, UserBase, table=True):
     collaborating_feature_models: list["FeatureModel"] = Relationship(
         back_populates="collaborators", link_model=FeatureModelCollaborator
     )
+
+
+# ========================================================================
+#           --- Modelos para Entrada de datos de Usuario ---
+# ========================================================================
+
+
+# Properties to receive via API on creation
+class UserCreate(UserBase):
+    password: str = Field(min_length=8, max_length=40)
+
+
+class UserRegister(SQLModel):
+    email: EmailStr = Field(max_length=255)
+    password: str = Field(min_length=8, max_length=40)
+
+
+# Properties to receive via API on update, all are optional
+class UserUpdate(UserBase):
+    email: Optional[EmailStr] = Field(default=None, max_length=255)  # type: ignore
+    password: Optional[str] = Field(default=None, min_length=8, max_length=40)
+
+
+class UserUpdateMe(SQLModel):
+    email: Optional[EmailStr] = Field(default=None, max_length=255)
+
+
+class UpdatePassword(SQLModel):
+    current_password: str = Field(min_length=8, max_length=40)
+    new_password: str = Field(min_length=8, max_length=40)
+
+
+# ========================================================================
+#           --- Modelos para Respuestas de Usuario ---
+# ========================================================================
 
 
 # Properties to return via API, id is always required

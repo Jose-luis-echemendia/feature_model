@@ -1,9 +1,15 @@
+"""Definición del modelo `Feature` y esquemas relacionados.
+
+Incluye la entidad de base de datos `Feature` con sus relaciones (jerarquía
+padre/hijo, grupos, tags, configuraciones) y los modelos Pydantic/SQLModel
+para las operaciones de creación, actualización y presentación en la API.
+"""
+
 import uuid
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Dict, Any
 
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy import UniqueConstraint
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import UniqueConstraint, Index
 from sqlmodel import Column, Field, Relationship, SQLModel
 
 from app.enums import FeatureType
@@ -16,17 +22,20 @@ if TYPE_CHECKING:
     from .feature_model_version import FeatureModelVersion
     from .feature_group import FeatureGroup
     from .feature_relation import FeatureRelation
-    from .tag import Tag 
+    from .tag import Tag
 
-# ---------------------------------------------------------------------------
-# Modelo Base para Feature
-# ---------------------------------------------------------------------------
+
+# ========================================================================
+#               --- Modelo Base para Feature ---
+# ========================================================================
 class FeatureBase(SQLModel):
+
+    # ------------------ FIELDs ----------------------------------------
+
     name: str = Field(max_length=100)
     type: FeatureType
-    metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB))
     feature_model_version_id: uuid.UUID = Field(foreign_key="feature_model_versions.id")
-    metadata: Optional[dict] = Field(default=None, sa_column=Column(JSONB, index=True, sa_column_kwargs={"postgresql_using": "gin"}))
+    metadata: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSONB))
     feature_model_version_id: uuid.UUID = Field(
         foreign_key="feature_model_versions.id", index=True
     )
@@ -38,9 +47,9 @@ class FeatureBase(SQLModel):
     resource_id: Optional[uuid.UUID] = Field(default=None, foreign_key="resources.id")
 
 
-# ---------------------------------------------------------------------------
-# Modelo de la Tabla de Base de Datos
-# ---------------------------------------------------------------------------
+# ========================================================================
+#             --- Modelo de la Tabla de Base de Datos ---
+# ========================================================================
 
 
 class Feature(BaseTable, FeatureBase, table=True):
@@ -48,23 +57,26 @@ class Feature(BaseTable, FeatureBase, table=True):
     # ------------------ METADATA FOR TABLE ----------------------------------------
 
     __tablename__ = "features"
-    
+
     __table_args__ = (
         UniqueConstraint(
             "feature_model_version_id", "name", name="uq_feature_version_name"
         ),
+        Index("ix_features_metadata_gin", "metadata", postgresql_using="gin"),
     )
-    
-    tags: list["Tag"] = Relationship(back_populates="features", link_model=FeatureTagLink)
-    
-    
+
     # ------------------ RELATIONSHIP ----------------------------------------
+    
+    
+    tags: list["Tag"] = Relationship(
+        back_populates="features", link_model=FeatureTagLink
+    )
 
     # Relación de vuelta a FeatureModelVersion
     feature_model_version: "FeatureModelVersion" = Relationship(
         back_populates="features"
     )
-    
+
     # Relaciones para la jerarquía (auto-referencia)
     parent: Optional["Feature"] = Relationship(
         back_populates="children",
@@ -92,15 +104,14 @@ class Feature(BaseTable, FeatureBase, table=True):
         back_populates="target_feature",
         sa_relationship_kwargs={"foreign_keys": "[FeatureRelation.target_feature_id]"},
     )
-    
+
     # Relacion Para poder acceder al objeto Resource completo desde una Feature
     resource: Optional["Resource"] = Relationship(back_populates="features")
 
 
-
-# ---------------------------------------------------------------------------
-# Modelos para la API (Pydantic)
-# ---------------------------------------------------------------------------
+# ========================================================================
+#           --- Modelos para la API (Pydantic) ---
+# ========================================================================
 
 class FeatureCreate(FeatureBase):
     # Hereda todo de FeatureBase, no necesita campos adicionales para la creación
@@ -113,6 +124,11 @@ class FeatureUpdate(SQLModel):
     parent_id: Optional[uuid.UUID] = None
     group_id: Optional[uuid.UUID] = None
 
+
+
+# ========================================================================
+#       --- Modelos para Respuestas de las Características ---
+# ========================================================================
 
 class FeaturePublic(FeatureBase):
     id: uuid.UUID

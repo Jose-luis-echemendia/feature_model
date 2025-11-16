@@ -1,3 +1,11 @@
+"""Modelos comunes y esquemas genéricos usados por otros modelos.
+
+Este módulo define las clases base compartidas (por ejemplo `BaseTable`),
+modelos de paginación y respuestas estándar (errores/éxitos/tokens) que se
+utilizan a lo largo de la API. Mantener aquí los tipos reutilizables ayuda a
+evitar duplicación y facilita la consistencia de las respuestas.
+"""
+
 import uuid
 from datetime import datetime
 from typing import Generic, TypeVar, Optional
@@ -6,9 +14,9 @@ from pydantic import BaseModel, EmailStr
 from sqlmodel import Field, SQLModel
 
 
-# ---------------------------------------------------------------------------
-#               --- Modelos Base y Genéricos ---
-# ---------------------------------------------------------------------------
+# ========================================================================
+#              --- Modelos Base y Genéricos ---
+# ========================================================================
 
 # Define un tipo genérico para usar en PaginatedResponse
 T = TypeVar("T")
@@ -19,10 +27,10 @@ class PaginatedResponse(BaseModel, Generic[T]):
     Modelo genérico para respuestas de API que incluyen paginación.
     """
 
-    total: int      # El número total de ítems en la base de datos.
-    page: int       # El número de la página actual que se está devolviendo.
-    size: int       # El número de ítems en esta página específica (puede ser menor que el 'limit').
-    data: list[T]   # Los ítems de la página actual.
+    total: int  # El número total de ítems en la base de datos.
+    page: int  # El número de la página actual que se está devolviendo.
+    size: int  # El número de ítems en esta página específica (puede ser menor que el 'limit').
+    data: list[T]  # Los ítems de la página actual.
 
 
 class BaseTable(SQLModel):
@@ -32,7 +40,7 @@ class BaseTable(SQLModel):
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     updated_at: Optional[datetime] = Field(default=None)
     deleted_at: Optional[datetime] = Field(default=None)
-    is_active: bool = Field(default=True, index=True) # is_deleted
+    is_active: bool = Field(default=True, index=True)  # is_deleted
 
     # Campos de auditoría de usuario
     created_by_id: Optional[uuid.UUID] = Field(default=None, foreign_key="users.id")
@@ -44,9 +52,9 @@ class Message(BaseModel):
     message: str
 
 
-# ---------------------------------------------------------------------------
+# ========================================================================
 #           --- Modelos para Autenticación y Tokens ---
-# ---------------------------------------------------------------------------
+# ========================================================================
 
 
 class Token(BaseModel):
@@ -72,14 +80,14 @@ class LoginRequest(BaseModel):
 DataType = TypeVar("DataType")
 
 
-# ----------------------------------------------------------------------------
-#                       --- Modelo para respuestas de la API ---
-# ----------------------------------------------------------------------------
+# ========================================================================
+#              --- Modelo para respuestas de la API ---
+# ========================================================================
 
 
-# ----------------------------------------------------------------------------
-#                       --- Modelo para Errores ---
-# ----------------------------------------------------------------------------
+# ========================================================================
+#                 --- Modelo para Errores ---
+# ========================================================================
 class ErrorDetail(BaseModel):
     http_code: int
     error_code: int
@@ -95,9 +103,9 @@ class ErrorResponse(BaseModel):
     message: ErrorDetail
 
 
-# ----------------------------------------------------------------------------
+# ========================================================================
 #                       --- Modelo para Éxitos ---
-# ----------------------------------------------------------------------------
+# ========================================================================
 
 
 # Este es un modelo genérico. `data` puede ser un User, una lista de Products, etc.
@@ -107,23 +115,24 @@ class SuccessResponse(BaseModel, Generic[DataType]):
     status: str = "success"
     data: DataType
 
-# ----------------------------------------------------------------------------
-#                       --- Modelo para los ENUMS del sistema ---
-# ----------------------------------------------------------------------------
+
+# ========================================================================
+#              --- Modelo para los ENUMS del sistema ---
+# ========================================================================
 
 
 class EnumValue(BaseModel):
     """Modelo para representar un par valor/etiqueta de un enum."""
+
     value: str
     label: str
-    
-    
+
+
 class AllEnumsResponse(BaseModel):
     """Modelo de respuesta que contiene todas las listas de enums."""
+
     userRoles: list[EnumValue]
     productCategories: list[EnumValue]
     orderStatuses: list[EnumValue]
     pizzaBakingOptions: list[EnumValue]
     genericSizes: list[EnumValue]
-    
-    

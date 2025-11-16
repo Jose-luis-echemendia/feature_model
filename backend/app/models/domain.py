@@ -1,5 +1,13 @@
+"""Modelos que representan dominios de Feature Models.
+
+Un `Domain` agrupa varios FeatureModels relacionados por un mismo dominio de
+aplicación (por ejemplo: 'dominio educativo', 'dominio financiero'). Aquí se
+definen las estructuras para base de datos y los esquemas de entrada/salida
+usados por la API.
+"""
+
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -13,7 +21,11 @@ if TYPE_CHECKING:
 # ========================================================================
 #        --- Propiedades compartidas (Modelo Base) para Domain ---
 # ========================================================================
+
 class DomainBase(SQLModel):
+
+    # ------------------ FIELDs ----------------------------------------
+
     name: str = Field(max_length=100, index=True)
     description: Optional[str] = Field(default=None)
 
@@ -23,7 +35,11 @@ class DomainBase(SQLModel):
 # ========================================================================
 class Domain(BaseTable, DomainBase, table=True):
 
+    # ------------------ METADATA FOR TABLE ----------------------------------
+
     __tablename__ = "domains"
+
+    # ------------------ RELATIONSHIP ----------------------------------------    
 
     # Relación uno-a-muchos: Un dominio tiene muchos modelos de características
     feature_models: list["FeatureModel"] = Relationship(back_populates="domain")

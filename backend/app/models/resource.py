@@ -1,9 +1,19 @@
+"""Modelos para recursos multimedia y metadatos asociados.
+
+Un `Resource` representa contenido (ficheros, URLs o JSON) que puede
+ser referenciado por una `Feature`. Contiene metadatos de publicación,
+licencia y accesibilidad para su gestión en la plataforma.
+"""
+
 import uuid
+
 from datetime import date, datetime
 from typing import TYPE_CHECKING, Optional, Union
 from sqlmodel import Field, SQLModel, Relationship, Column
 from sqlalchemy.dialects.postgresql import JSONB
 
+
+# --- imports APP ---
 from .common import BaseTable
 from app.models import UserPublic
 from app.enums import ResourceType, ResourceStatus, LicenseType
@@ -13,8 +23,15 @@ if TYPE_CHECKING:
     from .user import User
 
 
-# --- Modelo Base Mejorado ---
+# ========================================================================
+#           --- Modelo de Recursos (MEDIA) base ---
+# ========================================================================
+
+
 class ResourceBase(SQLModel):
+
+    # ------------------ FIELDs ----------------------------------------
+
     # --- Metadatos Fundamentales ---
     title: str = Field(
         index=True,
@@ -89,7 +106,9 @@ class ResourceBase(SQLModel):
     )
 
 
-# --- Modelo de Base de Datos ---
+# ========================================================================
+#           --- Modelo para la tabla física de Recursos ---
+# ========================================================================
 class Resource(BaseTable, ResourceBase, table=True):
 
     # ------------------ METADATA FOR TABLE ----------------------------------------
@@ -103,6 +122,11 @@ class Resource(BaseTable, ResourceBase, table=True):
 
     # Relación con el usuario propietario
     owner: Optional["User"] = Relationship()
+
+
+# ========================================================================
+#           --- Modelos para Entrada de datos de Recursos ---
+# ========================================================================
 
 
 # --- Modelos Pydantic para la API ---
@@ -127,6 +151,11 @@ class ResourceUpdate(SQLModel):
     valid_until: Optional[date] = None
     tags: Optional[list[str]] = None
     accessibility_notes: Optional[str] = None
+
+
+# ========================================================================
+#           --- Modelos para Respuestas de Recursos ---
+# ========================================================================
 
 
 class ResourcePublic(ResourceBase):
