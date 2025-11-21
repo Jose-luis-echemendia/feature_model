@@ -34,8 +34,7 @@ class FeatureBase(SQLModel):
 
     name: str = Field(max_length=100)
     type: FeatureType
-    feature_model_version_id: uuid.UUID = Field(foreign_key="feature_model_versions.id")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSONB))
+    properties: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSONB))
     feature_model_version_id: uuid.UUID = Field(
         foreign_key="feature_model_versions.id", index=True
     )
@@ -62,7 +61,7 @@ class Feature(BaseTable, FeatureBase, table=True):
         UniqueConstraint(
             "feature_model_version_id", "name", name="uq_feature_version_name"
         ),
-        Index("ix_features_metadata_gin", "metadata", postgresql_using="gin"),
+        Index("ix_features_properties_gin", "properties", postgresql_using="gin"),
     )
 
     # ------------------ RELATIONSHIP ----------------------------------------

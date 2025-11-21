@@ -250,11 +250,11 @@ def get_verified_user() -> Callable[[CurrentUser], User]:
 
 
 # Atajos comunes
-AdminUser = Annotated[User, Depends(get_admin_user())]
-ModelDesignerUser = Annotated[User, Depends(get_model_designer_user())]
-ConfiguratorUser = Annotated[User, Depends(get_configurator_user())]
-ViewerUser = Annotated[User, Depends(get_viewer_user())]
-VerifiedUser = Annotated[User, Depends(get_verified_user())]
+AdminUser = Annotated[User, Depends(get_admin_user)]
+ModelDesignerUser = Annotated[User, Depends(get_model_designer_user)]
+ConfiguratorUser = Annotated[User, Depends(get_configurator_user)]
+ViewerUser = Annotated[User, Depends(get_viewer_user)]
+VerifiedUser = Annotated[User, Depends(get_verified_user)]
 
 
 
@@ -265,3 +265,21 @@ VerifiedUser = Annotated[User, Depends(get_verified_user())]
 from app.services.settings import SettingsService   
 def get_settings_service(session: SessionDep) -> SettingsService:
     return SettingsService(session=session)
+
+SettingsServiceDep = Annotated[SettingsService, Depends(get_settings_service)]
+
+
+# ========================================================================
+#     --- DEPENDENCIAS PARA LOS REPOSITORIOS ---
+# ========================================================================
+
+from app.repositories import UserRepositorySync, UserRepositoryAsync
+
+def get_user_repo(session: SessionDep):
+    return UserRepositorySync(session)
+
+async def aget_user_repo(session: AsyncSessionDep):
+    return UserRepositoryAsync(session)
+
+UserRepoDep = Annotated[UserRepositorySync, Depends(get_user_repo)]
+AsyncUserRepoDep = Annotated[UserRepositoryAsync, Depends(aget_user_repo)]

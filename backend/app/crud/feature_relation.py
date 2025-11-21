@@ -3,7 +3,6 @@ from datetime import datetime
 from sqlmodel import Session, select
 
 from app.models import (
-    Feature,
     FeatureRelation,
     FeatureRelationCreate,
     User,

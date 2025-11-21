@@ -17,12 +17,13 @@ from .link_models import FeatureModelCollaborator
 if TYPE_CHECKING:
     from .user import User
     from .domain import Domain
-    from .feature import Feature
+    from .feature_model_version import FeatureModelVersion
 
 
 # ========================================================================
 #              --- Modelo Base para FeatureModel ---
 # ========================================================================
+
 
 class FeatureModelBase(SQLModel):
 
@@ -36,25 +37,26 @@ class FeatureModelBase(SQLModel):
 #           --- Modelo de la Tabla de Base de Datos ---
 # ========================================================================
 
+
 class FeatureModel(BaseTable, FeatureModelBase, table=True):
 
     # ------------------ METADATA FOR TABLE ----------------------------------
 
     __tablename__ = "feature_model"
 
-
-
     # Relaciones
-    domain_id: uuid.UUID = Field(foreign_key="domain.id", nullable=False)
-    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    domain_id: uuid.UUID = Field(foreign_key="domains.id", nullable=False)
+    owner_id: uuid.UUID = Field(foreign_key="users.id", nullable=False)
 
     # ------------------ RELATIONSHIP ----------------------------------------
-    
-    domain: "Domain" = Relationship(back_populates="feature_models")
-    owner: "User" = Relationship()
 
-    # Relación con las características (features)
-    features: list["Feature"] = Relationship(
+    domain: "Domain" = Relationship(back_populates="feature_models")
+    owner: "User" = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[FeatureModel.owner_id]"}
+    )
+
+    # Relación con las versiones del modelo
+    versions: list["FeatureModelVersion"] = Relationship(
         back_populates="feature_model",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
     )
@@ -69,6 +71,7 @@ class FeatureModel(BaseTable, FeatureModelBase, table=True):
 #             --- Modelos para la API (Pydantic) ---
 # ========================================================================================
 
+
 class FeatureModelCreate(FeatureModelBase):
     domain_id: uuid.UUID
 
@@ -81,6 +84,7 @@ class FeatureModelUpdate(FeatureModelBase):
 # ========================================================================
 #       --- Modelos para Respuestas de los Modelos Característicos ---
 # ========================================================================
+
 
 class FeatureModelPublic(FeatureModelBase):
     id: uuid.UUID

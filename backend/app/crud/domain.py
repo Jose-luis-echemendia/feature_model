@@ -1,7 +1,7 @@
 from sqlmodel import Session, select
 from uuid import UUID
 
-from app.models import Domain, DomainCreate, DomainUpdate, DomainPublic, DomainPublicWithFeatureModels
+from app.models import Domain, DomainCreate, DomainUpdate, DomainPublicWithFeatureModels
 
 
 def get_domains(*, session: Session, skip: int = 0, limit: int = 100) -> list[Domain]:

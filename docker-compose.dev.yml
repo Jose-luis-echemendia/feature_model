@@ -130,7 +130,7 @@ services:
   celery_worker:
     build:
       context: ./backend
-    command: celery -A app.celery.celery_app worker --loglevel=info
+    command: celery -A app.core.celery.celery_app worker --loglevel=info
     volumes:
       - ./backend/app:/app/app
     env_file:
@@ -158,16 +158,16 @@ services:
   frontend:
     build:
       context: ./frontend    
+      dockerfile: Dockerfile.dev
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - /app/.next 
     ports:
-      - "5173:5173"
+      - "3000:3000" 
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://backend:8000 # O el puerto que use tu API
-
-    command: npm run dev -- --host
+      - NEXT_PUBLIC_API_URL=http://backend:8000 
 
 volumes:
   app-db-data:

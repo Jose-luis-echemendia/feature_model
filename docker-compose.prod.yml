@@ -132,7 +132,7 @@ services:
   celery_worker:
     build:
       context: ./backend
-    command: celery -A app.celery.celery_app worker --loglevel=info'
+    command: celery -A app.core.celery.celery_app worker --loglevel=info'
     networks:
       - internal_network
     volumes:

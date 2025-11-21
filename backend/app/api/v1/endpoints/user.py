@@ -1,20 +1,18 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import func, select
 
-from app import crud
 from app.api.deps import (
     CurrentUser,
-    SessionDep,
     get_current_active_superuser,
+    UserRepoDep,
+    AsyncUserRepoDep,
 )
 from app.core.config import settings
 from app.models.common import Message
 from app.enums import UserRole
 from app.models.user import (
     UpdatePassword,
-    User,
     UserCreate,
     UserPublic,
     UserRegister,
@@ -32,66 +30,85 @@ router = APIRouter(prefix="/users", tags=["users"])
 #######################################
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para leer la información de los usuarios.
-# ---------------------------------------------------------------------------
-
+# ===========================================================================
+#           --- Endpoint para listar Usuarios ---
+# ===========================================================================
 
 @router.get(
     "/",
-    dependencies=[Depends(get_current_active_superuser)],
     response_model=UserListResponse,
 )
 def read_users(
-    *, session: SessionDep, skip: int = 0, limit: int = 100
+    *,
+    repo: UserRepoDep,
+    skip: int = 0,
+    limit: int = 100,
 ) -> UserListResponse:
-    """
-    Retrieve users.
-    """
-    users = crud.get_users(session=session, skip=skip, limit=limit)
-    count = crud.get_users_count(session=session)
-
+    users = repo.get_all(skip=skip, limit=limit)
+    count = repo.count()
     return UserListResponse(data=users, count=count)
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para obtener los usuarios dado un rol.
-# ---------------------------------------------------------------------------
+@router.get(
+    "/async",
+    response_model=UserListResponse,
+)
+async def read_users_async(
+    *,
+    repo: AsyncUserRepoDep,
+    skip: int = 0,
+    limit: int = 100,
+) -> UserListResponse:
+    users = await repo.get_all(skip=skip, limit=limit)
+    count = await repo.count()
+    return UserListResponse(data=users, count=count)
+
+
+# ===========================================================================
+#           --- Endpoint para listar Usuarios por roles ---
+# ===========================================================================
+
+@router.get("/async/by-role/{role}", response_model=UserListResponse)
+async def read_users_by_role_async(
+    *,
+    repo: AsyncUserRepoDep,
+    role: UserRole,
+    skip: int = 0,
+    limit: int = 100,
+) -> UserListResponse:
+    users = await repo.search(role, skip=skip, limit=limit)
+    count = len(users)
+    return UserListResponse(data=users, count=count)
 
 
 @router.get("/by-role/{role}", response_model=UserListResponse)
 def read_users_by_role(
-    *, session: SessionDep, role: UserRole, skip: int = 0, limit: int = 100
+    *,
+    repo: UserRepoDep,
+    role: UserRole,
+    skip: int = 0,
+    limit: int = 100,
 ) -> UserListResponse:
-    """
-    Get users by role.
-    """
-    # Para este caso específico, necesitamos una función especial en el CRUD
-    # Podemos usar la función search_users o crear una específica
-    statement = select(User).where(User.role == role).offset(skip).limit(limit)
-    users = session.exec(statement).all()
-
-    count_statement = select(func.count()).select_from(User).where(User.role == role)
-    count = session.exec(count_statement).one()
-
+    users = repo.search(role, skip=skip, limit=limit)
+    count = len(users)  # o repo.count_by_role(role) si existe
     return UserListResponse(data=users, count=count)
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para crear nuevos usuarios.
-# ---------------------------------------------------------------------------
 
+# ===========================================================================
+#           --- Endpoint para crear Usuario ---
+# ===========================================================================
 
-@router.post(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
-)
-def create_user(*, session: SessionDep, user_in: UserCreate) -> UserPublic:
-    """
-    Create new user.
-    """
+@router.post("/", response_model=UserPublic)
+def create_user(
+    *,
+    repo: UserRepoDep,
+    user_in: UserCreate,
+) -> UserPublic:
     try:
-        user = crud.create_user(session=session, user_create=user_in)
+        user = repo.create(user_in)
 
+        # Lógica de email se mantiene igual
         if settings.emails_enabled and user_in.email:
             email_data = generate_new_account_email(
                 email_to=user_in.email,
@@ -103,54 +120,90 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> UserPublic:
                 subject=email_data.subject,
                 html_content=email_data.html_content,
             )
+
         return user
 
     except ValueError as e:
-        raise HTTPException(
-            status_code=400,
-            detail=str(e),
-        )
+        raise HTTPException(status_code=400, detail=str(e))
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para actualizar el usuario propio.
-# ---------------------------------------------------------------------------
+@router.post("/async", response_model=UserPublic)
+async def create_user_async(
+    *,
+    repo: AsyncUserRepoDep,
+    user_in: UserCreate,
+) -> UserPublic:
+    try:
+        user = await repo.create(user_in)
 
+        if settings.emails_enabled and user_in.email:
+            # usando thread pool si send_email es sync
+            import anyio
+
+            await anyio.to_thread.run_sync(
+                send_email,
+                user_in.email,
+                "Bienvenido",
+                "<p>Cuenta creada</p>",
+            )
+
+        return user
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ===========================================================================
+#           --- Endpoint para actualizar el usuario propio ---
+# ===========================================================================
 
 @router.patch("/me/", response_model=UserPublic)
 def update_user_me(
-    *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
+    *, repo: UserRepoDep, user_in: UserUpdateMe, current_user: CurrentUser
 ) -> UserPublic:
     """
     Update own user.
     """
     try:
-        # Convertir UserUpdateMe a UserUpdate para usar la función del CRUD
+        # Convertir UserUpdateMe a UserUpdate para usar el repositorio
         user_update_data = UserUpdate(**user_in.model_dump(exclude_unset=True))
-        updated_user = crud.update_user(
-            session=session, db_user=current_user, user_in=user_update_data
-        )
+        updated_user = repo.update(db_user=current_user, data=user_update_data)
         return updated_user
 
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para cambiar la contraseña del usuario propio.
-# ---------------------------------------------------------------------------
+@router.patch("/me/async", response_model=UserPublic)
+async def update_user_me_async(
+    *, repo: AsyncUserRepoDep, user_in: UserUpdateMe, current_user: CurrentUser
+) -> UserPublic:
+    """
+    Update own user (async).
+    """
+    try:
+        user_update_data = UserUpdate(**user_in.model_dump(exclude_unset=True))
+        updated_user = await repo.update(db_user=current_user, data=user_update_data)
+        return updated_user
+
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+# ===========================================================================
+#        --- Endpoint para cambiar la contraseña del usuario propio ---
+# ===========================================================================
 
 
 @router.patch("/me/password/", response_model=Message)
 def update_password_me(
-    *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
+    *, repo: UserRepoDep, body: UpdatePassword, current_user: CurrentUser
 ) -> Message:
     """
     Update own password.
     """
     try:
-        updated_user = crud.change_password(
-            session=session,
+        repo.change_password(
             db_user=current_user,
             current_password=body.current_password,
             new_password=body.new_password,
@@ -161,9 +214,28 @@ def update_password_me(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para leer la información del usuario propio.
-# ---------------------------------------------------------------------------
+@router.patch("/me/password/async", response_model=Message)
+async def update_password_me_async(
+    *, repo: AsyncUserRepoDep, body: UpdatePassword, current_user: CurrentUser
+) -> Message:
+    """
+    Update own password (async).
+    """
+    try:
+        await repo.change_password(
+            db_user=current_user,
+            current_password=body.current_password,
+            new_password=body.new_password,
+        )
+        return Message(message="Password updated successfully")
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ===========================================================================
+#       --- Endpoint para leer la información del usuario propio ---
+# ===========================================================================
 
 
 @router.get("/me/", response_model=UserPublic)
@@ -174,13 +246,13 @@ def read_user_me(*, current_user: CurrentUser) -> UserPublic:
     return current_user
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para eliminar el usuario propio.
-# ---------------------------------------------------------------------------
+# ===========================================================================
+#       --- Endpoint para eliminar el usuario propio ---
+# ===========================================================================
 
 
 @router.delete("/me/", response_model=Message)
-def delete_user_me(*, session: SessionDep, current_user: CurrentUser) -> Message:
+def delete_user_me(*, repo: UserRepoDep, current_user: CurrentUser) -> Message:
     """
     Delete own user.
     """
@@ -189,17 +261,33 @@ def delete_user_me(*, session: SessionDep, current_user: CurrentUser) -> Message
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
 
-    crud.delete_user(session=session, db_user=current_user)
+    repo.delete(db_user=current_user)
     return Message(message="User deleted successfully")
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para registrar un nuevo usuario.
-# ---------------------------------------------------------------------------
+@router.delete("/me/async", response_model=Message)
+async def delete_user_me_async(
+    *, repo: AsyncUserRepoDep, current_user: CurrentUser
+) -> Message:
+    """
+    Delete own user (async).
+    """
+    if current_user.is_superuser:
+        raise HTTPException(
+            status_code=403, detail="Super users are not allowed to delete themselves"
+        )
+
+    await repo.delete(db_user=current_user)
+    return Message(message="User deleted successfully")
+
+
+# ===========================================================================
+#           --- Endpoint para registrar un nuevo usuario ---
+# ===========================================================================
 
 
 @router.post("/signup/", response_model=UserPublic)
-def register_user(*, session: SessionDep, user_in: UserRegister) -> UserPublic:
+def register_user(*, repo: UserRepoDep, user_in: UserRegister) -> UserPublic:
     """
     Create new user without the need to be logged in.
     """
@@ -209,9 +297,8 @@ def register_user(*, session: SessionDep, user_in: UserRegister) -> UserPublic:
             email=user_in.email,
             password=user_in.password,
             full_name=user_in.full_name,
-            # Agregar otros campos necesarios
         )
-        user = crud.create_user(session=session, user_create=user_create)
+        user = repo.create(data=user_create)
         return user
 
     except ValueError as e:
@@ -221,19 +308,42 @@ def register_user(*, session: SessionDep, user_in: UserRegister) -> UserPublic:
         )
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para leer la información de los usuarios dado su id.
-# ---------------------------------------------------------------------------
+@router.post("/signup/async", response_model=UserPublic)
+async def register_user_async(
+    *, repo: AsyncUserRepoDep, user_in: UserRegister
+) -> UserPublic:
+    """
+    Create new user without the need to be logged in (async).
+    """
+    try:
+        user_create = UserCreate(
+            email=user_in.email,
+            password=user_in.password,
+            full_name=user_in.full_name,
+        )
+        user = await repo.create(data=user_create)
+        return user
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+
+
+# ===========================================================================
+#     --- Endpoint para leer la información de los usuarios dado su id ---
+# ===========================================================================
 
 
 @router.get("/{user_id}/", response_model=UserPublic)
 def read_user_by_id(
-    *, user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
+    *, user_id: uuid.UUID, repo: UserRepoDep, current_user: CurrentUser
 ) -> UserPublic:
     """
     Get a specific user by id.
     """
-    user = crud.get_user(session=session, user_id=user_id)
+    user = repo.get(user_id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -248,9 +358,31 @@ def read_user_by_id(
     return user
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para actualizar un usuario dado su id.
-# ---------------------------------------------------------------------------
+@router.get("/{user_id}/async", response_model=UserPublic)
+async def read_user_by_id_async(
+    *, user_id: uuid.UUID, repo: AsyncUserRepoDep, current_user: CurrentUser
+) -> UserPublic:
+    """
+    Get a specific user by id (async).
+    """
+    user = await repo.get(user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user == current_user:
+        return user
+
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403,
+            detail="The user doesn't have enough privileges",
+        )
+    return user
+
+
+# ===========================================================================
+#       --- Endpoint para actualizar un usuario dado su id ---
+# ===========================================================================
 
 
 @router.patch(
@@ -260,14 +392,14 @@ def read_user_by_id(
 )
 def update_user(
     *,
-    session: SessionDep,
+    repo: UserRepoDep,
     user_id: uuid.UUID,
     user_in: UserUpdate,
 ) -> UserPublic:
     """
     Update a user.
     """
-    db_user = crud.get_user(session=session, user_id=user_id)
+    db_user = repo.get(user_id=user_id)
     if not db_user:
         raise HTTPException(
             status_code=404,
@@ -275,18 +407,45 @@ def update_user(
         )
 
     try:
-        updated_user = crud.update_user(
-            session=session, db_user=db_user, user_in=user_in
-        )
+        updated_user = repo.update(db_user=db_user, data=user_in)
         return updated_user
 
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para actualizar el rol de un usuario dado su id.
-# ---------------------------------------------------------------------------
+@router.patch(
+    "/{user_id}/async",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=UserPublic,
+)
+async def update_user_async(
+    *,
+    repo: AsyncUserRepoDep,
+    user_id: uuid.UUID,
+    user_in: UserUpdate,
+) -> UserPublic:
+    """
+    Update a user (async).
+    """
+    db_user = await repo.get(user_id=user_id)
+    if not db_user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this id does not exist in the system",
+        )
+
+    try:
+        updated_user = await repo.update(db_user=db_user, data=user_in)
+        return updated_user
+
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+# ===========================================================================
+#       --- Endpoint para actualizar el rol de un usuario dado su id ---
+# ===========================================================================
 
 
 @router.put("/{user_id}/role/", response_model=UserPublic)
@@ -294,7 +453,7 @@ def update_user_role(
     *,
     user_id: uuid.UUID,
     role: UserRole,
-    session: SessionDep,
+    repo: UserRepoDep,
     current_user: CurrentUser,
 ) -> UserPublic:
     """
@@ -306,29 +465,55 @@ def update_user_role(
             detail="The user doesn't have enough privileges",
         )
 
-    user = crud.get_user(session=session, user_id=user_id)
+    user = repo.get(user_id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Actualizar el rol usando la función del CRUD
+    # Actualizar el rol usando el repositorio
     user_update = UserUpdate(role=role)
-    updated_user = crud.update_user(session=session, db_user=user, user_in=user_update)
+    updated_user = repo.update(db_user=user, data=user_update)
     return updated_user
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para eliminar un usuario dado su id.
-# ---------------------------------------------------------------------------
+@router.put("/{user_id}/role/async", response_model=UserPublic)
+async def update_user_role_async(
+    *,
+    user_id: uuid.UUID,
+    role: UserRole,
+    repo: AsyncUserRepoDep,
+    current_user: CurrentUser,
+) -> UserPublic:
+    """
+    Update a user's role (async).
+    """
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403,
+            detail="The user doesn't have enough privileges",
+        )
+
+    user = await repo.get(user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user_update = UserUpdate(role=role)
+    updated_user = await repo.update(db_user=user, data=user_update)
+    return updated_user
+
+
+# ===========================================================================
+#       --- Endpoint para eliminar un usuario dado su id ---
+# ===========================================================================
 
 
 @router.delete("/{user_id}/", dependencies=[Depends(get_current_active_superuser)])
 def delete_user(
-    *, session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
+    *, repo: UserRepoDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> Message:
     """
     Delete a user.
     """
-    user = crud.get_user(session=session, user_id=user_id)
+    user = repo.get(user_id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -337,40 +522,67 @@ def delete_user(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
 
-    crud.delete_user(session=session, db_user=user)
+    repo.delete(db_user=user)
     return Message(message="User deleted successfully")
 
 
-# ---------------------------------------------------------------------------
-# Endpoint adicional para buscar usuarios
-# ---------------------------------------------------------------------------
+@router.delete("/{user_id}/async", dependencies=[Depends(get_current_active_superuser)])
+async def delete_user_async(
+    *, repo: AsyncUserRepoDep, current_user: CurrentUser, user_id: uuid.UUID
+) -> Message:
+    """
+    Delete a user (async).
+    """
+    user = await repo.get(user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user == current_user:
+        raise HTTPException(
+            status_code=403, detail="Super users are not allowed to delete themselves"
+        )
+
+    await repo.delete(db_user=user)
+    return Message(message="User deleted successfully")
+
+
+# ===========================================================================
+#           --- Endpoint adicional para buscar usuarios ---
+# ===========================================================================
 
 
 @router.get("/search/{search_term}/", response_model=UserListResponse)
 def search_users(
-    *, session: SessionDep, search_term: str, skip: int = 0, limit: int = 100
+    *, repo: UserRepoDep, search_term: str, skip: int = 0, limit: int = 100
 ) -> UserListResponse:
     """
     Search users by email or name.
     """
-    users = crud.search_users(
-        session=session, search_term=search_term, skip=skip, limit=limit
-    )
-
-    # Para el count, necesitamos una función específica o podemos contar los resultados
+    users = repo.search(search_term=search_term, skip=skip, limit=limit)
     count = len(users)
-
     return UserListResponse(data=users, count=count)
 
 
-# ---------------------------------------------------------------------------
-# Endpoint para activar/desactivar usuarios
-# ---------------------------------------------------------------------------
+@router.get("/search/{search_term}/async", response_model=UserListResponse)
+async def search_users_async(
+    *, repo: AsyncUserRepoDep, search_term: str, skip: int = 0, limit: int = 100
+) -> UserListResponse:
+    """
+    Search users by email or name (async).
+    """
+    users = await repo.search(search_term=search_term, skip=skip, limit=limit)
+    count = len(users)
+    return UserListResponse(data=users, count=count)
+
+
+# ===========================================================================
+#       --- Endpoint para activar/desactivar usuarios ---
+# ===========================================================================
 
 
 @router.patch("/{user_id}/activate/", response_model=UserPublic)
 def activate_user(
-    *, user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
+    *, user_id: uuid.UUID, repo: UserRepoDep, current_user: CurrentUser
 ) -> UserPublic:
     """
     Activate a user.
@@ -378,17 +590,35 @@ def activate_user(
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Not enough privileges")
 
-    user = crud.get_user(session=session, user_id=user_id)
+    user = repo.get(user_id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    activated_user = crud.activate_user(session=session, db_user=user)
+    activated_user = repo.activate(db_user=user)
+    return activated_user
+
+
+@router.patch("/{user_id}/activate/async", response_model=UserPublic)
+async def activate_user_async(
+    *, user_id: uuid.UUID, repo: AsyncUserRepoDep, current_user: CurrentUser
+) -> UserPublic:
+    """
+    Activate a user (async).
+    """
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough privileges")
+
+    user = await repo.get(user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    activated_user = await repo.activate(db_user=user)
     return activated_user
 
 
 @router.patch("/{user_id}/deactivate/", response_model=UserPublic)
 def deactivate_user(
-    *, user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
+    *, user_id: uuid.UUID, repo: UserRepoDep, current_user: CurrentUser
 ) -> UserPublic:
     """
     Deactivate a user.
@@ -396,12 +626,33 @@ def deactivate_user(
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Not enough privileges")
 
-    user = crud.get_user(session=session, user_id=user_id)
+    user = repo.get(user_id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     if user == current_user:
         raise HTTPException(status_code=403, detail="Cannot deactivate yourself")
 
-    deactivated_user = crud.deactivate_user(session=session, db_user=user)
+    deactivated_user = repo.deactivate(db_user=user)
+    return deactivated_user
+
+
+@router.patch("/{user_id}/deactivate/async", response_model=UserPublic)
+async def deactivate_user_async(
+    *, user_id: uuid.UUID, repo: AsyncUserRepoDep, current_user: CurrentUser
+) -> UserPublic:
+    """
+    Deactivate a user (async).
+    """
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough privileges")
+
+    user = await repo.get(user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user == current_user:
+        raise HTTPException(status_code=403, detail="Cannot deactivate yourself")
+
+    deactivated_user = await repo.deactivate(db_user=user)
     return deactivated_user

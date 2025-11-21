@@ -1,0 +1,22 @@
+# Usa una imagen base de Node.js ligera y reciente
+FROM node:20-alpine
+
+# Establece el directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copia los archivos de manifiesto de paquetes primero para aprovechar el caché de Docker.
+# Si estos archivos no cambian, Docker no volverá a instalar las dependencias.
+COPY package*.json ./
+
+# Instala las dependencias de forma limpia usando el archivo de bloqueo
+RUN npm ci
+
+# Copia el resto de los archivos de tu aplicación
+COPY . .
+
+# Expone el puerto que Next.js usará para el servidor de desarrollo
+EXPOSE 3000
+
+# El comando por defecto para iniciar el servidor de desarrollo de Next.js
+# Esto se ejecutará cuando el contenedor inicie
+CMD ["npm", "run", "dev"]
