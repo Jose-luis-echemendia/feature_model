@@ -228,9 +228,19 @@ class S3StorageService:
             logger.debug(f"Cerrando el archivo de subida '{file.filename}'.")
             file.close()
 
-    def save_file(self, file: UploadFile, prefix: str = "") -> str:
+    def save_file(
+        self, file: UploadFile, prefix: str = "", expires_in: int = 3600 * 24 * 7
+    ) -> str:
         """
-        Guarda un archivo genérico en S3 con un prefijo opcional (modo síncrono).
+        Guarda un archivo genérico en S3 con un prefijo opcional y retorna una URL presigned (modo síncrono).
+
+        Args:
+            file: Archivo a subir
+            prefix: Prefijo para organizar archivos (ej: "products/uuid/")
+            expires_in: Tiempo de expiración de la URL en segundos (default: 7 días)
+
+        Returns:
+            URL presigned para acceder al archivo
         """
         try:
             logger.info(
@@ -255,7 +265,19 @@ class S3StorageService:
             logger.info(
                 f"Archivo subido exitosamente a S3 como '{object_name}' (sync)."
             )
-            return object_name
+
+            # Generar URL pública simple (asumiendo bucket público)
+            # Si S3_PUBLIC_DOMAIN está configurado, úsalo; de lo contrario, usa S3_ENDPOINT
+            public_domain = settings.S3_PUBLIC_DOMAIN or settings.S3_ENDPOINT
+            protocol = "https" if settings.S3_USE_SSL else "http"
+            public_url = (
+                f"{protocol}://{public_domain}/{self.bucket_name}/{object_name}"
+            )
+
+            logger.debug(f"URL pública generada para '{object_name}': {public_url}")
+
+            return public_url
+
         except ClientError as e:
             logger.error(f"Error al subir el archivo a S3 (sync): {e}")
             raise HTTPException(
@@ -393,9 +415,19 @@ class S3StorageService:
             logger.debug(f"Cerrando el archivo de subida '{file.filename}'.")
             await file.close()
 
-    async def asave_file(self, file: UploadFile, prefix: str = "") -> str:
+    async def asave_file(
+        self, file: UploadFile, prefix: str = "", expires_in: int = 3600 * 24 * 7
+    ) -> str:
         """
-        Guarda un archivo genérico en S3 con un prefijo opcional (modo asíncrono).
+        Guarda un archivo genérico en S3 con un prefijo opcional y retorna una URL presigned (modo asíncrono).
+
+        Args:
+            file: Archivo a subir
+            prefix: Prefijo para organizar archivos (ej: "products/uuid/")
+            expires_in: Tiempo de expiración de la URL en segundos (default: 7 días)
+
+        Returns:
+            URL presigned para acceder al archivo
         """
         protocol = "https" if settings.S3_USE_SSL else "http"
         endpoint_url = f"{protocol}://{settings.S3_ENDPOINT}"
@@ -428,10 +460,24 @@ class S3StorageService:
                     ExtraArgs={"ContentType": file.content_type},
                 )
 
-            logger.info(
-                f"Archivo subido exitosamente a S3 como '{object_name}' (async)."
+                logger.info(
+                    f"Archivo subido exitosamente a S3 como '{object_name}' (async)."
+                )
+
+            # Generar URL pública simple (asumiendo bucket público)
+            # Si S3_PUBLIC_DOMAIN está configurado, úsalo; de lo contrario, usa S3_ENDPOINT
+            public_domain = settings.S3_PUBLIC_DOMAIN or settings.S3_ENDPOINT
+            protocol_public = "https" if settings.S3_USE_SSL else "http"
+            public_url = (
+                f"{protocol_public}://{public_domain}/{self.bucket_name}/{object_name}"
             )
-            return object_name
+
+            logger.debug(
+                f"URL pública generada para '{object_name}': {public_url} (async)"
+            )
+
+            return public_url
+
         except ClientError as e:
             logger.error(f"Error al subir el archivo a S3 (async): {e}")
             raise HTTPException(
