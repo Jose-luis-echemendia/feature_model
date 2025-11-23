@@ -30,10 +30,7 @@ class FeatureGroupBase(SQLModel):
     group_type: FeatureGroupType = Field(index=True)
     min_cardinality: int = Field(default=1)
     max_cardinality: Optional[int] = Field(default=None)  # 1 para XOR, >1 para OR
-    parent_feature_id: uuid.UUID = Field(
-        foreign_key="features.id",
-        sa_column_kwargs={"use_alter": True, "name": "fk_parent_feature"}
-    )
+    parent_feature_id: uuid.UUID = Field(foreign_key="features.id")
     feature_model_version_id: uuid.UUID = Field(foreign_key="feature_model_versions.id")
 
 
