@@ -22,7 +22,7 @@ router = APIRouter(prefix="/utils", tags=["utils"])
 
 
 # ===========================================================================
-#  Endpoint raíz de bienvenida.
+#               --- Endpoint raíz de bienvenida. ---
 # ===========================================================================
 
 @router.get("/")
@@ -32,7 +32,7 @@ def read_root():
 
 
 # ===========================================================================
-# Endpoint Health Check
+#               --- Endpoint Health Check ---
 # ===========================================================================
 
 @router.get("/health-check/")
@@ -41,7 +41,7 @@ async def health_check() -> bool:
 
 
 # ===========================================================================
-# Endpoint para probar el envío de correos electrónicos.
+#       --- Endpoint para probar el envío de correos electrónicos. --- 
 # ===========================================================================
 
 @router.post(
@@ -63,9 +63,9 @@ def test_email(email_to: EmailStr) -> Message:
 
 
 
-# ===========================================================================
-# Endpoint para probar el servicio de variables dinámicas del sistema.
-# ===========================================================================
+# ================================================================================
+#  --- Endpoint para probar el servicio de variables dinámicas del sistema. ---
+# ================================================================================
 
 @router.get("/test/setting/")
 async def get_example_with_dynamic_setting(
@@ -87,7 +87,7 @@ async def get_example_with_dynamic_setting(
 
 
 # ===========================================================================
-# Endpoint para obtener los roles del sistema.
+#          --- Endpoint para obtener los roles del sistema. ---
 # ===========================================================================
 @router.get(
     "/roles/",

@@ -22,8 +22,9 @@ if TYPE_CHECKING:
 #          --- Modelo de Grupos de Características base ---
 # ========================================================================
 
+
 class FeatureGroupBase(SQLModel):
-    
+
     # ------------------ FIELDs ----------------------------------------
 
     group_type: FeatureGroupType = Field(index=True)
@@ -37,30 +38,37 @@ class FeatureGroupBase(SQLModel):
 #   --- Modelo para la tabla física de Grupos de Características ---
 # ========================================================================
 
+
 class FeatureGroup(BaseTable, FeatureGroupBase, table=True):
-    
+
     # ------------------ METADATA FOR TABLE ----------------------------------
 
     __tablename__ = "feature_groups"
 
-
     # ------------------ RELATIONSHIP ----------------------------------------
-    
+
     # Relación de vuelta a la versión del modelo
     feature_model_version: "FeatureModelVersion" = Relationship(
         back_populates="feature_groups"
     )
 
     # Relación con la feature padre que define este grupo
-    parent_feature: "Feature" = Relationship(back_populates="child_groups")
+    parent_feature: "Feature" = Relationship(
+        back_populates="child_groups",
+        sa_relationship_kwargs={"foreign_keys": "[FeatureGroup.parent_feature_id]"},
+    )
 
     # Relación con las features que son miembros de este grupo
-    member_features: list["Feature"] = Relationship(back_populates="group")
+    member_features: list["Feature"] = Relationship(
+        back_populates="group",
+        sa_relationship_kwargs={"foreign_keys": "[Feature.group_id]"},
+    )
 
 
 # ========================================================================
 #   --- Modelos para Entrada de datos de Grupos de Características ---
 # ========================================================================
+
 
 class FeatureGroupCreate(SQLModel):
     group_type: FeatureGroupType
@@ -72,6 +80,7 @@ class FeatureGroupCreate(SQLModel):
 # ========================================================================
 #    --- Modelos para Respuestas de Grupos de Características ---
 # ========================================================================
+
 
 class FeatureGroupPublic(FeatureGroupBase):
     id: uuid.UUID

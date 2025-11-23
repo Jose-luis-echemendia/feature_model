@@ -25,7 +25,13 @@ from .feature_model import (
     FeatureModelUpdate,
 )
 from .feature_model_version import FeatureModelVersion
-from .feature import Feature, FeatureCreate, FeaturePublic, FeatureUpdate, FeaturePublicWithChildren
+from .feature import (
+    Feature,
+    FeatureCreate,
+    FeaturePublic,
+    FeatureUpdate,
+    FeaturePublicWithChildren,
+)
 from .feature_relation import (
     FeatureRelation,
     FeatureRelationCreate,
@@ -44,3 +50,5 @@ from .configuration import (
     ConfigurationPublic,
     ConfigurationUpdate,
 )
+from .tag import Tag
+from .resource import Resource

@@ -65,8 +65,7 @@ class Feature(BaseTable, FeatureBase, table=True):
     )
 
     # ------------------ RELATIONSHIP ----------------------------------------
-    
-    
+
     tags: list["Tag"] = Relationship(
         back_populates="features", link_model=FeatureTagLink
     )
@@ -84,10 +83,16 @@ class Feature(BaseTable, FeatureBase, table=True):
     children: list["Feature"] = Relationship(back_populates="parent")
 
     # Relación con el grupo al que pertenece esta feature
-    group: Optional["FeatureGroup"] = Relationship(back_populates="member_features")
+    group: Optional["FeatureGroup"] = Relationship(
+        back_populates="member_features",
+        sa_relationship_kwargs={"foreign_keys": "[Feature.group_id]"},
+    )
 
     # Relación con los grupos de hijos que esta feature define
-    child_groups: list["FeatureGroup"] = Relationship(back_populates="parent_feature")
+    child_groups: list["FeatureGroup"] = Relationship(
+        back_populates="parent_feature",
+        sa_relationship_kwargs={"foreign_keys": "[FeatureGroup.parent_feature_id]"},
+    )
 
     # Relaciones muchos-a-muchos con Configuration
     configurations: list["Configuration"] = Relationship(
@@ -112,6 +117,7 @@ class Feature(BaseTable, FeatureBase, table=True):
 #           --- Modelos para la API (Pydantic) ---
 # ========================================================================
 
+
 class FeatureCreate(FeatureBase):
     # Hereda todo de FeatureBase, no necesita campos adicionales para la creación
     pass
@@ -124,10 +130,10 @@ class FeatureUpdate(SQLModel):
     group_id: Optional[uuid.UUID] = None
 
 
-
 # ========================================================================
 #       --- Modelos para Respuestas de las Características ---
 # ========================================================================
+
 
 class FeaturePublic(FeatureBase):
     id: uuid.UUID

@@ -42,7 +42,8 @@ class ResourceBase(SQLModel):
         description="El tipo de recurso (video, pdf, quiz, etc.)."
     )
     content_url_or_data: str | dict = Field(
-        description="URL, contenido embebido o JSON que define el recurso."
+        description="URL, contenido embebido o JSON que define el recurso.",
+        sa_column=Column(JSONB),
     )
 
     # --- Metadatos Descriptivos ---
@@ -121,7 +122,9 @@ class Resource(BaseTable, ResourceBase, table=True):
     features: list["Feature"] = Relationship(back_populates="resource")
 
     # Relación con el usuario propietario
-    owner: Optional["User"] = Relationship()
+    owner: Optional["User"] = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[Resource.owner_id]"}
+    )
 
 
 # ========================================================================

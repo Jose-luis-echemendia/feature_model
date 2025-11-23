@@ -283,3 +283,4 @@ async def aget_user_repo(session: AsyncSessionDep):
 
 UserRepoDep = Annotated[UserRepositorySync, Depends(get_user_repo)]
 AsyncUserRepoDep = Annotated[UserRepositoryAsync, Depends(aget_user_repo)]
+
