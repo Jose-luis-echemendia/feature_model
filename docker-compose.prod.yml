@@ -56,7 +56,7 @@ services:
 
   # SERVICIO DE REDIS PARA LA GESTIÓN DE TAREAS ASÍNCRONAS Y CACHE
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     volumes:
       - redis_data:/data
     networks:
