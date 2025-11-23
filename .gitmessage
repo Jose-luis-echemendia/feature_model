@@ -1,0 +1,53 @@
+# ---------------------------------------------------------
+# LINEA 1: TIPO + SCOPE + RESUMEN (50 caracteres máximo)
+# ---------------------------------------------------------
+# <type>(<scope>): <short summary>
+#
+# type:
+#   feat     → nueva funcionalidad
+#   fix      → corrección de bug
+#   docs     → documentación
+#   style    → cambios de formato (sin lógica)
+#   refactor → refactorización sin cambiar comportamiento
+#   test     → agregar o mejorar pruebas
+#   chore    → tareas internas (config, dependencias)
+#   perf     → mejoras de rendimiento
+#   ci       → cambios en CI/CD
+#   build    → cambios en sistema de build
+#
+# scope (opcional):
+#   auth, user, db, api, ui, payments, etc.
+#
+# short summary:
+#   - Escribe en imperativo (Add, Fix, Update…)
+#   - Máximo 50 caracteres
+#   - No usar punto final
+#
+# EJEMPLO:
+# feat(auth): add MFA validation
+
+# ---------------------------------------------------------
+# CUERPO: Explica QUÉ y POR QUÉ (72 caracteres por línea)
+# ---------------------------------------------------------
+# - Explicar la motivación y el contexto.
+# - Describir la solución brevemente.
+# - No repetir el resumen.
+# - Mantén líneas debajo de 72 caracteres.
+#
+# EJEMPLO:
+# Added a new MFA validation step before login. This improves
+# security and follows compliance requirements. Also updated
+# error handling to support invalid codes.
+
+# ---------------------------------------------------------
+# FOOTER: Tickets, BREAKING CHANGES y notas adicionales
+# ---------------------------------------------------------
+# - Para tareas:
+#   Related to JIRA-123
+#   Closes #42
+#
+# - Cambios incompatibles:
+#   BREAKING CHANGE: the login API now requires MFA.
+#
+# - Migraciones:
+#   Migration: run script /scripts/seed_roles.py
