@@ -63,10 +63,10 @@ def seed_development(session: Session) -> None:
     Crea todos los datos de ejemplo incluyendo:
     - FIRST_SUPERUSER desde variables de entorno
     - Usuarios de desarrollo con contraseñas conocidas
-    - Dominios de ejemplo
-    - Tags
+    - Dominios académicos de ejemplo
+    - Etiquetas pedagógicas
     - Recursos educativos
-    - Feature models de ejemplo
+    - Planes de estudio y modelos curriculares de ejemplo
     """
 
     logger.info("=" * 70)
@@ -85,18 +85,18 @@ def seed_development(session: Session) -> None:
         logger.error("❌ No se encontró usuario admin, abortando seeding de desarrollo")
         return
 
-    # 4. Dominios
+    # 4. Dominios académicos
     domains = seed_domains(session, admin)
 
-    # 5. Tags
+    # 5. Etiquetas pedagógicas
     tags = seed_tags(session, admin)
 
     # 6. Recursos educativos
     resources = seed_resources(session, admin)
 
-    # 7. Feature models
-    # Buscar usuario designer
-    designer = dev_users.get("designer@example.com", admin)
+    # 7. Planes de estudio y modelos curriculares
+    # Buscar usuario diseñador curricular
+    designer = dev_users.get("diseñador.curricular@example.com", admin)
     feature_models = seed_feature_models(session, designer, domains, resources)
 
     logger.info("=" * 70)
@@ -104,12 +104,18 @@ def seed_development(session: Session) -> None:
     logger.info("=" * 70)
     logger.info("")
     logger.info("📝 CREDENCIALES DE PRUEBA:")
-    logger.info("  Admin:        admin@example.com / admin123")
-    logger.info("  Designer:     designer@example.com / designer123")
-    logger.info("  Editor:       editor@example.com / editor123")
-    logger.info("  Configurator: configurator@example.com / config123")
-    logger.info("  Viewer:       viewer@example.com / viewer123")
-    logger.info("  Reviewer:     reviewer@example.com / reviewer123")
+    logger.info("  Admin:               admin@example.com / admin123")
+    logger.info(
+        "  Diseñador Curricular: diseñador.curricular@example.com / designer123"
+    )
+    logger.info(
+        "  Coordinador Académico: coordinador.academico@example.com / editor123"
+    )
+    logger.info("  Jefe de Carrera:     jefe.carrera@example.com / config123")
+    logger.info("  Profesor:            profesor@example.com / viewer123")
+    logger.info(
+        "  Evaluador Curricular: evaluador.curricular@example.com / reviewer123"
+    )
     logger.info("")
 
 

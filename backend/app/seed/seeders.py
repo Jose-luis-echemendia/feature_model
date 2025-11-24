@@ -180,9 +180,9 @@ def seed_development_users(session: Session) -> dict[str, User]:
 # DOMAINS
 # ==============================================================================
 def seed_domains(session: Session, owner: User) -> list[Domain]:
-    """Crear dominios de ejemplo"""
+    """Crear dominios académicos de ejemplo"""
 
-    logger.info("🌱 Sembrando dominios...")
+    logger.info("🌱 Sembrando dominios académicos...")
 
     domains = []
 
@@ -193,7 +193,9 @@ def seed_domains(session: Session, owner: User) -> list[Domain]:
         ).first()
 
         if existing:
-            logger.info(f"  ℹ️  Dominio '{domain_data['name']}' ya existe, omitiendo...")
+            logger.info(
+                f"  ℹ️  Dominio académico '{domain_data['name']}' ya existe, omitiendo..."
+            )
             domains.append(existing)
             continue
 
@@ -207,7 +209,7 @@ def seed_domains(session: Session, owner: User) -> list[Domain]:
         logger.info(f"  ✅ Creado dominio: {domain.name}")
 
     session.commit()
-    logger.info(f"✅ Dominios sembrados: {len(domains)} dominios")
+    logger.info(f"✅ Dominios académicos sembrados: {len(domains)} dominios")
 
     return domains
 
@@ -216,9 +218,9 @@ def seed_domains(session: Session, owner: User) -> list[Domain]:
 # TAGS
 # ==============================================================================
 def seed_tags(session: Session, owner: User) -> list[Tag]:
-    """Crear tags de ejemplo"""
+    """Crear tags pedagógicos de ejemplo"""
 
-    logger.info("🌱 Sembrando tags...")
+    logger.info("🌱 Sembrando etiquetas pedagógicas...")
 
     tags = []
 
@@ -227,7 +229,7 @@ def seed_tags(session: Session, owner: User) -> list[Tag]:
         existing = session.exec(select(Tag).where(Tag.name == tag_data["name"])).first()
 
         if existing:
-            logger.info(f"  ℹ️  Tag '{tag_data['name']}' ya existe, omitiendo...")
+            logger.info(f"  ℹ️  Etiqueta '{tag_data['name']}' ya existe, omitiendo...")
             tags.append(existing)
             continue
 
@@ -238,10 +240,10 @@ def seed_tags(session: Session, owner: User) -> list[Tag]:
         )
         session.add(tag)
         tags.append(tag)
-        logger.info(f"  ✅ Creado tag: {tag.name}")
+        logger.info(f"  ✅ Creada etiqueta: {tag.name}")
 
     session.commit()
-    logger.info(f"✅ Tags sembrados: {len(tags)} tags")
+    logger.info(f"✅ Etiquetas pedagógicas sembradas: {len(tags)} tags")
 
     return tags
 
@@ -295,9 +297,9 @@ def seed_feature_models(
     domains: list[Domain],
     resources: Optional[list[Resource]] = None,
 ) -> list[FeatureModel]:
-    """Crear modelos de características de ejemplo"""
+    """Crear planes de estudio y modelos curriculares de ejemplo"""
 
-    logger.info("🌱 Sembrando modelos de características...")
+    logger.info("🌱 Sembrando planes de estudio y modelos curriculares...")
 
     models = []
 
@@ -308,7 +310,9 @@ def seed_feature_models(
         ).first()
 
         if existing:
-            logger.info(f"  ℹ️  Modelo '{model_data['name']}' ya existe, omitiendo...")
+            logger.info(
+                f"  ℹ️  Plan de estudios '{model_data['name']}' ya existe, omitiendo..."
+            )
             models.append(existing)
             continue
 
@@ -329,7 +333,7 @@ def seed_feature_models(
         session.add(feature_model)
         session.flush()
         models.append(feature_model)
-        logger.info(f"  ✅ Creado modelo: {feature_model.name}")
+        logger.info(f"  ✅ Creado plan de estudios: {feature_model.name}")
 
         # Crear versión del modelo
         version_data = model_data["version"]
@@ -356,7 +360,7 @@ def seed_feature_models(
             )
 
     session.commit()
-    logger.info(f"✅ Modelos sembrados: {len(models)} modelos")
+    logger.info(f"✅ Planes de estudio sembrados: {len(models)} modelos curriculares")
 
     return models
 
