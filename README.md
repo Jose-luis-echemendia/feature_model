@@ -3,7 +3,7 @@
 ![Estado del Proyecto](https://img.shields.io/badge/estado-en%20desarrollo-yellow)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-blue)
 
-Plataforma completa para gestión de modelos de características (Feature Models) con backend FastAPI y frontend Next.js. es una innovadora plataforma web diseñada para la creación y gestión de planes de estudio y formación basados en modelos de características (*feature modeling*). Este sistema transforma la manera en que las instituciones educativas y corporativas diseñan sus currículos, pasando de un modelo estático a uno dinámico, modular y personalizable.
+Plataforma completa para gestión de modelos de características (Feature Models) con backend FastAPI y frontend Next.js. es una innovadora plataforma web diseñada para la creación y gestión de planes de estudio y formación basados en modelos de características (_feature modeling_). Este sistema transforma la manera en que las instituciones educativas y corporativas diseñan sus currículos, pasando de un modelo estático a uno dinámico, modular y personalizable.
 
 ---
 
@@ -11,15 +11,15 @@ Plataforma completa para gestión de modelos de características (Feature Models
 
 Este proyecto es el resultado de nuestro trabajo de tesis para optar por el título de Ingeniería en Ciencias Informáticas.
 
-*   **Título General del Proyecto:** "Plataforma para la Configuración de Modelos de Características Aplicada al Diseño Curricular"
-*   **Promotora y Tutora General:** M. Sc. Yadira Ramírez Rodríguez (yramirezr@uci.cu)
+- **Título General del Proyecto:** "Plataforma para la Configuración de Modelos de Características Aplicada al Diseño Curricular"
+- **Promotora y Tutora General:** M. Sc. Yadira Ramírez Rodríguez (yramirezr@uci.cu)
 
 ### 👨‍💻 Tesistas y Autores
 
-| Rol             | Autor                                   | Tesis Individual                                                                              | Contacto                                   | Tutor Específico           |
-| --------------- | --------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------- |
-| 🚀 **Backend**  | José Luis Echemendía López              | _"Desarrollo de un sistema gestor de modelos de características utilizando FastAPI y PostgreSQL"_ | josee@estudiantes.uci.cu                  | M. Sc. Yadira Ramírez Rodríguez<br>Ing. Liany Sobrino Miranda |
-| 🎨 **Frontend** | Ernes Valdés Díaz | _"Implementación de una interfaz visual para la configuración de itinerarios curriculares con Next.js"_ | evdiaz@estudiantes.uci.cu                      | M. Sc. Yadira Ramírez Rodríguez |
+| Rol             | Autor                      | Tesis Individual                                                                                        | Contacto                  | Tutor Específico                                              |
+| --------------- | -------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| 🚀 **Backend**  | José Luis Echemendía López | _"Desarrollo de un sistema gestor de modelos de características utilizando FastAPI y PostgreSQL"_       | josee@estudiantes.uci.cu  | M. Sc. Yadira Ramírez Rodríguez<br>Ing. Liany Sobrino Miranda |
+| 🎨 **Frontend** | Ernes Valdés Díaz          | _"Implementación de una interfaz visual para la configuración de itinerarios curriculares con Next.js"_ | evdiaz@estudiantes.uci.cu | M. Sc. Yadira Ramírez Rodríguez                               |
 
 ---
 
@@ -48,18 +48,17 @@ curriculares y contenidos académicos.
 
 ### Objetivos Principales
 
-*   **Modelado Visual:** Permitir la creación de planes de estudio como árboles de características jerárquicos y visuales.
-*   **Validación Automática:** Asegurar que cualquier itinerario generado sea coherente y válido, aplicando reglas de prerrequisitos, exclusiones y opcionalidad.
-*   **Reutilización de Contenido:** Centralizar los recursos de aprendizaje (videos, documentos) para que puedan ser reutilizados en múltiples cursos.
-*   **Flexibilidad Curricular:** Facilitar la creación de especializaciones, rutas personalizadas y planes adaptativos para diferentes perfiles de estudiantes.
-*   **Colaboración y Calidad:** Implementar un flujo de trabajo basado en roles que permita la colaboración en el diseño y la aprobación de los planes de estudio antes de su publicación.
+- **Modelado Visual:** Permitir la creación de planes de estudio como árboles de características jerárquicos y visuales.
+- **Validación Automática:** Asegurar que cualquier itinerario generado sea coherente y válido, aplicando reglas de prerrequisitos, exclusiones y opcionalidad.
+- **Reutilización de Contenido:** Centralizar los recursos de aprendizaje (videos, documentos) para que puedan ser reutilizados en múltiples cursos.
+- **Flexibilidad Curricular:** Facilitar la creación de especializaciones, rutas personalizadas y planes adaptativos para diferentes perfiles de estudiantes.
+- **Colaboración y Calidad:** Implementar un flujo de trabajo basado en roles que permita la colaboración en el diseño y la aprobación de los planes de estudio antes de su publicación.
 
 ---
 
-
 ## ✨ Características Principales
 
-- ✅ **Gestión de Modelos de Características**: Crear, editar y versionar modelos de features con  elementos obligatorios, opcionales, alternativos (XOR) y opcionales en grupo (OR).
+- ✅ **Gestión de Modelos de Características**: Crear, editar y versionar modelos de features con elementos obligatorios, opcionales, alternativos (XOR) y opcionales en grupo (OR).
 - ✅ **Gestión de Reglas:** Define relaciones complejas como prerrequisitos (`requires`) y exclusiones (`excludes`) entre componentes.
 - ✅ **Biblioteca de Recursos:** Un catálogo centralizado para gestionar los materiales de aprendizaje (`Resource`) y enlazarlos a los componentes del curso.
 - ✅ **Etiquetado Pedagógico:** Usa `Tags` para clasificar componentes por dificultad, estilo de aprendizaje o competencias, permitiendo la personalización avanzada.
@@ -76,44 +75,42 @@ curriculares y contenidos académicos.
 
 ## 🛠️ Stack Tecnológico
 
-### Backend
+Hemos elegido un stack tecnológico moderno, robusto y escalable para dar vida a Feature Models Platform.
 
-- **Framework**: FastAPI (Python 3.10+)
-- **ORM**: SQLModel
-- **Base de Datos**: PostgreSQL 17
-- **Cache**: Redis 7
-- **Tareas Asíncronas**: Celery
-- **Storage**: MinIO (S3-compatible)
-- **Migraciones**: Alembic
-- **Testing**: Pytest
+### 🔧 Backend
 
-### Frontend
+| Tecnología                                                                                                                                  | Rol en el Proyecto                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="Python" width="40"/>             | **Lenguaje (Python 3.10+):** Permite un desarrollo rápido y limpio, con un vasto ecosistema de librerías.                                               |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/fastapi/fastapi-original.svg" alt="FastAPI" width="40"/>          | **Framework (FastAPI):** Construye una API RESTful de alto rendimiento, asíncrona y con documentación automática.                                       |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/postgresql/postgresql-original.svg" alt="PostgreSQL" width="40"/> | **Base de Datos (PostgreSQL 17):** Sistema de base de datos relacional potente y fiable, ideal para manejar las complejas relaciones de nuestro modelo. |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/redis/redis-original.svg" alt="Redis" width="40"/>                | **Cache (Redis 7):** Sistema de almacenamiento en memoria para cache y gestión de sesiones de alta velocidad.                                           |
+| <img src="https://www.sqlalchemy.org/img/sqla_logo.png" alt="SQLModel" width="40"/>                                                         | **ORM (SQLModel):** ORM moderno que combina SQLAlchemy y Pydantic para validación de datos y queries type-safe.                                         |
+| <img src="https://docs.celeryq.dev/en/stable/_static/celery_512.png" alt="Celery" width="40"/>                                              | **Tareas Asíncronas (Celery):** Procesamiento de tareas en segundo plano y jobs programados.                                                            |
+| <img src="https://min.io/resources/img/logo.svg" alt="MinIO" width="40"/>                                                                   | **Storage (MinIO):** Almacenamiento de objetos compatible con S3 para archivos y recursos multimedia.                                                   |
+| <img src="https://alembic.sqlalchemy.org/en/latest/_static/logo.png" alt="Alembic" width="40"/>                                             | **Migraciones (Alembic):** Control de versiones de la base de datos y gestión de cambios de esquema.                                                    |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/pytest/pytest-original.svg" alt="Pytest" width="40"/>             | **Testing (Pytest):** Framework de testing robusto para pruebas unitarias e integración.                                                                |
 
-- **Framework**: Next.js 16
-- **UI Library**: React 19
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
+### 🎨 Frontend
 
-### DevOps
+| Tecnología                                                                                                                                   | Rol en el Proyecto                                                                                                         |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/nextjs/nextjs-original.svg" alt="Next.js" width="40"/>             | **Framework (Next.js 16):** Framework React con renderizado del lado del servidor (SSR), generación estática y App Router. |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/react/react-original.svg" alt="React" width="40"/>                 | **UI Library (React 19):** Librería para construir interfaces de usuario interactivas y reutilizables con componentes.     |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/typescript/typescript-original.svg" alt="TypeScript" width="40"/>  | **Lenguaje (TypeScript):** Superset tipado de JavaScript que mejora la calidad del código y la experiencia de desarrollo.  |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/tailwindcss/tailwindcss-plain.svg" alt="Tailwind CSS" width="40"/> | **Styling (Tailwind CSS):** Framework de CSS utility-first para diseño rápido y responsive.                                |
 
-- **Containerización**: Docker & Docker Compose
-- **Reverse Proxy**: Traefik (producción)
-- **CI/CD**: GitHub Actions (configurado)
-- **Monitoreo**: Sentry (opcional)
+### 🚀 DevOps & Infraestructura
 
+| Tecnología                                                                                                                              | Rol en el Proyecto                                                                                                                  |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/docker/docker-original.svg" alt="Docker" width="40"/>         | **Contenerización (Docker):** Empaqueta la aplicación y sus dependencias en contenedores, garantizando consistencia entre entornos. |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/docker/docker-original.svg" alt="Docker Compose" width="40"/> | **Orquestación (Docker Compose):** Gestiona múltiples contenedores y sus dependencias para desarrollo y despliegue.                 |
+| <img src="https://doc.traefik.io/traefik/assets/img/traefik.logo.png" alt="Traefik" width="40"/>                                        | **Reverse Proxy (Traefik):** Proxy inverso moderno con configuración automática, SSL/TLS y balanceo de carga.                       |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/github/github-original.svg" alt="GitHub Actions" width="40"/> | **CI/CD (GitHub Actions):** Automatización de pruebas, builds y despliegues mediante workflows.                                     |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/nginx/nginx-original.svg" alt="Nginx" width="40"/>            | **Web Server (Nginx):** Servidor web de alto rendimiento para servir el frontend en producción.                                     |
 
-Hemos elegido un stack tecnológico moderno, robusto y escalable para dar vida a CuriConfig.
-
-| Tecnología                                                                                                                              | Rol en el Proyecto                                                                                             |
-| --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/fastapi/fastapi-original.svg" alt="FastAPI" width="40"/>      | **Backend Framework (API):** Construye una API RESTful de alto rendimiento, asíncrona y con documentación automática. |
-| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="Python" width="40"/>        | **Lenguaje del Backend:** Permite un desarrollo rápido y limpio, con un vasto ecosistema de librerías.             |
-| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/nextjs/nextjs-original.svg" alt="Next.js" width="40"/>        | **Frontend Framework:** Proporciona una experiencia de usuario fluida con renderizado del lado del servidor (SSR) y una estructura robusta sobre React. |
-| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/react/react-original.svg" alt="React" width="40"/>            | **Librería de UI:** Permite construir interfaces de usuario interactivas y reutilizables.                        |
-| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/postgresql/postgresql-original.svg" alt="PostgreSQL" width="40"/> | **Base de Datos:** Un sistema de base de datos relacional potente y fiable, ideal para manejar las complejas relaciones de nuestro modelo. |
-| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/docker/docker-original.svg" alt="Docker" width="40"/>          | **Contenerización:** Permite empaquetar la aplicación y sus dependencias en contenedores, garantizando un entorno de desarrollo y despliegue consistente. |
-
-
+---
 
 ## 🚀 Inicio Rápido
 
