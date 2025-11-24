@@ -30,7 +30,7 @@ docker-compose -f docker-compose.dev.yml up
 ✅ Poblará la base de datos con datos de prueba  
 ✅ Iniciará el backend en modo desarrollo  
 ✅ Iniciará el frontend con hot-reload  
-✅ Configurará Redis y MinIO  
+✅ Configurará Redis y MinIO
 
 ## 🌐 URLs de Acceso
 
@@ -47,26 +47,31 @@ Una vez que todo esté corriendo:
 El sistema crea automáticamente usuarios de prueba con diferentes roles:
 
 ### Administrador
+
 - **Email**: `admin@example.com`
 - **Password**: `admin123`
 - **Permisos**: Acceso completo al sistema
 
 ### Diseñador de Modelos
+
 - **Email**: `designer@example.com`
 - **Password**: `designer123`
 - **Permisos**: Crear y editar modelos de características
 
 ### Editor de Modelos
+
 - **Email**: `editor@example.com`
 - **Password**: `editor123`
 - **Permisos**: Editar modelos existentes
 
 ### Configurador
+
 - **Email**: `configurator@example.com`
 - **Password**: `config123`
 - **Permisos**: Crear configuraciones basadas en modelos
 
 ### Visualizador
+
 - **Email**: `viewer@example.com`
 - **Password**: `viewer123`
 - **Permisos**: Solo lectura
@@ -91,6 +96,7 @@ El sistema viene pre-poblado con:
 ## 🔄 Comandos Útiles
 
 ### Ver logs en tiempo real
+
 ```bash
 # Ver logs de todos los servicios
 docker-compose -f docker-compose.dev.yml logs -f
@@ -103,6 +109,7 @@ docker-compose -f docker-compose.dev.yml logs -f frontend
 ```
 
 ### Reiniciar servicios
+
 ```bash
 # Reiniciar todo
 docker-compose -f docker-compose.dev.yml restart
@@ -115,6 +122,7 @@ docker-compose -f docker-compose.dev.yml restart frontend
 ```
 
 ### Detener el entorno
+
 ```bash
 # Detener sin eliminar datos
 docker-compose -f docker-compose.dev.yml stop
@@ -127,6 +135,7 @@ docker-compose -f docker-compose.dev.yml down -v
 ```
 
 ### Resetear la base de datos
+
 ```bash
 # 1. Detener y eliminar todo
 docker-compose -f docker-compose.dev.yml down -v
@@ -136,6 +145,7 @@ docker-compose -f docker-compose.dev.yml up
 ```
 
 ### Ejecutar comandos en el backend
+
 ```bash
 # Abrir shell en el contenedor del backend
 docker-compose -f docker-compose.dev.yml exec backend bash
@@ -151,6 +161,7 @@ docker-compose -f docker-compose.dev.yml exec backend python -c "from app.crud i
 ```
 
 ### Modo segundo plano
+
 ```bash
 # Iniciar en modo detached (background)
 docker-compose -f docker-compose.dev.yml up -d
@@ -162,12 +173,14 @@ docker-compose -f docker-compose.dev.yml ps
 ## 🧪 Testing de la API
 
 ### Usando Swagger UI
+
 1. Abre http://localhost:8000/docs
 2. Click en "Authorize"
 3. Usa credenciales de prueba (ej: `admin@example.com` / `admin123`)
 4. Prueba los endpoints directamente desde el navegador
 
 ### Usando curl
+
 ```bash
 # 1. Obtener token
 curl -X POST "http://localhost:8000/api/v1/login/access-token" \
@@ -182,18 +195,23 @@ curl -X GET "http://localhost:8000/api/v1/feature-models/" \
 ## 📝 Desarrollo Frontend
 
 ### Hot Reload
+
 El frontend está configurado con hot-reload automático:
+
 - Edita archivos en `frontend/src/`
 - Los cambios se reflejan automáticamente en el navegador
 - No necesitas reiniciar el contenedor
 
 ### Variables de entorno frontend
+
 Edita `frontend/.env.local` si necesitas cambiar configuraciones:
+
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 ### Instalar nuevas dependencias
+
 ```bash
 # Opción 1: Desde fuera del contenedor
 docker-compose -f docker-compose.dev.yml exec frontend npm install <paquete>
@@ -205,6 +223,7 @@ docker-compose -f docker-compose.dev.yml up --build frontend
 ## 🔍 Troubleshooting
 
 ### Error: Puerto ya en uso
+
 ```bash
 # Ver qué proceso usa el puerto 8000
 sudo lsof -i :8000
@@ -216,6 +235,7 @@ sudo lsof -i :3000
 ```
 
 ### Error: Base de datos no responde
+
 ```bash
 # Verificar estado de servicios
 docker-compose -f docker-compose.dev.yml ps
@@ -228,6 +248,7 @@ docker-compose -f docker-compose.dev.yml restart db
 ```
 
 ### Error: Permisos en volúmenes
+
 ```bash
 # En Linux, si tienes problemas de permisos
 sudo chown -R $USER:$USER backend/app
@@ -237,6 +258,7 @@ docker-compose -f docker-compose.dev.yml up --force-recreate
 ```
 
 ### Backend no refleja cambios en el código
+
 ```bash
 # El backend usa volúmenes, pero si no detecta cambios:
 docker-compose -f docker-compose.dev.yml restart backend
@@ -246,6 +268,7 @@ docker-compose -f docker-compose.dev.yml up --build backend
 ```
 
 ### Datos de prueba no aparecen
+
 ```bash
 # Verificar que ENVIRONMENT está en "local" o "development"
 docker-compose -f docker-compose.dev.yml exec backend env | grep ENVIRONMENT
@@ -255,6 +278,7 @@ docker-compose -f docker-compose.dev.yml exec backend python -m app.seed_data
 ```
 
 ### Limpiar todo y empezar de cero
+
 ```bash
 # 1. Detener todo
 docker-compose -f docker-compose.dev.yml down -v

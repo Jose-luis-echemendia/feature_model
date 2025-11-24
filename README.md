@@ -1,6 +1,27 @@
 # 🚀 Feature Models Platform - README
 
-Plataforma completa para gestión de modelos de características (Feature Models) con backend FastAPI y frontend Next.js.
+![Estado del Proyecto](https://img.shields.io/badge/estado-en%20desarrollo-yellow)
+![Licencia](https://img.shields.io/badge/licencia-MIT-blue)
+
+Plataforma completa para gestión de modelos de características (Feature Models) con backend FastAPI y frontend Next.js. es una innovadora plataforma web diseñada para la creación y gestión de planes de estudio y formación basados en modelos de características (*feature modeling*). Este sistema transforma la manera en que las instituciones educativas y corporativas diseñan sus currículos, pasando de un modelo estático a uno dinámico, modular y personalizable.
+
+---
+
+## 📜 Proyecto de Tesis
+
+Este proyecto es el resultado de nuestro trabajo de tesis para optar por el título de Ingeniería en Ciencias Informáticas.
+
+*   **Título General del Proyecto:** "Plataforma para la Configuración de Modelos de Características Aplicada al Diseño Curricular"
+*   **Promotora y Tutora General:** M. Sc. Yadira Ramírez Rodríguez (yramirezr@uci.cu)
+
+### 👨‍💻 Tesistas y Autores
+
+| Rol             | Autor                                   | Tesis Individual                                                                              | Contacto                                   | Tutor Específico           |
+| --------------- | --------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------- |
+| 🚀 **Backend**  | José Luis Echemendía López              | _"Desarrollo de un sistema gestor de modelos de características utilizando FastAPI y PostgreSQL"_ | josee@estudiantes.uci.cu                  | M. Sc. Yadira Ramírez Rodríguez<br>Ing. Liany Sobrino Miranda |
+| 🎨 **Frontend** | Ernes Valdés Díaz | _"Implementación de una interfaz visual para la configuración de itinerarios curriculares con Next.js"_ | evdiaz@estudiantes.uci.cu                      | M. Sc. Yadira Ramírez Rodríguez |
+
+---
 
 ## 📋 Tabla de Contenidos
 
@@ -28,6 +49,7 @@ Plataforma completa para gestión de modelos de características (Feature Models
 ## 🛠️ Tecnologías
 
 ### Backend
+
 - **Framework**: FastAPI (Python 3.10+)
 - **ORM**: SQLModel
 - **Base de Datos**: PostgreSQL 17
@@ -38,12 +60,14 @@ Plataforma completa para gestión de modelos de características (Feature Models
 - **Testing**: Pytest
 
 ### Frontend
+
 - **Framework**: Next.js 16
 - **UI Library**: React 19
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS (asumido)
+- **Styling**: Tailwind CSS
 
 ### DevOps
+
 - **Containerización**: Docker & Docker Compose
 - **Reverse Proxy**: Traefik (producción)
 - **CI/CD**: GitHub Actions (configurado)
@@ -70,6 +94,7 @@ cd characteristic_model
 ```
 
 **¡Eso es todo!** El script automáticamente:
+
 - ✅ Verifica Docker
 - ✅ Crea archivo `.env`
 - ✅ Construye las imágenes
@@ -107,13 +132,13 @@ Una vez iniciado, accede a:
 
 ### 👤 Credenciales de Prueba
 
-| Rol | Email | Password | Permisos |
-|-----|-------|----------|----------|
-| Admin | `admin@example.com` | `admin123` | Acceso completo |
-| Designer | `designer@example.com` | `designer123` | Crear/editar modelos |
-| Editor | `editor@example.com` | `editor123` | Editar modelos |
-| Configurator | `configurator@example.com` | `config123` | Crear configuraciones |
-| Viewer | `viewer@example.com` | `viewer123` | Solo lectura |
+| Rol          | Email                      | Password      | Permisos              |
+| ------------ | -------------------------- | ------------- | --------------------- |
+| Admin        | `admin@example.com`        | `admin123`    | Acceso completo       |
+| Designer     | `designer@example.com`     | `designer123` | Crear/editar modelos  |
+| Editor       | `editor@example.com`       | `editor123`   | Editar modelos        |
+| Configurator | `configurator@example.com` | `config123`   | Crear configuraciones |
+| Viewer       | `viewer@example.com`       | `viewer123`   | Solo lectura          |
 
 ## 💻 Desarrollo
 
@@ -146,6 +171,7 @@ feature_model/
 ### Comandos Útiles
 
 #### Ver Logs
+
 ```bash
 # Todos los servicios
 docker-compose -f docker-compose.dev.yml logs -f
@@ -158,6 +184,7 @@ docker-compose -f docker-compose.dev.yml logs -f frontend
 ```
 
 #### Gestión de Servicios
+
 ```bash
 # Detener servicios
 docker-compose -f docker-compose.dev.yml stop
@@ -170,6 +197,7 @@ docker-compose -f docker-compose.dev.yml restart backend
 ```
 
 #### Base de Datos
+
 ```bash
 # Ejecutar migraciones
 docker-compose -f docker-compose.dev.yml exec backend alembic upgrade head
@@ -185,6 +213,7 @@ docker-compose -f docker-compose.dev.yml exec db psql -U postgres -d app
 ```
 
 #### Limpiar y Resetear
+
 ```bash
 # Detener y eliminar contenedores (mantiene datos)
 docker-compose -f docker-compose.dev.yml down
@@ -199,6 +228,7 @@ docker-compose -f docker-compose.dev.yml up
 ```
 
 #### Validación
+
 ```bash
 # Validar entorno de desarrollo
 ./scripts/validate_dev_environment.sh
@@ -210,6 +240,7 @@ docker-compose -f docker-compose.dev.yml up
 ### Desarrollo Backend
 
 #### Ejecutar Tests
+
 ```bash
 # Todos los tests
 docker-compose -f docker-compose.dev.yml exec backend pytest
@@ -222,6 +253,7 @@ docker-compose -f docker-compose.dev.yml exec backend pytest tests/api/test_user
 ```
 
 #### Formatear Código
+
 ```bash
 # Formatear con black y isort
 docker-compose -f docker-compose.dev.yml exec backend bash scripts/format.sh
@@ -231,6 +263,7 @@ docker-compose -f docker-compose.dev.yml exec backend bash scripts/lint.sh
 ```
 
 #### Shell del Backend
+
 ```bash
 # Acceder a shell Python
 docker-compose -f docker-compose.dev.yml exec backend bash
@@ -242,12 +275,15 @@ docker-compose -f docker-compose.dev.yml exec backend python
 ### Desarrollo Frontend
 
 #### Hot Reload
+
 El frontend está configurado con hot-reload automático:
+
 - Edita archivos en `frontend/src/`
 - Los cambios se reflejan automáticamente
 - No necesitas reiniciar el contenedor
 
 #### Instalar Dependencias
+
 ```bash
 # Desde fuera del contenedor
 docker-compose -f docker-compose.dev.yml exec frontend npm install <paquete>
@@ -257,6 +293,7 @@ docker-compose -f docker-compose.dev.yml up --build frontend
 ```
 
 #### Build de Producción
+
 ```bash
 # Build optimizado
 docker-compose -f docker-compose.dev.yml exec frontend npm run build
@@ -286,6 +323,7 @@ docker-compose -f docker-compose.prod.yml up -d
 ```
 
 ### Usando Script de Despliegue
+
 ```bash
 ./scripts/deploy.sh
 ```
@@ -293,6 +331,7 @@ docker-compose -f docker-compose.prod.yml up -d
 ### Configuración de Traefik
 
 El proyecto incluye configuración de Traefik para:
+
 - Reverse proxy automático
 - SSL/TLS con Let's Encrypt
 - Load balancing
@@ -330,6 +369,7 @@ Ver [MIGRATION_ORDER_FIX.md](MIGRATION_ORDER_FIX.md) para detalles.
 ## 🧪 Testing
 
 ### Backend Tests
+
 ```bash
 # Ejecutar todos los tests
 docker-compose -f docker-compose.dev.yml exec backend pytest
@@ -342,6 +382,7 @@ open backend/htmlcov/index.html
 ```
 
 ### Frontend Tests
+
 ```bash
 # Tests unitarios
 docker-compose -f docker-compose.dev.yml exec frontend npm test
@@ -353,6 +394,7 @@ docker-compose -f docker-compose.dev.yml exec frontend npm run test:e2e
 ## 🔧 Troubleshooting
 
 ### Puerto ya en uso
+
 ```bash
 # Ver qué usa el puerto
 sudo lsof -i :8000
@@ -362,6 +404,7 @@ sudo lsof -i :3000
 ```
 
 ### Base de datos no responde
+
 ```bash
 # Ver logs
 docker-compose -f docker-compose.dev.yml logs db
@@ -371,6 +414,7 @@ docker-compose -f docker-compose.dev.yml restart db
 ```
 
 ### Datos de prueba no aparecen
+
 ```bash
 # Verificar ENVIRONMENT
 docker-compose -f docker-compose.dev.yml exec backend env | grep ENVIRONMENT
@@ -380,6 +424,7 @@ docker-compose -f docker-compose.dev.yml exec backend python -m app.seed_data
 ```
 
 ### Limpiar todo y empezar de cero
+
 ```bash
 docker-compose -f docker-compose.dev.yml down -v
 docker-compose -f docker-compose.dev.yml build --no-cache

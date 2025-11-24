@@ -1,27 +1,3 @@
-#  CuriConfig: Configurador Dinámico de Itinerarios Curriculares 🎓
-
-![Estado del Proyecto](https://img.shields.io/badge/estado-en%20desarrollo-yellow)
-![Licencia](https://img.shields.io/badge/licencia-MIT-blue)
-
-**CuriConfig** es una innovadora plataforma web diseñada para la creación y gestión de planes de estudio y formación basados en modelos de características (*feature modeling*). Este sistema transforma la manera en que las instituciones educativas y corporativas diseñan sus currículos, pasando de un modelo estático a uno dinámico, modular y personalizable.
-
----
-
-## 📜 Proyecto de Tesis
-
-Este proyecto es el resultado de nuestro trabajo de tesis para optar por el título de Ingeniería en Ciencias Informáticas.
-
-*   **Título General del Proyecto:** "Plataforma para la Configuración de Modelos de Características Aplicada al Diseño Curricular"
-*   **Promotora y Tutora General:** M. Sc. Yadira Ramírez Rodríguez (yramirezr@uci.cu)
-
-### 👨‍💻 Tesistas y Autores
-
-| Rol             | Autor                                   | Tesis Individual                                                                              | Contacto                                   | Tutor Específico           |
-| --------------- | --------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------- |
-| 🚀 **Backend**  | José Luis Echemendía López              | _"Desarrollo de un sistema gestor de modelos de características utilizando FastAPI y PostgreSQL"_ | josee@estudiantes.uci.cu                  | M. Sc. Yadira Ramírez Rodríguez<br>Ing. Liany Sobrino Miranda |
-| 🎨 **Frontend** | Ernes Valdés Díaz | _"Implementación de una interfaz visual para la configuración de itinerarios curriculares con Next.js"_ | evdiaz@estudiantes.uci.cu                      | M. Sc. Yadira Ramírez Rodríguez |
-
----
 
 ## 📑 Tabla de Contenidos
 
