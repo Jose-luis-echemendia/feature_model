@@ -72,7 +72,9 @@ curriculares y contenidos académicos.
 - ✅ **Autenticación JWT**: Sistema seguro de tokens
 - ✅ **UI Moderna**: Interface responsive con Next.js 16 y React 19
 
-## 🛠️ Tecnologías
+---
+
+## 🛠️ Stack Tecnológico
 
 ### Backend
 
@@ -98,6 +100,20 @@ curriculares y contenidos académicos.
 - **Reverse Proxy**: Traefik (producción)
 - **CI/CD**: GitHub Actions (configurado)
 - **Monitoreo**: Sentry (opcional)
+
+
+Hemos elegido un stack tecnológico moderno, robusto y escalable para dar vida a CuriConfig.
+
+| Tecnología                                                                                                                              | Rol en el Proyecto                                                                                             |
+| --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/fastapi/fastapi-original.svg" alt="FastAPI" width="40"/>      | **Backend Framework (API):** Construye una API RESTful de alto rendimiento, asíncrona y con documentación automática. |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="Python" width="40"/>        | **Lenguaje del Backend:** Permite un desarrollo rápido y limpio, con un vasto ecosistema de librerías.             |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/nextjs/nextjs-original.svg" alt="Next.js" width="40"/>        | **Frontend Framework:** Proporciona una experiencia de usuario fluida con renderizado del lado del servidor (SSR) y una estructura robusta sobre React. |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/react/react-original.svg" alt="React" width="40"/>            | **Librería de UI:** Permite construir interfaces de usuario interactivas y reutilizables.                        |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/postgresql/postgresql-original.svg" alt="PostgreSQL" width="40"/> | **Base de Datos:** Un sistema de base de datos relacional potente y fiable, ideal para manejar las complejas relaciones de nuestro modelo. |
+| <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/docker/docker-original.svg" alt="Docker" width="40"/>          | **Contenerización:** Permite empaquetar la aplicación y sus dependencias en contenedores, garantizando un entorno de desarrollo y despliegue consistente. |
+
+
 
 ## 🚀 Inicio Rápido
 
