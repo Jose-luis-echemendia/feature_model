@@ -25,18 +25,18 @@ Este proyecto es el resultado de nuestro trabajo de tesis para optar por el tít
 
 ## 📋 Tabla de Contenidos
 
-1.  [Propósito y Objetivos](#-propósito-y-objetivos)
+1.  [🎯 Propósito y Objetivos](#-propósito-y-objetivos)
 2.  [🌟 Características Principales](#-características-principales)
 3.  [🛠️ Stack Tecnológico](#️-stack-tecnológico)
 4.  [🏗️ Arquitectura del Sistema](#️-arquitectura-del-sistema)
 5.  [📁 Estructura de Carpetas](#-estructura-de-carpetas)
-6.  [🚀 Guía de Instalación y Puesta en Marcha](#-guía-de-instalación-y-puesta-en-marcha)
-7.  [✍️ Estándares y Convenciones de Código](#️-estándares-y-convenciones-de-código)
-8.  [⚙️ Variables de Entorno](#️-variables-de-entorno)
-9.  [Desarrollo](#desarrollo)
-10. [Despliegue](#despliegue)
+6.  [⚙️ Variables de Entorno](#️-variables-de-entorno)
+7.  [🚀 Guía de Instalación y Puesta en Marcha](#-guía-de-instalación-y-puesta-en-marcha)
+8.  [✍️ Estándares y Convenciones de Código](#️-estándares-y-convenciones-de-código)
+9.  [💻 Desarrollo](#-desarrollo)
+10. [🚢 Despliegue](#-despliegue)
 11. [📚 Documentación](#-documentación)
-12. [Contribución](#contribución)
+12. [🤝 Contribución](#-contribución)
 13. [⚖️ Licencia](#️-licencia)
 
 ---
@@ -112,7 +112,73 @@ Hemos elegido un stack tecnológico moderno, robusto y escalable para dar vida a
 
 ---
 
-## 🚀 Inicio Rápido
+## 🏗️ Arquitectura del Sistema
+
+El sistema sigue una arquitectura de microservicios desacoplada, orquestada con Docker.
+
+```mermaid
+graph TD
+    A[👨‍💻 Usuario] -->|Navegador Web| B(🌐 Frontend - Next.js/React);
+    B -->|Peticiones API (REST)| C(🚀 Backend - FastAPI/Python);
+    C -->|Consultas SQL| D(🗄️ Base de Datos - PostgreSQL);
+    C --> E{🔄 Lógica de Negocio};
+    subgraph "Contenedores Docker"
+        B
+        C
+        D
+    end
+```
+
+---
+
+## 📁 Estructura de Carpetas
+
+La estructura del proyecto está organizada para separar claramente las responsabilidades del backend y del frontend.
+
+```
+.
+├── backend/               # Contiene todo el código de la API de FastAPI
+│   ├── app/               # Lógica principal de la aplicación
+│   │   ├── api/           # Endpoints y rutas de la API
+│   │   ├── core/          # Configuración, seguridad, etc.
+│   │   ├── crud/          # Operaciones CRUD con la base de datos
+│   │   ├── models/        # Modelos de datos (SQLModel)
+│   │   ├── schemas/       # Esquemas de datos (Pydantic)
+│   │   └── enums/         # Enumeraciones
+│   ├── migrations/        # Migraciones de la base de datos (Alembic)
+│   ├── .env.example
+│   └── Dockerfile
+│
+├── frontend/              # Contiene todo el código de la UI de Next.js
+│   ├── app/               # Rutas y páginas de la aplicación
+│   ├── components/        # Componentes reutilizables de React
+│   ├── contexts/          # Contextos de React para estado global
+│   ├── services/          # Lógica para interactuar con la API
+│   ├── styles/            # Estilos globales y CSS Modules
+│   ├── .env.example
+│   └── Dockerfile
+│
+└── docker-compose.yml     # Orquesta todos los servicios
+```
+
+---
+
+## ⚙️ Variables de Entorno
+
+A continuación se listan las variables de entorno clave necesarias para el funcionamiento del sistema.
+
+| Variable              | Servicio | Descripción                                                       | Ejemplo                            |
+| --------------------- | -------- | ----------------------------------------------------------------- | ---------------------------------- |
+| `POSTGRES_USER`       | Backend  | Usuario para la base de datos PostgreSQL.                         | `postgres`                         |
+| `POSTGRES_PASSWORD`   | Backend  | Contraseña para el usuario de la BD.                              | `supersecretpassword`              |
+| `POSTGRES_DB`         | Backend  | Nombre de la base de datos.                                       | `curiconfig_db`                    |
+| `DATABASE_URL`        | Backend  | URL de conexión completa a la base de datos.                      | `postgresql://user:pass@db/dbname` |
+| `SECRET_KEY`          | Backend  | Clave secreta para la generación de tokens JWT.                   | `un-secreto-muy-largo-y-aleatorio` |
+| `NEXT_PUBLIC_API_URL` | Frontend | URL base del backend para que el frontend pueda hacer peticiones. | `http://localhost:8000`            |
+
+---
+
+## 🚀 Guía de Instalación y Puesta en Marcha
 
 ### Pre-requisitos
 
@@ -178,6 +244,27 @@ Una vez iniciado, accede a:
 | Editor       | `editor@example.com`       | `editor123`   | Editar modelos        |
 | Configurator | `configurator@example.com` | `config123`   | Crear configuraciones |
 | Viewer       | `viewer@example.com`       | `viewer123`   | Solo lectura          |
+
+---
+
+## ✍️ Estándares y Convenciones de Código
+
+Para mantener la calidad y consistencia del código, seguimos los siguientes estándares:
+
+### Backend (Python)
+
+- **Formateo:** `Black` para un estilo de código unificado.
+- **Linting:** `Flake8` y `Ruff` para detectar errores y malas prácticas.
+- **Tipado:** `Mypy` para el análisis de tipos estáticos.
+- **Nomenclatura:** `snake_case` para variables y funciones.
+
+### Frontend (TypeScript/React)
+
+- **Formateo:** `Prettier` para un formato de código consistente.
+- **Linting:** `ESLint` para identificar y corregir problemas en el código.
+- **Nomenclatura:** `camelCase` para variables y funciones, `PascalCase` para componentes de React.
+
+---
 
 ## 💻 Desarrollo
 
@@ -485,7 +572,7 @@ docker-compose -f docker-compose.dev.yml up
 - **Commits**: Usar Conventional Commits (feat:, fix:, docs:, etc.)
 - **Tests**: Mantener coverage > 80%
 
-## 📄 Licencia
+## ⚖️ Licencia
 
 Este proyecto está bajo la licencia MIT. Ver archivo `LICENSE` para más detalles.
 
