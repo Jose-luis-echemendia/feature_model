@@ -16,6 +16,7 @@ from sqlmodel import Field, SQLModel
 # ========================================================================
 
 
+# --- Tabla de Enlace (Feature Models <-> Usuario) ---
 class FeatureModelCollaborator(SQLModel, table=True):
     """
     Tabla de asociación que otorga permisos de edición a un usuario
@@ -30,6 +31,8 @@ class FeatureModelCollaborator(SQLModel, table=True):
     user_id: uuid.UUID = Field(foreign_key="users.id", primary_key=True)
 
 
+
+# --- Tabla de Enlace (Configurations <-> Features) ---
 class ConfigurationFeatureLink(SQLModel, table=True):
     """
     Association table between Configuration and Feature.
@@ -43,6 +46,8 @@ class ConfigurationFeatureLink(SQLModel, table=True):
     feature_id: uuid.UUID = Field(foreign_key="features.id", primary_key=True)
 
 
+
+# --- Tabla de Enlace (Feature <-> Tag) ---
 class FeatureTagLink(SQLModel, table=True):
     """
     Tabla de asociación entre las etiquetas y las características
@@ -54,6 +59,9 @@ class FeatureTagLink(SQLModel, table=True):
     tag_id: uuid.UUID = Field(foreign_key="tags.id", primary_key=True)
 
 
+
+
+# --- Tabla de Enlace (Configurations <-> Tag) ---
 class ConfigurationTagLink(SQLModel, table=True):
     """
     Tabla de asociación entre las etiquetas y las configuraciones
