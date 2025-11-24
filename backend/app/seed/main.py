@@ -13,6 +13,7 @@ from sqlmodel import Session
 
 from app.core.db import engine
 from .seeders import (
+    create_first_superuser,
     seed_settings,
     seed_production_users,
     seed_development_users,
@@ -33,6 +34,7 @@ def seed_production(session: Session) -> None:
 
     Solo crea:
     - Configuraciones de aplicación
+    - FIRST_SUPERUSER desde variables de entorno
     - Usuarios de producción (sin contraseñas de prueba)
     """
 
@@ -43,7 +45,10 @@ def seed_production(session: Session) -> None:
     # 1. Settings
     seed_settings(session)
 
-    # 2. Usuarios de producción
+    # 2. FIRST_SUPERUSER
+    create_first_superuser(session)
+
+    # 3. Usuarios de producción
     seed_production_users(session)
 
     logger.info("=" * 70)
@@ -56,6 +61,7 @@ def seed_development(session: Session) -> None:
     Seeding para entorno de desarrollo/testing
 
     Crea todos los datos de ejemplo incluyendo:
+    - FIRST_SUPERUSER desde variables de entorno
     - Usuarios de desarrollo con contraseñas conocidas
     - Dominios de ejemplo
     - Tags
@@ -67,25 +73,28 @@ def seed_development(session: Session) -> None:
     logger.info("🧪 SEEDING DE DESARROLLO")
     logger.info("=" * 70)
 
-    # 1. Usuarios de desarrollo
+    # 1. FIRST_SUPERUSER
+    create_first_superuser(session)
+
+    # 2. Usuarios de desarrollo
     dev_users = seed_development_users(session)
 
-    # 2. Obtener admin para crear otros datos
+    # 3. Obtener admin para crear otros datos
     admin = get_admin_user(session)
     if not admin:
         logger.error("❌ No se encontró usuario admin, abortando seeding de desarrollo")
         return
 
-    # 3. Dominios
+    # 4. Dominios
     domains = seed_domains(session, admin)
 
-    # 4. Tags
+    # 5. Tags
     tags = seed_tags(session, admin)
 
-    # 5. Recursos educativos
+    # 6. Recursos educativos
     resources = seed_resources(session, admin)
 
-    # 6. Feature models
+    # 7. Feature models
     # Buscar usuario designer
     designer = dev_users.get("designer@example.com", admin)
     feature_models = seed_feature_models(session, designer, domains, resources)

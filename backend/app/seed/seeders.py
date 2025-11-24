@@ -39,6 +39,45 @@ logger = logging.getLogger(__name__)
 
 
 # ==============================================================================
+# FIRST SUPERUSER
+# ==============================================================================
+def create_first_superuser(session: Session) -> Optional[User]:
+    """
+    Crear el primer superusuario desde variables de entorno
+
+    Este usuario se crea SIEMPRE en todos los entornos (producción y desarrollo)
+    y es el administrador principal del sistema.
+    """
+    from app.core.config import settings
+
+    logger.info("🌱 Creando FIRST_SUPERUSER...")
+
+    # Verificar si ya existe
+    existing = session.exec(
+        select(User).where(User.email == settings.FIRST_SUPERUSER)
+    ).first()
+
+    if existing:
+        logger.info(
+            f"  ℹ️  FIRST_SUPERUSER '{settings.FIRST_SUPERUSER}' ya existe, omitiendo..."
+        )
+        return existing
+
+    # Crear el primer superusuario
+    user_in = UserCreate(
+        email=settings.FIRST_SUPERUSER,
+        password=settings.FIRST_SUPERUSER_PASSWORD,
+        role=UserRole.ADMIN,
+    )
+
+    user = crud.create_user(session=session, user_create=user_in)
+    session.commit()
+
+    logger.info(f"  ✅ FIRST_SUPERUSER creado: {settings.FIRST_SUPERUSER}")
+    return user
+
+
+# ==============================================================================
 # SETTINGS
 # ==============================================================================
 def seed_settings(session: Session) -> None:

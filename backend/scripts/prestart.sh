@@ -9,12 +9,14 @@ python app/backend_pre_start.py
 # Run migrations
 alembic upgrade head
 
-# Create initial data in DB
-python app/initial_data.py
+# ============================================================================
+# DATABASE SEEDING - SINGLE ENTRY POINT
+# ============================================================================
+# El módulo app.seed.main se encarga de TODO el seeding según el entorno:
+#   - Production/Staging: Solo datos esenciales (settings, FIRST_SUPERUSER, usuarios de producción)
+#   - Local/Development: Datos completos (esenciales + ejemplos + usuarios de prueba)
+#
+# ============================================================================
 
-# Seed database with test data (only in development)
-# This is safe to run multiple times - it checks if data exists before creating
-if [ "$ENVIRONMENT" = "local" ] || [ "$ENVIRONMENT" = "development" ]; then
-    echo "🌱 Seeding database with test data..."
-    python -m app.seed_data
-fi
+echo "🌱 Iniciando Database Seeding (Entorno: ${ENVIRONMENT:-local})..."
+python -m app.seed.main

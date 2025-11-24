@@ -4,7 +4,6 @@ from sqlmodel import Session, create_engine, select
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.core.config import settings
-from app.models import AppSetting, User, UserCreate
 
 logger = logging.getLogger(__name__)
 
@@ -18,42 +17,22 @@ a_engine = create_async_engine(str(settings.SQLALCHEMY_DATABASE_URI), echo=False
 
 def init_db(session: Session) -> None:
     """
-    Inicializar la base de datos con datos esenciales
+    Inicializar conexión a la base de datos
 
-    Esta función se ejecuta al inicio de la aplicación y crea:
-    - El superusuario inicial (si no existe)
-    - Configuraciones de la aplicación
-    - Usuarios de ejemplo (solo en desarrollo)
+    IMPORTANTE: Esta función SOLO verifica la conexión a la base de datos.
+    NO crea datos - eso lo hace el módulo app.seed.main
 
-    Nota: Las tablas deben ser creadas con Alembic migrations
+    El seeding se ejecuta desde scripts/prestart.sh llamando a:
+        python -m app.seed.main
     """
 
-    from app.models.user import User, UserCreate
-    from app import crud
+    logger.info("Verificando conexión a la base de datos...")
 
-    logger.info("Starting database initialization...")
-
-    # Crear superusuario inicial si no existe
-    user = session.exec(
-        select(User).where(User.email == settings.FIRST_SUPERUSER)
-    ).first()
-
-    if not user:
-        user_in = UserCreate(
-            email=settings.FIRST_SUPERUSER,
-            password=settings.FIRST_SUPERUSER_PASSWORD,
-            is_superuser=True,
-        )
-        user = crud.create_user(session=session, user_create=user_in)
-        logger.info(f"Created first superuser: {settings.FIRST_SUPERUSER}")
-
-    # Importar y ejecutar seeding centralizado
-    from app.seed.seeders import seed_settings, seed_production_users
-
-    # Crear settings de la aplicación
-    seed_settings(session)
-
-    # Crear usuarios de producción
-    seed_production_users(session)
-
-    logger.info("Database initialization completed successfully.")
+    # Simplemente verificar que la sesión funciona
+    try:
+        # Hacer una query simple para verificar conexión
+        session.exec(select(1)).first()
+        logger.info("✅ Conexión a la base de datos verificada correctamente")
+    except Exception as e:
+        logger.error(f"❌ Error al conectar con la base de datos: {e}")
+        raise
