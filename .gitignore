@@ -5,4 +5,3 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 .env
-/backend/app/alembic/versions/
