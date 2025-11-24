@@ -59,27 +59,18 @@ curriculares y contenidos académicos.
 
 ## ✨ Características Principales
 
-*   ✅ **Diseño de Modelos:** Crea y edita visualmente los modelos de características con elementos obligatorios, opcionales, alternativos (XOR) y opcionales en grupo (OR).
-*   ✅ **Gestión de Reglas:** Define relaciones complejas como prerrequisitos (`requires`) y exclusiones (`excludes`) entre componentes.
-*   ✅ **Biblioteca de Recursos:** Un catálogo centralizado para gestionar los materiales de aprendizaje (`Resource`) y enlazarlos a los componentes del curso.
-*   ✅ **Etiquetado Pedagógico:** Usa `Tags` para clasificar componentes por dificultad, estilo de aprendizaje o competencias, permitiendo la personalización avanzada.
-*   ✅ **Control de Versiones:** Guarda "snapshots" de los modelos para poder evolucionarlos sin afectar a los itinerarios ya generados.
-*   ✅ **Roles y Permisos:** Un sistema granular de roles (`ADMIN`, `MODEL_DESIGNER`, `REVIEWER`, etc.) que define un flujo de trabajo claro de creación, revisión y publicación.
-*   ✅ **Generación de Configuraciones:** Ensambla itinerarios de aprendizaje válidos y listos para ser exportados o implementados.
-
-
-- **Gestión de Modelos de Características**: Crear, editar y versionar modelos de features con  elementos obligatorios, opcionales, alternativos (XOR) y opcionales en grupo (OR).
-- **Gestión de Reglas:** Define relaciones complejas como prerrequisitos (`requires`) y exclusiones (`excludes`) entre componentes.
-- **Biblioteca de Recursos:** Un catálogo centralizado para gestionar los materiales de aprendizaje (`Resource`) y enlazarlos a los componentes del curso.
-- **Etiquetado Pedagógico:** Usa `Tags` para clasificar componentes por dificultad, estilo de aprendizaje o competencias, permitiendo la personalización avanzada.
-- **Roles y Permisos:** Un sistema granular de roles (`ADMIN`, `MODEL_DESIGNER`, `REVIEWER`, etc.) que define un flujo de trabajo claro de creación, revisión y publicación.
-- **Control de Versiones:** Guarda "snapshots" de los modelos para poder evolucionarlos sin afectar a los itinerarios ya generados.
-- **Configuración Automática**: Ensambla itinerarios de aprendizaje válidos y listos para ser exportados o implementados.
-- **API RESTful Completa**: Documentación interactiva con Swagger/ReDoc
-- **Almacenamiento S3**: Compatible con MinIO/AWS S3
-- **Tareas Asíncronas**: Procesamiento en background con Celery
-- **Autenticación JWT**: Sistema seguro de tokens
-- **UI Moderna**: Interface responsive con Next.js 16 y React 19
+- ✅ **Gestión de Modelos de Características**: Crear, editar y versionar modelos de features con  elementos obligatorios, opcionales, alternativos (XOR) y opcionales en grupo (OR).
+- ✅ **Gestión de Reglas:** Define relaciones complejas como prerrequisitos (`requires`) y exclusiones (`excludes`) entre componentes.
+- ✅ **Biblioteca de Recursos:** Un catálogo centralizado para gestionar los materiales de aprendizaje (`Resource`) y enlazarlos a los componentes del curso.
+- ✅ **Etiquetado Pedagógico:** Usa `Tags` para clasificar componentes por dificultad, estilo de aprendizaje o competencias, permitiendo la personalización avanzada.
+- ✅ **Roles y Permisos:** Un sistema granular de roles (`ADMIN`, `MODEL_DESIGNER`, `REVIEWER`, etc.) que define un flujo de trabajo claro de creación, revisión y publicación.
+- ✅ **Control de Versiones:** Guarda "snapshots" de los modelos para poder evolucionarlos sin afectar a los itinerarios ya generados.
+- ✅ **Configuración Automática**: Ensambla itinerarios de aprendizaje válidos y listos para ser exportados o implementados.
+- ✅ **API RESTful Completa**: Documentación interactiva con Swagger/ReDoc
+- ✅ **Almacenamiento S3**: Compatible con MinIO/AWS S3
+- ✅ **Tareas Asíncronas**: Procesamiento en background con Celery
+- ✅ **Autenticación JWT**: Sistema seguro de tokens
+- ✅ **UI Moderna**: Interface responsive con Next.js 16 y React 19
 
 ## 🛠️ Tecnologías
 
