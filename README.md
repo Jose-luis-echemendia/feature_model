@@ -25,21 +25,47 @@ Este proyecto es el resultado de nuestro trabajo de tesis para optar por el tít
 
 ## 📋 Tabla de Contenidos
 
-- [Características Principales](#características-principales)
-- [Tecnologías](#tecnologías)
-- [Inicio Rápido](#inicio-rápido)
-- [Desarrollo](#desarrollo)
-- [Despliegue](#despliegue)
-- [Documentación](#documentación)
-- [Contribución](#contribución)
+1.  [Propósito y Objetivos](#-propósito-y-objetivos)
+2.  [🌟 Características Principales](#-características-principales)
+3.  [🛠️ Stack Tecnológico](#️-stack-tecnológico)
+4.  [🏗️ Arquitectura del Sistema](#️-arquitectura-del-sistema)
+5.  [📁 Estructura de Carpetas](#-estructura-de-carpetas)
+6.  [🚀 Guía de Instalación y Puesta en Marcha](#-guía-de-instalación-y-puesta-en-marcha)
+7.  [✍️ Estándares y Convenciones de Código](#️-estándares-y-convenciones-de-código)
+8.  [⚙️ Variables de Entorno](#️-variables-de-entorno)
+9.  [Desarrollo](#desarrollo)
+10. [Despliegue](#despliegue)
+11. [📚 Documentación](#-documentación)
+12. [Contribución](#contribución)
+13. [⚖️ Licencia](#️-licencia)
+
+---
+
+## 🎯 Propósito y Objetivos
+
+El propósito fundamental de **Feature Models Platform** es ofrecer una herramienta flexible y potente para que diseñadores instruccionales, académicos y jefes de formación puedan modelar, validar y generar itinerarios de aprendizaje a medida, asegurándoles variabilidad en sus planes
+curriculares y contenidos académicos.
+
+### Objetivos Principales
+
+*   **Modelado Visual:** Permitir la creación de planes de estudio como árboles de características jerárquicos y visuales.
+*   **Validación Automática:** Asegurar que cualquier itinerario generado sea coherente y válido, aplicando reglas de prerrequisitos, exclusiones y opcionalidad.
+*   **Reutilización de Contenido:** Centralizar los recursos de aprendizaje (videos, documentos) para que puedan ser reutilizados en múltiples cursos.
+*   **Flexibilidad Curricular:** Facilitar la creación de especializaciones, rutas personalizadas y planes adaptativos para diferentes perfiles de estudiantes.
+*   **Colaboración y Calidad:** Implementar un flujo de trabajo basado en roles que permita la colaboración en el diseño y la aprobación de los planes de estudio antes de su publicación.
+
+---
+
 
 ## ✨ Características Principales
 
-- **Gestión de Modelos de Características**: Crear, editar y versionar modelos de features
-- **Sistema de Roles**: Admin, Designer, Editor, Configurator, Viewer
-- **Versionado de Modelos**: Control completo de versiones de feature models
-- **Configuración Automática**: Generación de configuraciones válidas
-- **Recursos Educativos**: Videos, PDFs, quizzes integrados
+- **Gestión de Modelos de Características**: Crear, editar y versionar modelos de features con  elementos obligatorios, opcionales, alternativos (XOR) y opcionales en grupo (OR).
+- **Gestión de Reglas:** Define relaciones complejas como prerrequisitos (`requires`) y exclusiones (`excludes`) entre componentes.
+- **Biblioteca de Recursos:** Un catálogo centralizado para gestionar los materiales de aprendizaje (`Resource`) y enlazarlos a los componentes del curso.
+- **Etiquetado Pedagógico:** Usa `Tags` para clasificar componentes por dificultad, estilo de aprendizaje o competencias, permitiendo la personalización avanzada.
+- **Roles y Permisos:** Un sistema granular de roles (`ADMIN`, `MODEL_DESIGNER`, `REVIEWER`, etc.) que define un flujo de trabajo claro de creación, revisión y publicación.
+- **Control de Versiones:** Guarda "snapshots" de los modelos para poder evolucionarlos sin afectar a los itinerarios ya generados.
+- **Configuración Automática**: Ensambla itinerarios de aprendizaje válidos y listos para ser exportados o implementados.
 - **API RESTful Completa**: Documentación interactiva con Swagger/ReDoc
 - **Almacenamiento S3**: Compatible con MinIO/AWS S3
 - **Tareas Asíncronas**: Procesamiento en background con Celery

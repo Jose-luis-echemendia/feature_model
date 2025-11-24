@@ -1,32 +1,4 @@
 
-## 📑 Tabla de Contenidos
-
-1.  [Propósito y Objetivos](#-propósito-y-objetivos)
-2.  [🌟 Características Principales](#-características-principales)
-3.  [🛠️ Stack Tecnológico](#️-stack-tecnológico)
-4.  [🏗️ Arquitectura del Sistema](#️-arquitectura-del-sistema)
-5.  [🚀 Guía de Instalación y Puesta en Marcha](#-guía-de-instalación-y-puesta-en-marcha)
-6.  [📁 Estructura de Carpetas](#-estructura-de-carpetas)
-7.  [✍️ Estándares y Convenciones de Código](#️-estándares-y-convenciones-de-código)
-8.  [⚙️ Variables de Entorno](#️-variables-de-entorno)
-9.  [📚 Documentación de la API](#-documentación-de-la-api)
-10. [⚖️ Licencia](#️-licencia)
-
----
-
-## 🎯 Propósito y Objetivos
-
-El propósito fundamental de **CuriConfig** es ofrecer una herramienta flexible y potente para que diseñadores instruccionales, académicos y jefes de formación puedan modelar, validar y generar itinerarios de aprendizaje a medida.
-
-### Objetivos Principales
-
-*   **Modelado Visual:** Permitir la creación de planes de estudio como árboles de características jerárquicos y visuales.
-*   **Validación Automática:** Asegurar que cualquier itinerario generado sea coherente y válido, aplicando reglas de prerrequisitos, exclusiones y opcionalidad.
-*   **Reutilización de Contenido:** Centralizar los recursos de aprendizaje (videos, documentos) para que puedan ser reutilizados en múltiples cursos.
-*   **Flexibilidad Curricular:** Facilitar la creación de especializaciones, rutas personalizadas y planes adaptativos para diferentes perfiles de estudiantes.
-*   **Colaboración y Calidad:** Implementar un flujo de trabajo basado en roles que permita la colaboración en el diseño y la aprobación de los planes de estudio antes de su publicación.
-
----
 
 ## 🌟 Características Principales
 
