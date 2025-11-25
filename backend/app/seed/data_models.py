@@ -152,7 +152,7 @@ resources_data = [
     },
     {
         "title": "Base de Datos - Laboratorios Prácticos",
-        "type": ResourceType.OTHER,
+        "type": ResourceType.PACKAGE,
         "description": "Conjunto de laboratorios prácticos para curso de bases de datos",
         "language": "es",
         "status": ResourceStatus.PUBLISHED,

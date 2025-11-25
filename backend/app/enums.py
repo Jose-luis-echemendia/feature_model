@@ -20,10 +20,12 @@ class ResourceType(str, Enum):
     QUIZ = "quiz"
     EXTERNAL_LINK = "external_link"
     TEXT_CONTENT = "text_content"
+    PACKAGE = "package"  # Conjunto de archivos/recursos agrupados
 
 
 class ResourceStatus(str, Enum):
     """Estado del ciclo de vida de un recurso."""
+
     DRAFT = "draft"  # Borrador, no listo para producción
     IN_REVIEW = "in_review"  # Esperando aprobación
     PUBLISHED = "published"  # Activo y disponible para ser usado
@@ -32,11 +34,12 @@ class ResourceStatus(str, Enum):
 
 class LicenseType(str, Enum):
     """Tipo de licencia del recurso."""
+
     COPYRIGHT = "copyright"  # Todos los derechos reservados
     CREATIVE_COMMONS_BY = "cc_by"  # Creative Commons - Atribución
-    CREATIVE_COMMONS_BY_SA = "cc_by_sa" # CC - Atribución-CompartirIgual
-    PUBLIC_DOMAIN = "public_domain" # Dominio Público
-    INTERNAL_USE = "internal_use" # Solo para uso interno de la organización
+    CREATIVE_COMMONS_BY_SA = "cc_by_sa"  # CC - Atribución-CompartirIgual
+    PUBLIC_DOMAIN = "public_domain"  # Dominio Público
+    INTERNAL_USE = "internal_use"  # Solo para uso interno de la organización
 
 
 class FeatureType(str, Enum):
@@ -73,7 +76,7 @@ class FeatureRelationType(str, Enum):
 
 
 class ModelStatus(str, Enum):
-    DRAFT = "draft"          # En proceso de diseño, solo visible para su creador (y admins).
+    DRAFT = "draft"  # En proceso de diseño, solo visible para su creador (y admins).
     IN_REVIEW = "in_review"  # Listo para revisión, visible para los REVIEWERS.
     PUBLISHED = "published"  # Aprobado y visible para los CONFIGURATORS.
-    ARCHIVED = "archived"    # Obsoleto, ya no se puede usar para nuevas configuraciones.
+    ARCHIVED = "archived"  # Obsoleto, ya no se puede usar para nuevas configuraciones.
