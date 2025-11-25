@@ -3211,6 +3211,1404 @@ asignatura_gpi_model = {
     },
 }
 
+# Modelo 6: Asignatura Sistemas de Bases de Datos
+asignatura_bases_datos_model = {
+    "name": "Sistemas de Bases de Datos",
+    "description": "Asignatura completa sobre diseño, implementación y administración de bases de datos relacionales y NoSQL (1 semestre, 6 créditos)",
+    "domain_name": "Ingeniería Informática",
+    "version": {
+        "version_number": 1,
+        "status": ModelStatus.PUBLISHED,
+        "features": [
+            {
+                "name": "Sistemas de Bases de Datos",
+                "type": FeatureType.MANDATORY,
+                "properties": {
+                    "description": "Asignatura completa de bases de datos",
+                    "creditos": 6,
+                    "semestre": 3,
+                    "horas_totales": 96,
+                    "horas_teoricas": 48,
+                    "horas_practicas": 48,
+                    "nivel": "pregrado",
+                    "area": "ciencias de la computación",
+                },
+                "children": [
+                    # NIVEL 1: Módulos principales de la asignatura
+                    {
+                        "name": "Fundamentos de Bases de Datos",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Conceptos básicos y arquitectura de SGBD",
+                            "creditos": 1.0,
+                            "horas": 16,
+                            "temas": [
+                                "Conceptos básicos de BD",
+                                "Arquitectura ANSI/SPARC",
+                                "Modelos de datos",
+                                "Usuarios y roles en BD",
+                                "ACID y transacciones",
+                            ],
+                        },
+                    },
+                    {
+                        "name": "Modelo Relacional",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Teoría del modelo relacional y álgebra",
+                            "creditos": 1.5,
+                            "horas": 24,
+                            "temas": [
+                                "Estructuras: tablas, tuplas, atributos",
+                                "Dominios y tipos de datos",
+                                "Claves primarias y foráneas",
+                                "Álgebra relacional",
+                                "Cálculo relacional",
+                                "Integridad referencial",
+                            ],
+                        },
+                    },
+                    {
+                        "name": "Diseño de Bases de Datos",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Metodologías de diseño y normalización",
+                            "creditos": 1.5,
+                            "horas": 24,
+                        },
+                        "children": [
+                            # NIVEL 2: Fases del diseño
+                            {
+                                "name": "Modelo Entidad-Relación (ER)",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 8,
+                                    "temas": [
+                                        "Entidades y atributos",
+                                        "Relaciones y cardinalidad",
+                                        "Atributos multivaluados y compuestos",
+                                        "Entidades débiles",
+                                        "Diagrama ER",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Modelo ER Extendido (EER)",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 6,
+                                    "temas": [
+                                        "Generalización y especialización",
+                                        "Herencia",
+                                        "Restricciones de disjunción",
+                                        "Agregación",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Normalización",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 8,
+                                    "temas": [
+                                        "Dependencias funcionales",
+                                        "Primera Forma Normal (1FN)",
+                                        "Segunda Forma Normal (2FN)",
+                                        "Tercera Forma Normal (3FN)",
+                                        "Forma Normal de Boyce-Codd (BCNF)",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Mapeo ER a Relacional",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 2,
+                                    "temas": [
+                                        "Mapeo de entidades",
+                                        "Mapeo de relaciones",
+                                        "Mapeo de jerarquías",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "SQL - Lenguaje de Consulta",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "SQL estándar para manipulación de datos",
+                            "creditos": 1.0,
+                            "horas": 16,
+                        },
+                        "children": [
+                            # NIVEL 2: Categorías de SQL
+                            {
+                                "name": "DDL - Definición de Datos",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 3,
+                                    "comandos": [
+                                        "CREATE TABLE",
+                                        "ALTER TABLE",
+                                        "DROP TABLE",
+                                        "Constraints (PK, FK, UNIQUE, CHECK)",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "DML - Manipulación de Datos",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 4,
+                                    "comandos": [
+                                        "INSERT INTO",
+                                        "UPDATE",
+                                        "DELETE",
+                                        "Transacciones (COMMIT, ROLLBACK)",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "DQL - Consultas Básicas",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 4,
+                                    "comandos": [
+                                        "SELECT",
+                                        "WHERE y operadores",
+                                        "ORDER BY",
+                                        "DISTINCT",
+                                        "LIMIT/TOP",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Consultas Avanzadas",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 5,
+                                    "temas": [
+                                        "JOINs (INNER, LEFT, RIGHT, FULL)",
+                                        "Subconsultas",
+                                        "Funciones agregadas (COUNT, SUM, AVG, MAX, MIN)",
+                                        "GROUP BY y HAVING",
+                                        "Vistas (CREATE VIEW)",
+                                        "UNION, INTERSECT, EXCEPT",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Sistemas Gestores de BD (SGBD)",
+                        "type": FeatureType.OR_GROUP,
+                        "properties": {
+                            "description": "Elegir al menos un SGBD para profundizar",
+                            "creditos": 0.5,
+                            "horas": 8,
+                            "minimo_selecciones": 1,
+                        },
+                        "children": [
+                            {
+                                "name": "PostgreSQL",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "tipo": "Relacional open-source",
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Características de PostgreSQL
+                                    {
+                                        "name": "Instalación y Configuración",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "temas": [
+                                                "Instalación en diferentes OS",
+                                                "Configuración postgresql.conf",
+                                                "pg_hba.conf para autenticación",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Características Avanzadas",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "temas": [
+                                                "Tipos de datos avanzados (JSON, Array)",
+                                                "Extensiones (PostGIS, pg_trgm)",
+                                                "Full-text search",
+                                                "Funciones y procedimientos (PL/pgSQL)",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "MySQL/MariaDB",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "tipo": "Relacional open-source",
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Características de MySQL
+                                    {
+                                        "name": "Motores de Almacenamiento",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "tipos": [
+                                                "InnoDB (transaccional)",
+                                                "MyISAM (no transaccional)",
+                                                "Memory",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Replicación y Alta Disponibilidad",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "temas": [
+                                                "Master-Slave replication",
+                                                "Group Replication",
+                                                "Galera Cluster (MariaDB)",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Oracle Database",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "tipo": "Relacional empresarial",
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Características de Oracle
+                                    {
+                                        "name": "PL/SQL",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "temas": [
+                                                "Procedimientos almacenados",
+                                                "Funciones",
+                                                "Packages",
+                                                "Triggers",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Características Empresariales",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "temas": [
+                                                "RAC (Real Application Clusters)",
+                                                "Data Guard",
+                                                "Particionamiento avanzado",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Microsoft SQL Server",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "tipo": "Relacional empresarial",
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Características de SQL Server
+                                    {
+                                        "name": "T-SQL",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "temas": [
+                                                "Stored Procedures",
+                                                "Functions",
+                                                "Common Table Expressions (CTE)",
+                                                "Window Functions",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Integración y BI",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "herramientas": [
+                                                "SQL Server Integration Services (SSIS)",
+                                                "SQL Server Reporting Services (SSRS)",
+                                                "SQL Server Analysis Services (SSAS)",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Transacciones y Concurrencia",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Control de concurrencia y recuperación",
+                            "creditos": 0.5,
+                            "horas": 8,
+                        },
+                        "children": [
+                            # NIVEL 2: Aspectos de transacciones
+                            {
+                                "name": "Propiedades ACID",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 2,
+                                    "propiedades": [
+                                        "Atomicity (Atomicidad)",
+                                        "Consistency (Consistencia)",
+                                        "Isolation (Aislamiento)",
+                                        "Durability (Durabilidad)",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Niveles de Aislamiento",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 3,
+                                    "niveles": [
+                                        "Read Uncommitted",
+                                        "Read Committed",
+                                        "Repeatable Read",
+                                        "Serializable",
+                                    ],
+                                    "problemas": [
+                                        "Dirty Read",
+                                        "Non-repeatable Read",
+                                        "Phantom Read",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Control de Concurrencia",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 3,
+                                    "tecnicas": [
+                                        "Bloqueos (locks)",
+                                        "Two-Phase Locking (2PL)",
+                                        "Timestamp Ordering",
+                                        "Optimistic Concurrency Control",
+                                        "Detección de deadlocks",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Bases de Datos NoSQL",
+                        "type": FeatureType.OR_GROUP,
+                        "properties": {
+                            "description": "Elegir al menos un tipo de BD NoSQL",
+                            "creditos": 0.5,
+                            "horas": 8,
+                            "minimo_selecciones": 1,
+                        },
+                        "children": [
+                            {
+                                "name": "Bases de Datos Documentales",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "ejemplo": "MongoDB, CouchDB",
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: MongoDB específico
+                                    {
+                                        "name": "Operaciones CRUD en MongoDB",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "operaciones": [
+                                                "insertOne/insertMany",
+                                                "find con query operators",
+                                                "updateOne/updateMany",
+                                                "deleteOne/deleteMany",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Agregaciones y Pipeline",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "stages": [
+                                                "$match",
+                                                "$group",
+                                                "$project",
+                                                "$sort",
+                                                "$lookup (joins)",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Bases de Datos Clave-Valor",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "ejemplo": "Redis, DynamoDB",
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Redis específico
+                                    {
+                                        "name": "Estructuras de Datos Redis",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "tipos": [
+                                                "Strings",
+                                                "Hashes",
+                                                "Lists",
+                                                "Sets",
+                                                "Sorted Sets",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Casos de Uso Redis",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "usos": [
+                                                "Caché de sesiones",
+                                                "Rate limiting",
+                                                "Pub/Sub messaging",
+                                                "Leaderboards",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Bases de Datos en Grafo",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "ejemplo": "Neo4j, ArangoDB",
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Neo4j específico
+                                    {
+                                        "name": "Modelo de Grafo",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "elementos": [
+                                                "Nodos (Nodes)",
+                                                "Relaciones (Relationships)",
+                                                "Propiedades",
+                                                "Labels",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Cypher Query Language",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "comandos": [
+                                                "CREATE nodes y relationships",
+                                                "MATCH patterns",
+                                                "WHERE filters",
+                                                "RETURN results",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Bases de Datos Columnares",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "ejemplo": "Cassandra, HBase",
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Cassandra específico
+                                    {
+                                        "name": "Modelo de Datos Cassandra",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "conceptos": [
+                                                "Keyspace",
+                                                "Column Family/Table",
+                                                "Partition Key",
+                                                "Clustering Key",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "CQL - Cassandra Query Language",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "comandos": [
+                                                "CREATE KEYSPACE",
+                                                "CREATE TABLE",
+                                                "INSERT/SELECT",
+                                                "Consistency Levels",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Optimización y Rendimiento",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Técnicas de optimización de consultas",
+                            "creditos": 0.5,
+                            "horas": 8,
+                            "temas": [
+                                "Índices (B-tree, Hash, Bitmap)",
+                                "Planes de ejecución",
+                                "Estadísticas y optimizador",
+                                "Query tuning",
+                                "Particionamiento",
+                                "Caché y buffers",
+                            ],
+                        },
+                    },
+                    {
+                        "name": "Seguridad en Bases de Datos",
+                        "type": FeatureType.OPTIONAL,
+                        "properties": {
+                            "description": "Seguridad y control de acceso",
+                            "creditos": 0.25,
+                            "horas": 4,
+                            "temas": [
+                                "Autenticación y autorización",
+                                "Roles y privilegios",
+                                "SQL Injection y prevención",
+                                "Cifrado de datos",
+                                "Auditoría",
+                            ],
+                        },
+                    },
+                    {
+                        "name": "Proyecto Final",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Proyecto integrador de diseño e implementación",
+                            "creditos": 0.75,
+                            "horas": 12,
+                            "peso_evaluacion": "25%",
+                            "entregables": [
+                                "Modelo Entidad-Relación",
+                                "Esquema relacional normalizado",
+                                "Scripts de creación (DDL)",
+                                "Scripts de carga de datos (DML)",
+                                "Consultas SQL complejas",
+                                "Documentación técnica",
+                            ],
+                        },
+                    },
+                ],
+            }
+        ],
+        # Relaciones entre features
+        "feature_relations": [
+            # Relaciones de prerequisitos
+            {
+                "source": "Modelo Relacional",
+                "target": "Fundamentos de Bases de Datos",
+                "type": "requires",
+                "description": "El modelo relacional requiere entender fundamentos de BD",
+            },
+            {
+                "source": "Diseño de Bases de Datos",
+                "target": "Modelo Relacional",
+                "type": "requires",
+                "description": "El diseño requiere conocer el modelo relacional",
+            },
+            {
+                "source": "SQL - Lenguaje de Consulta",
+                "target": "Modelo Relacional",
+                "type": "requires",
+                "description": "SQL opera sobre el modelo relacional",
+            },
+            {
+                "source": "Sistemas Gestores de BD (SGBD)",
+                "target": "SQL - Lenguaje de Consulta",
+                "type": "requires",
+                "description": "Usar un SGBD requiere conocer SQL",
+            },
+            {
+                "source": "Transacciones y Concurrencia",
+                "target": "Fundamentos de Bases de Datos",
+                "type": "requires",
+                "description": "Transacciones requieren entender propiedades ACID de fundamentos",
+            },
+            {
+                "source": "Optimización y Rendimiento",
+                "target": "SQL - Lenguaje de Consulta",
+                "type": "requires",
+                "description": "Optimizar requiere conocer SQL y consultas",
+            },
+            {
+                "source": "Seguridad en Bases de Datos",
+                "target": "Sistemas Gestores de BD (SGBD)",
+                "type": "requires",
+                "description": "Implementar seguridad requiere conocer un SGBD",
+            },
+            {
+                "source": "Proyecto Final",
+                "target": "Diseño de Bases de Datos",
+                "type": "requires",
+                "description": "El proyecto requiere saber diseñar BD",
+            },
+            {
+                "source": "Proyecto Final",
+                "target": "SQL - Lenguaje de Consulta",
+                "type": "requires",
+                "description": "El proyecto requiere dominar SQL",
+            },
+            {
+                "source": "Proyecto Final",
+                "target": "Sistemas Gestores de BD (SGBD)",
+                "type": "requires",
+                "description": "El proyecto debe implementarse en un SGBD",
+            },
+            # Relaciones de exclusión entre SGBD relacionales
+            {
+                "source": "PostgreSQL",
+                "target": "Oracle Database",
+                "type": "excludes",
+                "description": "En el curso se profundiza en un SGBD principal",
+            },
+            {
+                "source": "MySQL/MariaDB",
+                "target": "Microsoft SQL Server",
+                "type": "excludes",
+                "description": "En el curso se profundiza en un SGBD principal",
+            },
+            # Relaciones entre NoSQL y fundamentos
+            {
+                "source": "Bases de Datos NoSQL",
+                "target": "Fundamentos de Bases de Datos",
+                "type": "requires",
+                "description": "NoSQL requiere entender conceptos generales de BD",
+            },
+            {
+                "source": "Bases de Datos Documentales",
+                "target": "Modelo Relacional",
+                "type": "requires",
+                "description": "Entender NoSQL requiere contrastar con modelo relacional",
+            },
+            # Relaciones de nivel 2 - Diseño de BD
+            {
+                "source": "Modelo ER Extendido (EER)",
+                "target": "Modelo Entidad-Relación (ER)",
+                "type": "requires",
+                "description": "EER es una extensión del modelo ER básico",
+            },
+            {
+                "source": "Normalización",
+                "target": "Modelo Entidad-Relación (ER)",
+                "type": "requires",
+                "description": "Normalización se aplica después del diseño ER",
+            },
+            {
+                "source": "Mapeo ER a Relacional",
+                "target": "Normalización",
+                "type": "requires",
+                "description": "El mapeo debe hacerse sobre esquemas normalizados",
+            },
+            # Relaciones de nivel 2 - SQL
+            {
+                "source": "DML - Manipulación de Datos",
+                "target": "DDL - Definición de Datos",
+                "type": "requires",
+                "description": "DML requiere que las tablas estén definidas con DDL",
+            },
+            {
+                "source": "DQL - Consultas Básicas",
+                "target": "DDL - Definición de Datos",
+                "type": "requires",
+                "description": "Las consultas requieren que existan tablas definidas",
+            },
+            {
+                "source": "Consultas Avanzadas",
+                "target": "DQL - Consultas Básicas",
+                "type": "requires",
+                "description": "Consultas avanzadas requieren dominar consultas básicas",
+            },
+            # Relaciones de nivel 2 - SGBD
+            {
+                "source": "Características Avanzadas",
+                "target": "Instalación y Configuración",
+                "type": "requires",
+                "description": "Características avanzadas requieren instalación previa",
+            },
+            {
+                "source": "Replicación y Alta Disponibilidad",
+                "target": "Motores de Almacenamiento",
+                "type": "requires",
+                "description": "HA requiere entender los motores de almacenamiento",
+            },
+            {
+                "source": "Características Empresariales",
+                "target": "PL/SQL",
+                "type": "requires",
+                "description": "Características empresariales de Oracle requieren PL/SQL",
+            },
+            {
+                "source": "Integración y BI",
+                "target": "T-SQL",
+                "type": "requires",
+                "description": "BI en SQL Server requiere dominar T-SQL",
+            },
+            # Relaciones de nivel 2 - Transacciones
+            {
+                "source": "Niveles de Aislamiento",
+                "target": "Propiedades ACID",
+                "type": "requires",
+                "description": "Niveles de aislamiento implementan la 'I' de ACID",
+            },
+            {
+                "source": "Control de Concurrencia",
+                "target": "Niveles de Aislamiento",
+                "type": "requires",
+                "description": "Control de concurrencia implementa los niveles de aislamiento",
+            },
+            # Relaciones de nivel 2 - NoSQL
+            {
+                "source": "Agregaciones y Pipeline",
+                "target": "Operaciones CRUD en MongoDB",
+                "type": "requires",
+                "description": "Agregaciones requieren dominar CRUD básico",
+            },
+            {
+                "source": "Casos de Uso Redis",
+                "target": "Estructuras de Datos Redis",
+                "type": "requires",
+                "description": "Implementar casos de uso requiere conocer estructuras de datos",
+            },
+            {
+                "source": "Cypher Query Language",
+                "target": "Modelo de Grafo",
+                "type": "requires",
+                "description": "Cypher opera sobre el modelo de grafo",
+            },
+            {
+                "source": "CQL - Cassandra Query Language",
+                "target": "Modelo de Datos Cassandra",
+                "type": "requires",
+                "description": "CQL opera sobre el modelo de datos de Cassandra",
+            },
+        ],
+    },
+}
+
+# Modelo 7: Asignatura Estructura de Datos I
+asignatura_estructura_datos_model = {
+    "name": "Estructura de Datos I",
+    "description": "Asignatura fundamental sobre estructuras de datos lineales y no lineales básicas, algoritmos de búsqueda y ordenamiento (1 semestre, 6 créditos)",
+    "domain_name": "Ingeniería Informática",
+    "version": {
+        "version_number": 1,
+        "status": ModelStatus.PUBLISHED,
+        "features": [
+            {
+                "name": "Estructura de Datos I",
+                "type": FeatureType.MANDATORY,
+                "properties": {
+                    "description": "Asignatura completa de estructuras de datos básicas",
+                    "creditos": 6,
+                    "semestre": 2,
+                    "horas_totales": 96,
+                    "horas_teoricas": 48,
+                    "horas_practicas": 48,
+                    "nivel": "pregrado",
+                    "area": "ciencias de la computación",
+                },
+                "children": [
+                    # NIVEL 1: Módulos principales de la asignatura
+                    {
+                        "name": "Fundamentos y Análisis de Algoritmos",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Conceptos básicos y análisis de complejidad",
+                            "creditos": 1.0,
+                            "horas": 16,
+                            "temas": [
+                                "Tipos de datos abstractos (TDA)",
+                                "Notación Big-O, Omega, Theta",
+                                "Análisis de tiempo y espacio",
+                                "Recursión vs iteración",
+                                "Complejidad temporal y espacial",
+                            ],
+                        },
+                    },
+                    {
+                        "name": "Estructuras Lineales Básicas",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Arreglos, listas y estructuras secuenciales",
+                            "creditos": 1.5,
+                            "horas": 24,
+                        },
+                        "children": [
+                            # NIVEL 2: Tipos de estructuras lineales
+                            {
+                                "name": "Arreglos",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 6,
+                                    "temas": [
+                                        "Arreglos estáticos",
+                                        "Arreglos dinámicos (vectores)",
+                                        "Arreglos multidimensionales",
+                                        "Complejidad de operaciones O(1) acceso, O(n) inserción/eliminación",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Listas Enlazadas Simples",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 6,
+                                    "temas": [
+                                        "Nodo: dato + puntero",
+                                        "Inserción al inicio O(1)",
+                                        "Inserción al final O(n)",
+                                        "Eliminación",
+                                        "Búsqueda O(n)",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Listas Doblemente Enlazadas",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 6,
+                                    "temas": [
+                                        "Nodo: dato + anterior + siguiente",
+                                        "Navegación bidireccional",
+                                        "Inserción/eliminación eficiente",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Listas Circulares",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "horas": 6,
+                                    "temas": [
+                                        "Último nodo apunta al primero",
+                                        "Aplicaciones: buffer circular, round-robin",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Pilas (Stacks)",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Estructura LIFO y sus aplicaciones",
+                            "creditos": 0.5,
+                            "horas": 8,
+                        },
+                        "children": [
+                            # NIVEL 2: Implementaciones y aplicaciones de pilas
+                            {
+                                "name": "Implementación con Arreglos",
+                                "type": FeatureType.ALTERNATIVE,
+                                "properties": {
+                                    "horas": 3,
+                                    "temas": [
+                                        "Pila con tamaño fijo",
+                                        "Operaciones: push O(1), pop O(1), top O(1)",
+                                        "Control de overflow/underflow",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Implementación con Listas Enlazadas",
+                                "type": FeatureType.ALTERNATIVE,
+                                "properties": {
+                                    "horas": 3,
+                                    "temas": [
+                                        "Pila dinámica sin límite de tamaño",
+                                        "Push/pop al inicio de la lista",
+                                        "Gestión de memoria",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Aplicaciones de Pilas",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 2,
+                                    "temas": [
+                                        "Evaluación de expresiones",
+                                        "Conversión infija/postfija/prefija",
+                                        "Balanceo de paréntesis",
+                                        "Recursión y pila de llamadas",
+                                        "Backtracking",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Colas (Queues)",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Estructura FIFO y variantes",
+                            "creditos": 0.5,
+                            "horas": 8,
+                        },
+                        "children": [
+                            # NIVEL 2: Tipos de colas y sus implementaciones
+                            {
+                                "name": "Cola Simple (FIFO)",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 3,
+                                    "temas": [
+                                        "Principio FIFO (First In, First Out)",
+                                        "Operaciones: enqueue O(1), dequeue O(1)",
+                                        "Implementación circular con arreglos",
+                                        "Implementación con listas enlazadas",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Cola de Prioridad",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 3,
+                                    "temas": [
+                                        "Elementos con prioridad",
+                                        "Dequeue extrae elemento de mayor prioridad",
+                                        "Implementación con heap",
+                                        "Aplicaciones: scheduling, algoritmos de grafos",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Deque (Double-Ended Queue)",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "horas": 2,
+                                    "temas": [
+                                        "Inserción/eliminación en ambos extremos",
+                                        "Operaciones: addFront, addRear, removeFront, removeRear",
+                                        "Aplicaciones: palindromo, sliding window",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Árboles Binarios",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Estructuras jerárquicas básicas",
+                            "creditos": 1.0,
+                            "horas": 16,
+                        },
+                        "children": [
+                            # NIVEL 2: Conceptos y tipos de árboles binarios
+                            {
+                                "name": "Conceptos Fundamentales",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 4,
+                                    "temas": [
+                                        "Terminología: nodo, raíz, hoja, padre, hijo",
+                                        "Altura, profundidad, nivel",
+                                        "Árbol completo vs árbol lleno",
+                                        "Representación: hijos izquierdo/derecho",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Recorridos de Árboles",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 4,
+                                    "temas": [
+                                        "Preorden (raíz-izq-der)",
+                                        "Inorden (izq-raíz-der)",
+                                        "Postorden (izq-der-raíz)",
+                                        "Por niveles (BFS)",
+                                        "Implementación recursiva vs iterativa",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Árbol Binario de Búsqueda (BST)",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 6,
+                                    "temas": [
+                                        "Propiedad BST: izq < raíz < der",
+                                        "Búsqueda O(log n) promedio, O(n) peor caso",
+                                        "Inserción recursiva",
+                                        "Eliminación: 3 casos (hoja, 1 hijo, 2 hijos)",
+                                        "Sucesor/predecesor inorden",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Aplicaciones de Árboles",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "horas": 2,
+                                    "temas": [
+                                        "Árboles de expresión",
+                                        "Árboles de decisión",
+                                        "Estructuras de directorios",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Algoritmos de Ordenamiento",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Algoritmos clásicos de ordenamiento",
+                            "creditos": 1.0,
+                            "horas": 16,
+                        },
+                        "children": [
+                            # NIVEL 2: Clasificación de algoritmos de ordenamiento
+                            {
+                                "name": "Algoritmos Cuadráticos",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 6,
+                                    "complejidad": "O(n²)",
+                                    "temas": [
+                                        "Bubble Sort: intercambios consecutivos",
+                                        "Selection Sort: selección del mínimo",
+                                        "Insertion Sort: inserción en posición ordenada",
+                                        "Análisis de casos: mejor, promedio, peor",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Algoritmos Eficientes",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 8,
+                                    "complejidad": "O(n log n)",
+                                    "temas": [
+                                        "Merge Sort: divide y conquista, estable",
+                                        "Quick Sort: partición, in-place",
+                                        "Heap Sort: usando heap binario",
+                                        "Comparación de estabilidad y uso de memoria",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Análisis Comparativo",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 2,
+                                    "temas": [
+                                        "Criterios: tiempo, espacio, estabilidad",
+                                        "Cuándo usar cada algoritmo",
+                                        "Límite inferior para ordenamiento basado en comparaciones",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Algoritmos de Búsqueda",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Técnicas de búsqueda en estructuras",
+                            "creditos": 0.5,
+                            "horas": 8,
+                        },
+                        "children": [
+                            # NIVEL 2: Tipos de búsqueda
+                            {
+                                "name": "Búsqueda Lineal",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 2,
+                                    "complejidad": "O(n)",
+                                    "temas": [
+                                        "Búsqueda secuencial",
+                                        "Búsqueda con centinela",
+                                        "Útil en datos no ordenados",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Búsqueda Binaria",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 4,
+                                    "complejidad": "O(log n)",
+                                    "temas": [
+                                        "Requisito: arreglo ordenado",
+                                        "División del espacio de búsqueda",
+                                        "Implementación iterativa y recursiva",
+                                        "Variantes: lower_bound, upper_bound",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Búsqueda en Estructuras Avanzadas",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 2,
+                                    "temas": [
+                                        "Búsqueda en BST: O(log n) promedio",
+                                        "Búsqueda en tablas hash: O(1) promedio",
+                                        "Comparación de eficiencia",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Lenguaje de Implementación",
+                        "type": FeatureType.XOR_GROUP,
+                        "properties": {
+                            "description": "Elegir un lenguaje principal para implementar",
+                            "creditos": 0.0,
+                            "horas": 0,
+                        },
+                        "children": [
+                            {
+                                "name": "C/C++",
+                                "type": FeatureType.ALTERNATIVE,
+                                "properties": {
+                                    "ventajas": [
+                                        "Gestión manual de memoria",
+                                        "Punteros explícitos",
+                                        "Alto rendimiento",
+                                        "STL (C++)",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Java",
+                                "type": FeatureType.ALTERNATIVE,
+                                "properties": {
+                                    "ventajas": [
+                                        "Orientado a objetos puro",
+                                        "Garbage collection",
+                                        "Collections Framework",
+                                        "Portable",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Python",
+                                "type": FeatureType.ALTERNATIVE,
+                                "properties": {
+                                    "ventajas": [
+                                        "Sintaxis simple",
+                                        "Tipado dinámico",
+                                        "Estructuras built-in ricas",
+                                        "Rápido prototipado",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Técnicas de Programación",
+                        "type": FeatureType.OR_GROUP,
+                        "properties": {
+                            "description": "Elegir al menos una técnica avanzada",
+                            "creditos": 0.5,
+                            "horas": 8,
+                            "minimo_selecciones": 1,
+                        },
+                        "children": [
+                            {
+                                "name": "Recursión Avanzada",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "temas": [
+                                        "Recursión múltiple",
+                                        "Backtracking",
+                                        "Divide y conquista",
+                                        "Torres de Hanoi",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Programación Genérica",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "temas": [
+                                        "Templates (C++)",
+                                        "Generics (Java)",
+                                        "Type hints (Python)",
+                                        "Reutilización de código",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Manejo de Memoria",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "temas": [
+                                        "Asignación dinámica",
+                                        "Liberación de memoria",
+                                        "Memory leaks",
+                                        "Smart pointers",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Proyecto Final",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Implementación de múltiples estructuras",
+                            "creditos": 0.5,
+                            "horas": 8,
+                            "peso_evaluacion": "20%",
+                            "entregables": [
+                                "Biblioteca de estructuras de datos",
+                                "Implementación de al menos 5 estructuras",
+                                "Tests unitarios",
+                                "Documentación del código",
+                                "Análisis de complejidad",
+                            ],
+                        },
+                    },
+                ],
+            }
+        ],
+        # Relaciones entre features
+        "feature_relations": [
+            # Relaciones de prerequisitos básicos
+            {
+                "source": "Estructuras Lineales Básicas",
+                "target": "Fundamentos y Análisis de Algoritmos",
+                "type": "requires",
+                "description": "Las estructuras requieren entender TDA y complejidad",
+            },
+            {
+                "source": "Pilas (Stacks)",
+                "target": "Estructuras Lineales Básicas",
+                "type": "requires",
+                "description": "Pilas se implementan sobre listas o arreglos",
+            },
+            {
+                "source": "Colas (Queues)",
+                "target": "Estructuras Lineales Básicas",
+                "type": "requires",
+                "description": "Colas se implementan sobre listas o arreglos",
+            },
+            {
+                "source": "Árboles Binarios",
+                "target": "Estructuras Lineales Básicas",
+                "type": "requires",
+                "description": "Árboles requieren entender nodos y enlaces",
+            },
+            {
+                "source": "Algoritmos de Ordenamiento",
+                "target": "Fundamentos y Análisis de Algoritmos",
+                "type": "requires",
+                "description": "Ordenamiento requiere análisis de complejidad",
+            },
+            {
+                "source": "Algoritmos de Búsqueda",
+                "target": "Fundamentos y Análisis de Algoritmos",
+                "type": "requires",
+                "description": "Búsqueda requiere entender complejidad",
+            },
+            {
+                "source": "Algoritmos de Búsqueda",
+                "target": "Árboles Binarios",
+                "type": "requires",
+                "description": "Búsqueda en BST requiere entender árboles",
+            },
+            # Relaciones con técnicas de programación
+            {
+                "source": "Recursión Avanzada",
+                "target": "Fundamentos y Análisis de Algoritmos",
+                "type": "requires",
+                "description": "Recursión avanzada requiere entender recursión básica",
+            },
+            {
+                "source": "Recursión Avanzada",
+                "target": "Árboles Binarios",
+                "type": "requires",
+                "description": "Árboles son ideales para practicar recursión",
+            },
+            {
+                "source": "Manejo de Memoria",
+                "target": "Estructuras Lineales Básicas",
+                "type": "requires",
+                "description": "Gestión de memoria es crítica en listas enlazadas",
+            },
+            # Relaciones de exclusión entre lenguajes
+            {
+                "source": "C/C++",
+                "target": "Java",
+                "type": "excludes",
+                "description": "Se elige un lenguaje principal para la asignatura",
+            },
+            {
+                "source": "Java",
+                "target": "Python",
+                "type": "excludes",
+                "description": "Se elige un lenguaje principal para la asignatura",
+            },
+            {
+                "source": "C/C++",
+                "target": "Python",
+                "type": "excludes",
+                "description": "Se elige un lenguaje principal para la asignatura",
+            },
+            # Relaciones del proyecto final
+            {
+                "source": "Proyecto Final",
+                "target": "Estructuras Lineales Básicas",
+                "type": "requires",
+                "description": "El proyecto debe incluir estructuras lineales",
+            },
+            {
+                "source": "Proyecto Final",
+                "target": "Pilas (Stacks)",
+                "type": "requires",
+                "description": "El proyecto debe incluir pilas",
+            },
+            {
+                "source": "Proyecto Final",
+                "target": "Colas (Queues)",
+                "type": "requires",
+                "description": "El proyecto debe incluir colas",
+            },
+            {
+                "source": "Proyecto Final",
+                "target": "Árboles Binarios",
+                "type": "requires",
+                "description": "El proyecto debe incluir árboles",
+            },
+            {
+                "source": "Proyecto Final",
+                "target": "Lenguaje de Implementación",
+                "type": "requires",
+                "description": "El proyecto se implementa en el lenguaje elegido",
+            },
+        ],
+    },
+}
+
 # Lista de todos los modelos
 feature_models_data = [
     ingenieria_informatica_model,
@@ -3218,4 +4616,6 @@ feature_models_data = [
     maestria_ciencia_datos_model,
     curso_desarrollo_movil_model,
     asignatura_gpi_model,
+    asignatura_bases_datos_model,
+    asignatura_estructura_datos_model,
 ]
