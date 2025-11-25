@@ -5,7 +5,7 @@ Este módulo contiene todas las funciones necesarias para crear
 datos de prueba en la base de datos de manera idempotente.
 """
 
-import logging
+import logging, uuid
 from typing import Optional
 
 from sqlmodel import Session, select
@@ -295,24 +295,37 @@ def seed_feature_models(
     session: Session,
     owner: User,
     domains: list[Domain],
-    resources: Optional[list[Resource]] = None,
+    resources: Optional[list[Resource]] = None, # Se recibe la lista de recursos creados
 ) -> list[FeatureModel]:
     """Crear planes de estudio y modelos curriculares de ejemplo"""
+    
+    # Importaciones necesarias dentro de la función para evitar ciclos
+    from app.models import Tag
 
     logger.info("🌱 Sembrando planes de estudio y modelos curriculares...")
+
+    # ----------------------------------------------------------------------
+    # 1. PREPARACIÓN DE MAPAS DE BÚSQUEDA (Lookup Maps)
+    # ----------------------------------------------------------------------
+    # Para no hacer una query por cada feature, cargamos diccionarios en memoria.
+    
+    # Mapa de Recursos: Título -> UUID
+    resource_map = {r.title: r.id for r in (resources or [])}
+    
+    # Mapa de Tags: Nombre -> UUID
+    all_tags = session.exec(select(Tag)).all()
+    tag_map = {t.name: t.id for t in all_tags}
 
     models = []
 
     for model_data in feature_models_data:
-        # Verificar si ya existe
+        # Verificar si ya existe el modelo
         existing = session.exec(
             select(FeatureModel).where(FeatureModel.name == model_data["name"])
         ).first()
 
         if existing:
-            logger.info(
-                f"  ℹ️  Plan de estudios '{model_data['name']}' ya existe, omitiendo..."
-            )
+            logger.info(f"  ℹ️  Plan '{model_data['name']}' ya existe, omitiendo...")
             models.append(existing)
             continue
 
@@ -333,9 +346,9 @@ def seed_feature_models(
         session.add(feature_model)
         session.flush()
         models.append(feature_model)
-        logger.info(f"  ✅ Creado plan de estudios: {feature_model.name}")
+        logger.info(f"  ✅ Creado plan: {feature_model.name}")
 
-        # Crear versión del modelo
+        # Crear Versión
         version_data = model_data["version"]
         model_version = FeatureModelVersion(
             version_number=version_data["version_number"],
@@ -343,80 +356,149 @@ def seed_feature_models(
             status=version_data["status"],
             created_by_id=owner.id,
             is_active=True,
+            snapshot={} 
         )
         session.add(model_version)
         session.flush()
-        logger.info(f"    ✅ Creada versión: v{model_version.version_number}")
 
-        # Crear features recursivamente
-        feature_map = {}  # Mapa de nombre -> feature para relaciones
+        # Preparar mapas para recursión
+        feature_map = {}
+        solver_map = {"uuid_to_int": {}, "int_to_uuid": {}} 
+        counter = [1]
+
+        # Crear Features Recursivamente
         for feature_data in version_data["features"]:
             _create_feature_recursive(
-                session,
-                feature_data,
-                model_version.id,
-                owner.id,
+                session=session,
+                feature_data=feature_data,
+                version_id=model_version.id,
+                owner_id=owner.id,
                 parent_id=None,
-                resource_id=resources[0].id if resources else None,
+                group_id=None,
+                # Pasamos los mapas de búsqueda en lugar de un ID fijo
+                resource_map=resource_map, 
+                tag_map=tag_map,
                 feature_map=feature_map,
+                solver_map=solver_map,
+                counter=counter
             )
 
-        # Crear relaciones entre features si existen
+        # Relaciones y Constraints (Igual que antes)
         if "feature_relations" in version_data:
             _create_feature_relations(
-                session, version_data["feature_relations"], feature_map, owner.id
+                session, version_data["feature_relations"], feature_map, owner.id, model_version.id
+            )
+            
+        if "constraints" in version_data:
+            _create_constraints(
+                session, version_data["constraints"], model_version.id, owner.id
             )
 
-    session.commit()
-    logger.info(f"✅ Planes de estudio sembrados: {len(models)} modelos curriculares")
+        model_version.snapshot = solver_map
+        session.add(model_version)
 
+    session.commit()
+    logger.info(f"✅ Planes sembrados: {len(models)}")
     return models
 
 
 def _create_feature_recursive(
     session: Session,
     feature_data: dict,
-    version_id: int,
-    owner_id: int,
-    parent_id: Optional[int] = None,
-    resource_id: Optional[int] = None,
+    version_id: uuid.UUID,
+    owner_id: uuid.UUID,
+    resource_map: dict, # Diccionario {Titulo: ID}
+    tag_map: dict,      # Diccionario {Nombre: ID}
+    parent_id: Optional[uuid.UUID] = None,
+    group_id: Optional[uuid.UUID] = None,
     feature_map: Optional[dict] = None,
+    solver_map: Optional[dict] = None,
+    counter: list[int] = None
 ) -> Feature:
-    """Crear feature y sus hijos recursivamente"""
+    
+    from app.models import FeatureTagLink, FeatureGroup
 
-    children = feature_data.pop("children", [])
+    # 1. Resolver el Resource ID específico para esta feature
+    # Buscamos por el título que viene en el JSON. Si no hay, es None.
+    specific_resource_id = None
+    resource_title = feature_data.get("resource_title") # Clave nueva en JSON
+    
+    if resource_title:
+        specific_resource_id = resource_map.get(resource_title)
+        if not specific_resource_id:
+            logger.warning(f"    ⚠️ Recurso '{resource_title}' no encontrado para feature '{feature_data['name']}'")
 
+    # 2. Extraer datos hijos
+    direct_children = feature_data.get("children", [])
+    child_groups_data = feature_data.get("groups", []) 
+
+    # 3. Crear Feature
     feature = Feature(
         name=feature_data["name"],
         type=feature_data["type"],
         properties=feature_data.get("properties", {}),
         feature_model_version_id=version_id,
         parent_id=parent_id,
-        resource_id=resource_id,
+        group_id=group_id,
+        resource_id=specific_resource_id, # Asignación dinámica
         created_by_id=owner_id,
         is_active=True,
     )
     session.add(feature)
-    session.flush()
+    session.flush() # Necesario para obtener feature.id
 
-    # Agregar al mapa para relaciones posteriores
+    # 4. Vincular TAGS (Many-to-Many)
+    # El JSON trae: "tags": ["teórico", "difícil"]
+    tag_names = feature_data.get("tags", [])
+    
+    for t_name in tag_names:
+        tag_id = tag_map.get(t_name)
+        if tag_id:
+            # Crear enlace en tabla intermedia
+            link = FeatureTagLink(feature_id=feature.id, tag_id=tag_id)
+            session.add(link)
+        else:
+            logger.warning(f"    ⚠️ Tag '{t_name}' no encontrado en el sistema.")
+
+    # 5. Registrar en mapas (Lógica existente)
     if feature_map is not None:
         feature_map[feature.name] = feature
+    
+    if solver_map is not None and counter is not None:
+        current_int = counter[0]
+        f_uuid_str = str(feature.id)
+        solver_map["uuid_to_int"][f_uuid_str] = current_int
+        solver_map["int_to_uuid"][str(current_int)] = f_uuid_str
+        counter[0] += 1
 
-    indent = "      " if parent_id else "    "
-    logger.info(f"{indent}✅ Feature: {feature.name} ({feature.type.value})")
-
-    # Crear hijos
-    for child_data in children:
+    # 6. Recursividad (Hijos)
+    for child_data in direct_children:
         _create_feature_recursive(
-            session,
-            child_data,
-            version_id,
-            owner_id,
-            feature.id,
-            resource_id,
-            feature_map,
+            session, child_data, version_id, owner_id, resource_map, tag_map,
+            parent_id=feature.id, group_id=None,
+            feature_map=feature_map, solver_map=solver_map, counter=counter
         )
+
+    # 7. Recursividad (Grupos)
+    for group_data in child_groups_data:
+        feature_group = FeatureGroup(
+            group_type=group_data["type"],
+            min_cardinality=group_data.get("min", 1),
+            max_cardinality=group_data.get("max", 1),
+            parent_feature_id=feature.id,
+            feature_model_version_id=version_id,
+            created_by_id=owner_id,
+            is_active=True
+        )
+        session.add(feature_group)
+        session.flush()
+
+        for group_child_data in group_data["features"]:
+            _create_feature_recursive(
+                session, group_child_data, version_id, owner_id, resource_map, tag_map,
+                parent_id=None, group_id=feature_group.id,
+                feature_map=feature_map, solver_map=solver_map, counter=counter
+            )
 
     return feature
 
@@ -425,56 +507,68 @@ def _create_feature_relations(
     session: Session,
     relations_data: list[dict],
     feature_map: dict,
-    owner_id: int,
+    owner_id: uuid.UUID,
+    version_id: uuid.UUID # Este argumento es obligatorio
 ) -> None:
-    """Crear relaciones entre features (requires, excludes)"""
-
+    """Crear relaciones simples (Requires/Excludes)"""
     from app.enums import FeatureRelationType
+    from app.models import FeatureRelation # Import local por si acaso
 
     logger.info("    🔗 Creando relaciones entre features...")
 
     for relation_data in relations_data:
-        source_name = relation_data["source"]
-        target_name = relation_data["target"]
-        relation_type = relation_data["type"]
+        source = feature_map.get(relation_data["source"])
+        target = feature_map.get(relation_data["target"])
 
-        # Buscar features en el mapa
-        source_feature = feature_map.get(source_name)
-        target_feature = feature_map.get(target_name)
-
-        if not source_feature:
-            logger.warning(
-                f"      ⚠️  Feature source '{source_name}' no encontrado, omitiendo relación"
+        if source and target:
+            relation = FeatureRelation(
+                source_feature_id=source.id,
+                target_feature_id=target.id,
+                feature_model_version_id=version_id, # Asignación correcta
+                relation_type=(
+                    FeatureRelationType.REQUIRED if relation_data["type"] == "requires" 
+                    else FeatureRelationType.EXCLUDES
+                ),
+                description=relation_data.get("description", ""),
+                created_by_id=owner_id,
+                is_active=True,
             )
-            continue
-
-        if not target_feature:
-            logger.warning(
-                f"      ⚠️  Feature target '{target_name}' no encontrado, omitiendo relación"
-            )
-            continue
-
-        # Crear la relación
-        from app.models import FeatureRelation
-
-        relation = FeatureRelation(
-            source_feature_id=source_feature.id,
-            target_feature_id=target_feature.id,
-            relation_type=(
-                FeatureRelationType.REQUIRED
-                if relation_type == "requires"
-                else FeatureRelationType.EXCLUDES
-            ),
-            description=relation_data.get("description", ""),
-            created_by_id=owner_id,
-            is_active=True,
-        )
-        session.add(relation)
-        logger.info(f"      ✅ Relación: {source_name} {relation_type} {target_name}")
-
+            session.add(relation)
+            logger.info(f"      ✅ Relación: {source.name} -> {target.name}")
+    
     session.flush()
 
 
+def _create_constraints(
+    session: Session,
+    constraints_data: list[dict],
+    version_id: uuid.UUID,
+    owner_id: uuid.UUID
+) -> None:
+    """Crear restricciones avanzadas"""
+    from app.models import Constraint
+
+    logger.info("    📐 Creando restricciones avanzadas...")
+    
+    for c_data in constraints_data:
+        # Nota: Aquí no estamos calculando el 'expr_cnf' automáticamente 
+        # porque requeriría un parser lógico complejo. 
+        # Se asume que el seeder viene con texto o CNF pre-calculado si fuera necesario.
+        
+        constraint = Constraint(
+            expr_text=c_data["expr"], # Ej: "A or (B and not C)"
+            description=c_data.get("description"),
+            feature_model_version_id=version_id,
+            created_by_id=owner_id,
+            is_active=True,
+            # expr_cnf=... (Opcional: Si tu data_models ya tiene los enteros calculados)
+        )
+        session.add(constraint)
+        logger.info(f"      ✅ Constraint: {c_data.get('description', 'Sin descripción')}")
+    
+    session.flush()
+    
+    
 # ==============================================================================
 # HELPER FUNCTION
 # ==============================================================================

@@ -38,6 +38,10 @@ domains_data = [
 # ============================================================================
 tags_data = [
     {
+        "name": "ciencias básicas",
+        "description": "Elementos fundamentales de las ciencias básicas",
+    },
+    {
         "name": "fundamentos",
         "description": "Cursos fundamentales y de introducción",
     },
@@ -77,6 +81,30 @@ tags_data = [
         "name": "practica_profesional",
         "description": "Prácticas profesionales o pasantías",
     },
+    {
+        "name": "backend",
+        "description": "Desarrollo del lado del servidor",
+    },
+    {
+        "name": "frontend",
+        "description": "Desarrollo de interfaces de usuario",
+    },
+    {
+        "name": "devops",
+        "description": "Operaciones y desarrollo (CI/CD, Contenedores)",
+    },
+    {
+        "name": "base_datos",
+        "description": "Persistencia de datos y SQL/NoSQL",
+    },
+    {
+        "name": "seguridad",
+        "description": "Ciberseguridad y autenticación",
+    },
+    {
+        "name": "cloud",
+        "description": "Despliegue en la nube",
+    }
 ]
 
 # ============================================================================
@@ -159,6 +187,43 @@ resources_data = [
         "license": LicenseType.INTERNAL_USE,
         "content_url_or_data": {"url": "https://example.com/labs/bases-datos"},
     },
+    {
+        "title": "FastAPI: Guía Definitiva de Autenticación",
+        "type": ResourceType.VIDEO,
+        "description": "Implementación de JWT y OAuth2 en FastAPI",
+        "language": "es",
+        "duration_minutes": 50,
+        "status": ResourceStatus.PUBLISHED,
+        "license": LicenseType.INTERNAL_USE,
+        "content_url_or_data": {"url": "https://example.com/videos/fastapi-auth"},
+    },
+    {
+        "title": "React Hooks y Context API",
+        "type": ResourceType.PDF,
+        "description": "Manejo de estado moderno en React",
+        "language": "en",
+        "status": ResourceStatus.PUBLISHED,
+        "license": LicenseType.CREATIVE_COMMONS_BY,
+        "content_url_or_data": {"url": "https://example.com/docs/react-hooks.pdf"},
+    },
+    {
+        "title": "Docker para Desarrolladores",
+        "type": ResourceType.PACKAGE,
+        "description": "Laboratorios de Dockerfile y Docker Compose",
+        "language": "es",
+        "status": ResourceStatus.PUBLISHED,
+        "license": LicenseType.INTERNAL_USE,
+        "content_url_or_data": {"url": "https://example.com/labs/docker-start"},
+    },
+    {
+        "title": "PostgreSQL vs MongoDB: Cuándo usar cuál",
+        "type": ResourceType.PDF,
+        "description": "Comparativa de bases de datos relacionales y documentales",
+        "language": "es",
+        "status": ResourceStatus.PUBLISHED,
+        "license": LicenseType.CREATIVE_COMMONS_BY,
+        "content_url_or_data": {"url": "https://example.com/docs/sql-vs-nosql.pdf"},
+    }
 ]
 
 # ============================================================================
@@ -4609,13 +4674,321 @@ asignatura_estructura_datos_model = {
     },
 }
 
+
+# ==========================================================================
+# MODELO 8: Malla Curricular de Ingeniería Informática (Complejo)
+# Prueba: Profundidad, Grupos XOR (Menciones), Relaciones Cross-Tree
+# ==========================================================================
+computer_engineering_curriculum_2024 = {
+    "name": "Malla Curricular Ingeniería Informática 2024",
+    "domain_name": "Ingeniería Informática",
+    "description": "Plan de estudios flexible con tronco común y dos menciones de especialización.",
+    "version": {
+        "version_number": 1,
+        "status": "PUBLISHED",
+        "features": [
+            {
+                "name": "Licenciatura en Ingeniería",
+                "type": "MANDATORY",
+                "tags": ["obligatorio", "certificacion"],
+                "properties": {"creditos_totales": 240, "semestres": 8},
+                # 1. TRONCO COMÚN (Hijos directos Mandatorios)
+                "children": [
+                    {
+                        "name": "Ciencias Básicas",
+                        "type": "MANDATORY",
+                        "tags": ["ciencias básicas"],
+                        "children": [
+                            {"name": "Cálculo I", "type": "MANDATORY", "properties": {"creditos": 6}},
+                            {"name": "Álgebra Lineal", "type": "MANDATORY", "properties": {"creditos": 5}},
+                            {"name": "Física Mecánica", "type": "MANDATORY", "properties": {"creditos": 5}},
+                        ]
+                    },
+                    {
+                        "name": "Fundamentos de Computación",
+                        "type": "MANDATORY",
+                        "tags": ["fundamentos"],
+                        "children": [
+                            # Asignatura vinculada conceptualmente al recurso de Video POO
+                            {"name": "Programación Orientada a Objetos", "type": "MANDATORY", "properties": {"lenguaje": "Java/Python"}, "resource_title": "Programación Orientada a Objetos - Conceptos Fundamentales", "tags": ["teórico", "práctico", "obligatorio"]},
+                            # Asignatura vinculada al recurso PDF Estructuras de Datos
+                            {"name": "Estructuras de Datos", "type": "MANDATORY", "properties": {"dificultad": "Alta"}, "tags": ["avanzado", "teórico"], "resource_title": "Estructuras de Datos - Material de Estudio"},
+                            {"name": "Bases de Datos", "type": "MANDATORY", "properties": {"motor": "PostgreSQL"}}
+                        ]
+                    }
+                ],
+                # 2. ESPECIALIZACIONES (Grupos XOR - Elige solo uno)
+                "groups": [
+                    {
+                        "type": "XOR", # FeatureGroupType.XOR
+                        "min": 1,
+                        "max": 1,
+                        "features": [
+                            # OPCIÓN A: Mención Software
+                            {
+                                "name": "Mención Desarrollo de Software",
+                                "type": "OPTIONAL",
+                                "children": [
+                                    {"name": "Arquitectura de Software", "type": "MANDATORY"},
+                                    {"name": "QA y Testing", "type": "MANDATORY"},
+                                    {"name": "Desarrollo Mobile", "type": "OPTIONAL"}
+                                ]
+                            },
+                            # OPCIÓN B: Mención Ciencia de Datos
+                            {
+                                "name": "Mención Ciencia de Datos",
+                                "type": "OPTIONAL",
+                                "children": [
+                                    {"name": "Machine Learning", "type": "MANDATORY"},
+                                    {"name": "Big Data", "type": "MANDATORY"},
+                                    {"name": "Visualización de Datos", "type": "OPTIONAL"}
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        # 3. PRERREQUISITOS (Relaciones Cross-Tree)
+        "feature_relations": [
+            # Para tomar Estructuras de Datos, necesitas saber POO (aunque sean del mismo padre, modela la secuencia)
+            {
+                "source": "Estructuras de Datos",
+                "target": "Programación Orientada a Objetos",
+                "type": "requires",
+                "description": "Prerrequisito académico"
+            },
+            # Para tomar Machine Learning (Mención B), necesitas Álgebra Lineal (Tronco común)
+            {
+                "source": "Machine Learning",
+                "target": "Álgebra Lineal",
+                "type": "requires",
+                "description": "Base matemática necesaria"
+            },
+            # Exclusión Mutua: Si tomas "Desarrollo Mobile", no puedes tomar "Visualización de Datos" (regla de horario)
+            {
+                "source": "Desarrollo Mobile",
+                "target": "Visualización de Datos",
+                "type": "excludes",
+                "description": "Tope de horario en electivos"
+            }
+        ],
+        # 4. REGLAS COMPLEJAS (Constraints)
+        "constraints": [
+            {
+                "expr": "QA y Testing IMPLIES Bases de Datos",
+                "description": "El curso de QA requiere conocimientos previos de persistencia"
+            }
+        ]
+    }
+    }
+
+
+# ==========================================================================
+# MODELO 9: Curso Corto de Full Stack (Más simple, grupos OR)
+# Prueba: Grupos OR (Elige N de M)
+# ==========================================================================
+bootcamp_fullstack_model = {
+    "name": "Bootcamp Full Stack Python Avanzado",
+    "domain_name": "Desarrollo de Software",
+    "description": "Programa intensivo modular de 4 niveles de profundidad.",
+    "version": {
+        "version_number": 1,
+        "status": "DRAFT",
+        "features": [
+            {
+                # === NIVEL 1: RAÍZ ===
+                "name": "Certificación Full Stack",
+                "type": "MANDATORY",
+                "tags": ["certificacion", "proyecto"],
+                "children": [
+                    {
+                        # === NIVEL 2: FUNDAMENTOS (MANDATORY) ===
+                        "name": "Fundamentos de Ingeniería",
+                        "type": "MANDATORY",
+                        "tags": ["fundamentos", "teórico"],
+                        "children": [
+                            {
+                                # === NIVEL 3 ===
+                                "name": "Python Básico", 
+                                "type": "MANDATORY",
+                                "tags": ["fundamentos"],
+                                "children": [
+                                    # === NIVEL 4 ===
+                                    {
+                                        "name": "Sintaxis y Estructuras", 
+                                        "type": "MANDATORY",
+                                        "resource_title": "Programación Orientada a Objetos - Conceptos Fundamentales"
+                                    }
+                                ]
+                            },
+                            {
+                                # === NIVEL 3 ===
+                                "name": "Git y GitHub", 
+                                "type": "MANDATORY",
+                                "tags": ["práctico"],
+                                "children": [
+                                    # === NIVEL 4 ===
+                                    {"name": "Git Flow Strategy", "type": "OPTIONAL"}
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "groups": [
+                    {
+                        # Grupo OR: Elige los módulos principales (Nivel 2)
+                        "type": "OR", 
+                        "min": 1,
+                        "max": 3,
+                        "features": [
+                            # ====================================================
+                            # RAMA BACKEND
+                            # ====================================================
+                            {
+                                "name": "Módulo Backend (FastAPI)", 
+                                "type": "OPTIONAL",
+                                "tags": ["backend", "avanzado"],
+                                "resource_title": "FastAPI: Guía Definitiva de Autenticación",
+                                "children": [
+                                    {
+                                        # === NIVEL 3: AUTENTICACIÓN ===
+                                        "name": "Seguridad de APIs",
+                                        "type": "MANDATORY",
+                                        "tags": ["seguridad"],
+                                        "children": [
+                                            # === NIVEL 4 ===
+                                            {"name": "Implementación JWT", "type": "MANDATORY"},
+                                            {"name": "OAuth2 Social Login", "type": "OPTIONAL"}
+                                        ]
+                                    }
+                                ],
+                                "groups": [
+                                    {
+                                        # Grupo XOR Nivel 3: Elige motor de BD
+                                        "type": "XOR",
+                                        "min": 1, "max": 1,
+                                        "features": [
+                                            {
+                                                # === NIVEL 4 ===
+                                                "name": "Persistencia SQL (PostgreSQL)", 
+                                                "type": "OPTIONAL",
+                                                "tags": ["base_datos"],
+                                                "resource_title": "PostgreSQL vs MongoDB: Cuándo usar cuál"
+                                            },
+                                            {
+                                                # === NIVEL 4 ===
+                                                "name": "Persistencia NoSQL (MongoDB)", 
+                                                "type": "OPTIONAL",
+                                                "tags": ["base_datos"]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            # ====================================================
+                            # RAMA FRONTEND
+                            # ====================================================
+                            {
+                                "name": "Módulo Frontend (React)", 
+                                "type": "OPTIONAL",
+                                "tags": ["frontend"],
+                                "children": [
+                                    {
+                                        # === NIVEL 3 ===
+                                        "name": "Componentes UI",
+                                        "type": "MANDATORY",
+                                        "resource_title": "React Hooks y Context API"
+                                    }
+                                ],
+                                "groups": [
+                                    {
+                                        # Grupo XOR Nivel 3: Gestión de Estado
+                                        "type": "XOR",
+                                        "min": 1, "max": 1,
+                                        "features": [
+                                            # === NIVEL 4 ===
+                                            {"name": "Redux Toolkit", "type": "OPTIONAL", "tags": ["avanzado"]},
+                                            {"name": "Context API", "type": "OPTIONAL", "tags": ["fundamentos"]}
+                                        ]
+                                    }
+                                ]
+                            },
+                            # ====================================================
+                            # RAMA DEVOPS
+                            # ====================================================
+                            {
+                                "name": "Módulo DevOps", 
+                                "type": "OPTIONAL",
+                                "tags": ["devops", "cloud"],
+                                "children": [
+                                    {
+                                        # === NIVEL 3 ===
+                                        "name": "Containerization",
+                                        "type": "MANDATORY",
+                                        "resource_title": "Docker para Desarrolladores",
+                                        "children": [
+                                            # === NIVEL 4 ===
+                                            {"name": "Docker Compose", "type": "MANDATORY"},
+                                            {"name": "Optimización Dockerfiles", "type": "OPTIONAL"}
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        # RELACIONES TRANSVERSALES (CROSS-TREE)
+        "feature_relations": [
+            # 1. Prerrequisito: Para ver Backend necesitas saber Python Básico (Nivel 2 -> Nivel 3)
+            {
+                "source": "Módulo Backend (FastAPI)",
+                "target": "Python Básico",
+                "type": "requires",
+                "description": "Se requiere conocimiento del lenguaje base"
+            },
+            # 2. Prerrequisito: Para ver Docker (Nivel 3) necesitas saber Git (Nivel 3)
+            {
+                "source": "Containerization",
+                "target": "Git y GitHub",
+                "type": "requires",
+                "description": "Necesario para clonar repositorios en contenedores"
+            },
+            # 3. Exclusión: Si usas NoSQL, no deberías usar un curso de SQL Avanzado (simulado)
+            {
+                "source": "Persistencia NoSQL (MongoDB)",
+                "target": "Persistencia SQL (PostgreSQL)",
+                "type": "excludes",
+                "description": "Solo se permite un motor de base de datos en este proyecto"
+            }
+        ],
+        # REGLAS LÓGICAS (CONSTRAINTS)
+        "constraints": [
+            # Si eliges Redux (Nivel 4), DEBES elegir OAuth2 (Nivel 4 de otra rama) - Caso de uso complejo
+            {
+                "expr": "Redux Toolkit IMPLIES OAuth2 Social Login",
+                "description": "Redux se utiliza en el módulo avanzado que requiere autenticación social"
+            },
+            # Regla de negocio: Si haces DevOps, debes usar PostgreSQL (por estabilidad)
+            {
+                "expr": "Módulo DevOps IMPLIES Persistencia SQL (PostgreSQL)",
+                "description": "La infraestructura de Docker preparada solo soporta PostgreSQL actualmente"
+            }
+        ]
+    }
+}
+
 # Lista de todos los modelos
 feature_models_data = [
-    ingenieria_informatica_model,
-    curso_fullstack_model,
-    maestria_ciencia_datos_model,
-    curso_desarrollo_movil_model,
-    asignatura_gpi_model,
-    asignatura_bases_datos_model,
-    asignatura_estructura_datos_model,
+    # ingenieria_informatica_model,
+    # curso_fullstack_model,
+    # maestria_ciencia_datos_model,
+    # curso_desarrollo_movil_model,
+    # asignatura_gpi_model,
+    # asignatura_bases_datos_model,
+    # asignatura_estructura_datos_model,
+    computer_engineering_curriculum_2024,
+    bootcamp_fullstack_model
 ]
