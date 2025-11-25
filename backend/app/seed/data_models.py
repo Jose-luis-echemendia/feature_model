@@ -231,6 +231,7 @@ resources_data = [
 # ============================================================================
 from app.enums import FeatureType, ModelStatus
 
+"""
 # Modelo 1: Carrera de Ingeniería Informática
 ingenieria_informatica_model = {
     "name": "Ingeniería en Ciencias Informáticas",
@@ -4071,609 +4072,251 @@ asignatura_bases_datos_model = {
     },
 }
 
-# Modelo 7: Asignatura Estructura de Datos I
-asignatura_estructura_datos_model = {
+"""
+
+# ==========================================================================
+# MODELO 7: Asignatura Estructura de Datos I
+# Prueba: Profundidad, Grupos anidados, Propiedades ricas
+# ==========================================================================
+estructura_datos_model = {
     "name": "Estructura de Datos I",
-    "description": "Asignatura fundamental sobre estructuras de datos lineales y no lineales básicas, algoritmos de búsqueda y ordenamiento (1 semestre, 6 créditos)",
     "domain_name": "Ingeniería Informática",
+    "description": "Asignatura fundamental sobre estructuras de datos lineales y no lineales básicas.",
     "version": {
         "version_number": 1,
-        "status": ModelStatus.PUBLISHED,
+        "status": "PUBLISHED",
         "features": [
             {
+                # === RAÍZ ===
                 "name": "Estructura de Datos I",
-                "type": FeatureType.MANDATORY,
+                "type": "MANDATORY",
+                "tags": ["obligatorio", "fundamentos"],
                 "properties": {
-                    "description": "Asignatura completa de estructuras de datos básicas",
                     "creditos": 6,
                     "semestre": 2,
                     "horas_totales": 96,
-                    "horas_teoricas": 48,
-                    "horas_practicas": 48,
-                    "nivel": "pregrado",
-                    "area": "ciencias de la computación",
+                    "nivel": "pregrado"
                 },
                 "children": [
-                    # NIVEL 1: Módulos principales de la asignatura
+                    # 1. FUNDAMENTOS
                     {
                         "name": "Fundamentos y Análisis de Algoritmos",
-                        "type": FeatureType.MANDATORY,
+                        "type": "MANDATORY",
+                        "tags": ["teórico", "fundamentos"],
+                        "resource_title": "Estructuras de Datos - Material de Estudio",
                         "properties": {
-                            "description": "Conceptos básicos y análisis de complejidad",
-                            "creditos": 1.0,
-                            "horas": 16,
-                            "temas": [
-                                "Tipos de datos abstractos (TDA)",
-                                "Notación Big-O, Omega, Theta",
-                                "Análisis de tiempo y espacio",
-                                "Recursión vs iteración",
-                                "Complejidad temporal y espacial",
-                            ],
-                        },
+                            "temas": ["Big-O", "Tiempo y Espacio", "Recursión"]
+                        }
                     },
+                    # 2. ESTRUCTURAS LINEALES
                     {
                         "name": "Estructuras Lineales Básicas",
-                        "type": FeatureType.MANDATORY,
-                        "properties": {
-                            "description": "Arreglos, listas y estructuras secuenciales",
-                            "creditos": 1.5,
-                            "horas": 24,
-                        },
+                        "type": "MANDATORY",
+                        "tags": ["fundamentos"],
                         "children": [
-                            # NIVEL 2: Tipos de estructuras lineales
                             {
-                                "name": "Arreglos",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 6,
-                                    "temas": [
-                                        "Arreglos estáticos",
-                                        "Arreglos dinámicos (vectores)",
-                                        "Arreglos multidimensionales",
-                                        "Complejidad de operaciones O(1) acceso, O(n) inserción/eliminación",
-                                    ],
-                                },
+                                "name": "Arreglos", 
+                                "type": "MANDATORY", 
+                                "tags": ["teórico"],
+                                "properties": {"complejidad_acceso": "O(1)"}
                             },
                             {
-                                "name": "Listas Enlazadas Simples",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 6,
-                                    "temas": [
-                                        "Nodo: dato + puntero",
-                                        "Inserción al inicio O(1)",
-                                        "Inserción al final O(n)",
-                                        "Eliminación",
-                                        "Búsqueda O(n)",
-                                    ],
-                                },
+                                "name": "Listas Enlazadas Simples", 
+                                "type": "MANDATORY",
+                                "tags": ["práctico"],
+                                "properties": {"complejidad_acceso": "O(n)"}
                             },
-                            {
-                                "name": "Listas Doblemente Enlazadas",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 6,
-                                    "temas": [
-                                        "Nodo: dato + anterior + siguiente",
-                                        "Navegación bidireccional",
-                                        "Inserción/eliminación eficiente",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Listas Circulares",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "horas": 6,
-                                    "temas": [
-                                        "Último nodo apunta al primero",
-                                        "Aplicaciones: buffer circular, round-robin",
-                                    ],
-                                },
-                            },
-                        ],
+                            {"name": "Listas Doblemente Enlazadas", "type": "MANDATORY"},
+                            {"name": "Listas Circulares", "type": "OPTIONAL"}
+                        ]
                     },
+                    # 3. PILAS (Con Grupo XOR interno para implementación)
                     {
                         "name": "Pilas (Stacks)",
-                        "type": FeatureType.MANDATORY,
-                        "properties": {
-                            "description": "Estructura LIFO y sus aplicaciones",
-                            "creditos": 0.5,
-                            "horas": 8,
-                        },
+                        "type": "MANDATORY",
+                        "tags": ["teórico", "práctico"],
                         "children": [
-                            # NIVEL 2: Implementaciones y aplicaciones de pilas
-                            {
-                                "name": "Implementación con Arreglos",
-                                "type": FeatureType.ALTERNATIVE,
-                                "properties": {
-                                    "horas": 3,
-                                    "temas": [
-                                        "Pila con tamaño fijo",
-                                        "Operaciones: push O(1), pop O(1), top O(1)",
-                                        "Control de overflow/underflow",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Implementación con Listas Enlazadas",
-                                "type": FeatureType.ALTERNATIVE,
-                                "properties": {
-                                    "horas": 3,
-                                    "temas": [
-                                        "Pila dinámica sin límite de tamaño",
-                                        "Push/pop al inicio de la lista",
-                                        "Gestión de memoria",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Aplicaciones de Pilas",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 2,
-                                    "temas": [
-                                        "Evaluación de expresiones",
-                                        "Conversión infija/postfija/prefija",
-                                        "Balanceo de paréntesis",
-                                        "Recursión y pila de llamadas",
-                                        "Backtracking",
-                                    ],
-                                },
-                            },
+                            {"name": "Aplicaciones de Pilas", "type": "MANDATORY"}
                         ],
+                        "groups": [
+                            {
+                                "type": "XOR", # Implementación: Arreglos O Listas (FeatureType.ALTERNATIVE)
+                                "min": 1, "max": 1,
+                                "features": [
+                                    {
+                                        "name": "Implementación Pila con Arreglos", 
+                                        "type": "OPTIONAL",
+                                        "properties": {"tipo": "Estática"}
+                                    },
+                                    {
+                                        "name": "Implementación Pila con Listas", 
+                                        "type": "OPTIONAL",
+                                        "properties": {"tipo": "Dinámica"}
+                                    }
+                                ]
+                            }
+                        ]
                     },
+                    # 4. COLAS
                     {
                         "name": "Colas (Queues)",
-                        "type": FeatureType.MANDATORY,
-                        "properties": {
-                            "description": "Estructura FIFO y variantes",
-                            "creditos": 0.5,
-                            "horas": 8,
-                        },
+                        "type": "MANDATORY",
                         "children": [
-                            # NIVEL 2: Tipos de colas y sus implementaciones
-                            {
-                                "name": "Cola Simple (FIFO)",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 3,
-                                    "temas": [
-                                        "Principio FIFO (First In, First Out)",
-                                        "Operaciones: enqueue O(1), dequeue O(1)",
-                                        "Implementación circular con arreglos",
-                                        "Implementación con listas enlazadas",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Cola de Prioridad",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 3,
-                                    "temas": [
-                                        "Elementos con prioridad",
-                                        "Dequeue extrae elemento de mayor prioridad",
-                                        "Implementación con heap",
-                                        "Aplicaciones: scheduling, algoritmos de grafos",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Deque (Double-Ended Queue)",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "horas": 2,
-                                    "temas": [
-                                        "Inserción/eliminación en ambos extremos",
-                                        "Operaciones: addFront, addRear, removeFront, removeRear",
-                                        "Aplicaciones: palindromo, sliding window",
-                                    ],
-                                },
-                            },
-                        ],
+                            {"name": "Cola Simple (FIFO)", "type": "MANDATORY"},
+                            {"name": "Cola de Prioridad", "type": "MANDATORY"},
+                            {"name": "Deque (Double-Ended)", "type": "OPTIONAL"}
+                        ]
                     },
+                    # 5. ÁRBOLES
                     {
                         "name": "Árboles Binarios",
-                        "type": FeatureType.MANDATORY,
-                        "properties": {
-                            "description": "Estructuras jerárquicas básicas",
-                            "creditos": 1.0,
-                            "horas": 16,
-                        },
+                        "type": "MANDATORY",
+                        "tags": ["avanzado", "teórico"],
+                        "resource_title": "Estructuras de Datos - Material de Estudio",
                         "children": [
-                            # NIVEL 2: Conceptos y tipos de árboles binarios
+                            {"name": "Conceptos de Árboles", "type": "MANDATORY"},
+                            {"name": "Recorridos (Pre/In/Post)", "type": "MANDATORY"},
                             {
-                                "name": "Conceptos Fundamentales",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 4,
-                                    "temas": [
-                                        "Terminología: nodo, raíz, hoja, padre, hijo",
-                                        "Altura, profundidad, nivel",
-                                        "Árbol completo vs árbol lleno",
-                                        "Representación: hijos izquierdo/derecho",
-                                    ],
-                                },
+                                "name": "Árbol Binario de Búsqueda (BST)", 
+                                "type": "MANDATORY",
+                                "tags": ["base_datos"] # Relacionado a índices
                             },
-                            {
-                                "name": "Recorridos de Árboles",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 4,
-                                    "temas": [
-                                        "Preorden (raíz-izq-der)",
-                                        "Inorden (izq-raíz-der)",
-                                        "Postorden (izq-der-raíz)",
-                                        "Por niveles (BFS)",
-                                        "Implementación recursiva vs iterativa",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Árbol Binario de Búsqueda (BST)",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 6,
-                                    "temas": [
-                                        "Propiedad BST: izq < raíz < der",
-                                        "Búsqueda O(log n) promedio, O(n) peor caso",
-                                        "Inserción recursiva",
-                                        "Eliminación: 3 casos (hoja, 1 hijo, 2 hijos)",
-                                        "Sucesor/predecesor inorden",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Aplicaciones de Árboles",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "horas": 2,
-                                    "temas": [
-                                        "Árboles de expresión",
-                                        "Árboles de decisión",
-                                        "Estructuras de directorios",
-                                    ],
-                                },
-                            },
-                        ],
+                            {"name": "Aplicaciones de Árboles", "type": "OPTIONAL"}
+                        ]
                     },
+                    # 6. ORDENAMIENTO
                     {
                         "name": "Algoritmos de Ordenamiento",
-                        "type": FeatureType.MANDATORY,
-                        "properties": {
-                            "description": "Algoritmos clásicos de ordenamiento",
-                            "creditos": 1.0,
-                            "horas": 16,
-                        },
+                        "type": "MANDATORY",
+                        "tags": ["avanzado"],
                         "children": [
-                            # NIVEL 2: Clasificación de algoritmos de ordenamiento
-                            {
-                                "name": "Algoritmos Cuadráticos",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 6,
-                                    "complejidad": "O(n²)",
-                                    "temas": [
-                                        "Bubble Sort: intercambios consecutivos",
-                                        "Selection Sort: selección del mínimo",
-                                        "Insertion Sort: inserción en posición ordenada",
-                                        "Análisis de casos: mejor, promedio, peor",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Algoritmos Eficientes",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 8,
-                                    "complejidad": "O(n log n)",
-                                    "temas": [
-                                        "Merge Sort: divide y conquista, estable",
-                                        "Quick Sort: partición, in-place",
-                                        "Heap Sort: usando heap binario",
-                                        "Comparación de estabilidad y uso de memoria",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Análisis Comparativo",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 2,
-                                    "temas": [
-                                        "Criterios: tiempo, espacio, estabilidad",
-                                        "Cuándo usar cada algoritmo",
-                                        "Límite inferior para ordenamiento basado en comparaciones",
-                                    ],
-                                },
-                            },
-                        ],
+                            {"name": "Algoritmos Cuadráticos", "type": "MANDATORY", "properties": {"complejidad": "O(n^2)"}},
+                            {"name": "Algoritmos Eficientes (Merge/Quick)", "type": "MANDATORY", "properties": {"complejidad": "O(n log n)"}},
+                            {"name": "Análisis Comparativo", "type": "MANDATORY"}
+                        ]
                     },
+                    # 7. BÚSQUEDA
                     {
                         "name": "Algoritmos de Búsqueda",
-                        "type": FeatureType.MANDATORY,
-                        "properties": {
-                            "description": "Técnicas de búsqueda en estructuras",
-                            "creditos": 0.5,
-                            "horas": 8,
-                        },
+                        "type": "MANDATORY",
                         "children": [
-                            # NIVEL 2: Tipos de búsqueda
-                            {
-                                "name": "Búsqueda Lineal",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 2,
-                                    "complejidad": "O(n)",
-                                    "temas": [
-                                        "Búsqueda secuencial",
-                                        "Búsqueda con centinela",
-                                        "Útil en datos no ordenados",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Búsqueda Binaria",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 4,
-                                    "complejidad": "O(log n)",
-                                    "temas": [
-                                        "Requisito: arreglo ordenado",
-                                        "División del espacio de búsqueda",
-                                        "Implementación iterativa y recursiva",
-                                        "Variantes: lower_bound, upper_bound",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Búsqueda en Estructuras Avanzadas",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "horas": 2,
-                                    "temas": [
-                                        "Búsqueda en BST: O(log n) promedio",
-                                        "Búsqueda en tablas hash: O(1) promedio",
-                                        "Comparación de eficiencia",
-                                    ],
-                                },
-                            },
-                        ],
+                            {"name": "Búsqueda Lineal", "type": "MANDATORY"},
+                            {"name": "Búsqueda Binaria", "type": "MANDATORY"},
+                            {"name": "Búsqueda en Hash/BST", "type": "MANDATORY"}
+                        ]
                     },
+                    # 8. LENGUAJE (Transformado de XOR_GROUP a Feature con Group)
                     {
                         "name": "Lenguaje de Implementación",
-                        "type": FeatureType.XOR_GROUP,
-                        "properties": {
-                            "description": "Elegir un lenguaje principal para implementar",
-                            "creditos": 0.0,
-                            "horas": 0,
-                        },
-                        "children": [
+                        "type": "MANDATORY",
+                        "tags": ["práctico"],
+                        "properties": {"description": "Elegir un lenguaje principal"},
+                        "groups": [
                             {
-                                "name": "C/C++",
-                                "type": FeatureType.ALTERNATIVE,
-                                "properties": {
-                                    "ventajas": [
-                                        "Gestión manual de memoria",
-                                        "Punteros explícitos",
-                                        "Alto rendimiento",
-                                        "STL (C++)",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Java",
-                                "type": FeatureType.ALTERNATIVE,
-                                "properties": {
-                                    "ventajas": [
-                                        "Orientado a objetos puro",
-                                        "Garbage collection",
-                                        "Collections Framework",
-                                        "Portable",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Python",
-                                "type": FeatureType.ALTERNATIVE,
-                                "properties": {
-                                    "ventajas": [
-                                        "Sintaxis simple",
-                                        "Tipado dinámico",
-                                        "Estructuras built-in ricas",
-                                        "Rápido prototipado",
-                                    ],
-                                },
-                            },
-                        ],
+                                "type": "XOR",
+                                "min": 1, "max": 1,
+                                "features": [
+                                    {
+                                        "name": "Lenguaje C/C++", 
+                                        "type": "OPTIONAL",
+                                        "tags": ["avanzado"]
+                                    },
+                                    {
+                                        "name": "Lenguaje Java", 
+                                        "type": "OPTIONAL",
+                                        "resource_title": "Programación Orientada a Objetos - Conceptos Fundamentales"
+                                    },
+                                    {
+                                        "name": "Lenguaje Python", 
+                                        "type": "OPTIONAL",
+                                        "resource_title": "Programación Orientada a Objetos - Conceptos Fundamentales"
+                                    }
+                                ]
+                            }
+                        ]
                     },
+                    # 9. TÉCNICAS (Transformado de OR_GROUP a Feature con Group)
                     {
                         "name": "Técnicas de Programación",
-                        "type": FeatureType.OR_GROUP,
-                        "properties": {
-                            "description": "Elegir al menos una técnica avanzada",
-                            "creditos": 0.5,
-                            "horas": 8,
-                            "minimo_selecciones": 1,
-                        },
-                        "children": [
+                        "type": "MANDATORY",
+                        "tags": ["avanzado"],
+                        "groups": [
                             {
-                                "name": "Recursión Avanzada",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "temas": [
-                                        "Recursión múltiple",
-                                        "Backtracking",
-                                        "Divide y conquista",
-                                        "Torres de Hanoi",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Programación Genérica",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "temas": [
-                                        "Templates (C++)",
-                                        "Generics (Java)",
-                                        "Type hints (Python)",
-                                        "Reutilización de código",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Manejo de Memoria",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "temas": [
-                                        "Asignación dinámica",
-                                        "Liberación de memoria",
-                                        "Memory leaks",
-                                        "Smart pointers",
-                                    ],
-                                },
-                            },
-                        ],
+                                "type": "OR",
+                                "min": 1, "max": 3,
+                                "features": [
+                                    {"name": "Recursión Avanzada", "type": "OPTIONAL"},
+                                    {"name": "Programación Genérica", "type": "OPTIONAL"},
+                                    {"name": "Manejo de Memoria", "type": "OPTIONAL"}
+                                ]
+                            }
+                        ]
                     },
+                    # 10. PROYECTO
                     {
                         "name": "Proyecto Final",
-                        "type": FeatureType.MANDATORY,
-                        "properties": {
-                            "description": "Implementación de múltiples estructuras",
-                            "creditos": 0.5,
-                            "horas": 8,
-                            "peso_evaluacion": "20%",
-                            "entregables": [
-                                "Biblioteca de estructuras de datos",
-                                "Implementación de al menos 5 estructuras",
-                                "Tests unitarios",
-                                "Documentación del código",
-                                "Análisis de complejidad",
-                            ],
-                        },
-                    },
-                ],
+                        "type": "MANDATORY",
+                        "tags": ["proyecto", "práctico", "obligatorio"],
+                        "properties": {"peso": "20%"}
+                    }
+                ]
             }
         ],
-        # Relaciones entre features
         "feature_relations": [
-            # Relaciones de prerequisitos básicos
+            # Dependencias de Conocimiento
             {
-                "source": "Estructuras Lineales Básicas",
-                "target": "Fundamentos y Análisis de Algoritmos",
+                "source": "Estructuras Lineales Básicas", 
+                "target": "Fundamentos y Análisis de Algoritmos", 
+                "type": "requires"
+            },
+            {
+                "source": "Algoritmos de Ordenamiento", 
+                "target": "Fundamentos y Análisis de Algoritmos", 
+                "type": "requires"
+            },
+            {
+                "source": "Algoritmos de Búsqueda", 
+                "target": "Árboles Binarios", 
                 "type": "requires",
-                "description": "Las estructuras requieren entender TDA y complejidad",
+                "description": "Necesario para búsqueda en BST"
             },
+            # Dependencias Técnicas
             {
-                "source": "Pilas (Stacks)",
-                "target": "Estructuras Lineales Básicas",
+                "source": "Recursión Avanzada", 
+                "target": "Árboles Binarios", 
                 "type": "requires",
-                "description": "Pilas se implementan sobre listas o arreglos",
+                "description": "Los árboles son recursivos por naturaleza"
             },
             {
-                "source": "Colas (Queues)",
-                "target": "Estructuras Lineales Básicas",
+                "source": "Manejo de Memoria", 
+                "target": "Lenguaje C/C++", 
                 "type": "requires",
-                "description": "Colas se implementan sobre listas o arreglos",
+                "description": "Solo C/C++ permite manejo manual de memoria en este curso"
+            },
+            # Dependencias del Proyecto
+            {
+                "source": "Proyecto Final", 
+                "target": "Árboles Binarios", 
+                "type": "requires"
             },
             {
-                "source": "Árboles Binarios",
-                "target": "Estructuras Lineales Básicas",
-                "type": "requires",
-                "description": "Árboles requieren entender nodos y enlaces",
-            },
-            {
-                "source": "Algoritmos de Ordenamiento",
-                "target": "Fundamentos y Análisis de Algoritmos",
-                "type": "requires",
-                "description": "Ordenamiento requiere análisis de complejidad",
-            },
-            {
-                "source": "Algoritmos de Búsqueda",
-                "target": "Fundamentos y Análisis de Algoritmos",
-                "type": "requires",
-                "description": "Búsqueda requiere entender complejidad",
-            },
-            {
-                "source": "Algoritmos de Búsqueda",
-                "target": "Árboles Binarios",
-                "type": "requires",
-                "description": "Búsqueda en BST requiere entender árboles",
-            },
-            # Relaciones con técnicas de programación
-            {
-                "source": "Recursión Avanzada",
-                "target": "Fundamentos y Análisis de Algoritmos",
-                "type": "requires",
-                "description": "Recursión avanzada requiere entender recursión básica",
-            },
-            {
-                "source": "Recursión Avanzada",
-                "target": "Árboles Binarios",
-                "type": "requires",
-                "description": "Árboles son ideales para practicar recursión",
-            },
-            {
-                "source": "Manejo de Memoria",
-                "target": "Estructuras Lineales Básicas",
-                "type": "requires",
-                "description": "Gestión de memoria es crítica en listas enlazadas",
-            },
-            # Relaciones de exclusión entre lenguajes
-            {
-                "source": "C/C++",
-                "target": "Java",
-                "type": "excludes",
-                "description": "Se elige un lenguaje principal para la asignatura",
-            },
-            {
-                "source": "Java",
-                "target": "Python",
-                "type": "excludes",
-                "description": "Se elige un lenguaje principal para la asignatura",
-            },
-            {
-                "source": "C/C++",
-                "target": "Python",
-                "type": "excludes",
-                "description": "Se elige un lenguaje principal para la asignatura",
-            },
-            # Relaciones del proyecto final
-            {
-                "source": "Proyecto Final",
-                "target": "Estructuras Lineales Básicas",
-                "type": "requires",
-                "description": "El proyecto debe incluir estructuras lineales",
-            },
-            {
-                "source": "Proyecto Final",
-                "target": "Pilas (Stacks)",
-                "type": "requires",
-                "description": "El proyecto debe incluir pilas",
-            },
-            {
-                "source": "Proyecto Final",
-                "target": "Colas (Queues)",
-                "type": "requires",
-                "description": "El proyecto debe incluir colas",
-            },
-            {
-                "source": "Proyecto Final",
-                "target": "Árboles Binarios",
-                "type": "requires",
-                "description": "El proyecto debe incluir árboles",
-            },
-            {
-                "source": "Proyecto Final",
-                "target": "Lenguaje de Implementación",
-                "type": "requires",
-                "description": "El proyecto se implementa en el lenguaje elegido",
-            },
+                "source": "Proyecto Final", 
+                "target": "Lenguaje de Implementación", 
+                "type": "requires"
+            }
         ],
-    },
+        "constraints": [
+            {
+                "expr": "Manejo de Memoria IMPLIES Lenguaje C/C++",
+                "description": "Restricción técnica del temario"
+            },
+            {
+                "expr": "Lenguaje Python IMPLIES NOT Manejo de Memoria",
+                "description": "Python gestiona la memoria automáticamente"
+            }
+        ]
+    }
 }
-
 
 # ==========================================================================
 # MODELO 8: Malla Curricular de Ingeniería Informática (Complejo)
