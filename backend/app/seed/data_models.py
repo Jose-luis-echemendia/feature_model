@@ -1836,10 +1836,1386 @@ curso_desarrollo_movil_model = {
     },
 }
 
+# Modelo 5: Asignatura Gestión de Proyectos Informáticos (GPI)
+asignatura_gpi_model = {
+    "name": "Gestión de Proyectos Informáticos (GPI)",
+    "description": "Asignatura completa sobre metodologías, técnicas y herramientas para la gestión exitosa de proyectos de software (1 semestre, 6 créditos)",
+    "domain_name": "Ingeniería Informática",
+    "version": {
+        "version_number": 1,
+        "status": ModelStatus.PUBLISHED,
+        "features": [
+            {
+                "name": "GPI - Gestión de Proyectos Informáticos",
+                "type": FeatureType.MANDATORY,
+                "properties": {
+                    "description": "Asignatura de gestión de proyectos de software",
+                    "creditos": 6,
+                    "semestre": 6,
+                    "horas_totales": 96,
+                    "horas_teoricas": 48,
+                    "horas_practicas": 48,
+                    "nivel": "pregrado",
+                    "area": "ingeniería de software",
+                },
+                "children": [
+                    # NIVEL 1: Módulos principales de la asignatura
+                    {
+                        "name": "Fundamentos de Gestión de Proyectos",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Conceptos básicos y marcos de referencia",
+                            "creditos": 1.5,
+                            "horas": 24,
+                        },
+                        "children": [
+                            # NIVEL 2: Temas de fundamentos
+                            {
+                                "name": "Introducción a Proyectos",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 6,
+                                    "temas": [
+                                        "Definición de proyecto",
+                                        "Ciclo de vida del proyecto",
+                                        "Stakeholders",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Marcos de Referencia",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 8,
+                                    "temas": [
+                                        "PMI y PMBOK",
+                                        "PRINCE2",
+                                        "ISO 21500",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Roles del Proyecto",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 6,
+                                    "temas": [
+                                        "Project Manager",
+                                        "Sponsor",
+                                        "Equipo de proyecto",
+                                        "Stakeholders",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Comparativa de Enfoques",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 4,
+                                    "temas": [
+                                        "Waterfall vs Ágil",
+                                        "Cuándo usar cada enfoque",
+                                        "Híbridos",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Planificación y Estimación",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Técnicas de planificación y estimación de proyectos",
+                            "creditos": 1.5,
+                            "horas": 24,
+                        },
+                        "children": [
+                            # NIVEL 2: Técnicas de planificación
+                            {
+                                "name": "Descomposición del Trabajo",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 8,
+                                    "temas": [
+                                        "WBS (Work Breakdown Structure)",
+                                        "Paquetes de trabajo",
+                                        "Diccionario WBS",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Técnicas de Estimación",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 8,
+                                    "descripcion": "Métodos para estimar esfuerzo, costo y tiempo",
+                                },
+                                "children": [
+                                    # NIVEL 3: Categorías de técnicas de estimación
+                                    {
+                                        "name": "Estimación Algorítmica",
+                                        "type": FeatureType.OR_GROUP,
+                                        "properties": {
+                                            "description": "Elegir al menos un método algorítmico",
+                                            "minimo_selecciones": 1,
+                                        },
+                                        "children": [
+                                            {
+                                                "name": "COCOMO II",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "niveles": [
+                                                        "Básico",
+                                                        "Intermedio",
+                                                        "Detallado",
+                                                    ],
+                                                    "factores": [
+                                                        "tamaño",
+                                                        "complejidad",
+                                                        "experiencia",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Puntos de Función (FPA)",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "componentes": [
+                                                        "ILF",
+                                                        "EIF",
+                                                        "EI",
+                                                        "EO",
+                                                        "EQ",
+                                                    ],
+                                                    "complejidad": [
+                                                        "Simple",
+                                                        "Media",
+                                                        "Compleja",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Estimación Ágil",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "description": "Técnicas de estimación para equipos ágiles",
+                                        },
+                                        "children": [
+                                            {
+                                                "name": "Planning Poker",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "escala": "Fibonacci (1,2,3,5,8,13,21...)",
+                                                    "participantes": "Todo el equipo",
+                                                },
+                                            },
+                                            {
+                                                "name": "Story Points",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "factores": [
+                                                        "complejidad",
+                                                        "esfuerzo",
+                                                        "riesgo",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Estimación por Analogía",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "tecnica": "Comparación con proyectos similares",
+                                            "precision": "Baja a Media",
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Gestión del Cronograma",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 8,
+                                    "temas": [
+                                        "Diagramas de Gantt",
+                                        "Camino crítico (CPM)",
+                                        "PERT",
+                                        "Holguras y flotantes",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Gestión de Equipos",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Liderazgo y gestión de recursos humanos",
+                            "creditos": 1.0,
+                            "horas": 16,
+                        },
+                        "children": [
+                            # NIVEL 2: Aspectos de gestión de equipos
+                            {
+                                "name": "Formación y Desarrollo",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 4,
+                                    "temas": [
+                                        "Modelo Tuckman (Forming, Storming, Norming, Performing)",
+                                        "Matriz RACI",
+                                        "Skills matrix",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Liderazgo",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 6,
+                                    "descripcion": "Estilos y teorías de liderazgo en proyectos",
+                                },
+                                "children": [
+                                    # NIVEL 3: Componentes de liderazgo
+                                    {
+                                        "name": "Estilos de Liderazgo",
+                                        "type": FeatureType.XOR_GROUP,
+                                        "properties": {
+                                            "description": "Elegir un estilo principal a profundizar",
+                                        },
+                                        "children": [
+                                            {
+                                                "name": "Liderazgo Transformacional",
+                                                "type": FeatureType.ALTERNATIVE,
+                                                "properties": {
+                                                    "caracteristicas": [
+                                                        "Visión",
+                                                        "Inspiración",
+                                                        "Cambio",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Liderazgo Situacional",
+                                                "type": FeatureType.ALTERNATIVE,
+                                                "properties": {
+                                                    "niveles_madurez": [
+                                                        "M1",
+                                                        "M2",
+                                                        "M3",
+                                                        "M4",
+                                                    ],
+                                                    "estilos": [
+                                                        "Dirigir",
+                                                        "Persuadir",
+                                                        "Participar",
+                                                        "Delegar",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Servant Leadership",
+                                                "type": FeatureType.ALTERNATIVE,
+                                                "properties": {
+                                                    "principios": [
+                                                        "Servicio",
+                                                        "Empatía",
+                                                        "Empoderamiento",
+                                                    ],
+                                                    "aplicacion": "Ideal para equipos ágiles",
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Teorías de Motivación",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "description": "Teorías fundamentales de motivación",
+                                        },
+                                        "children": [
+                                            {
+                                                "name": "Teoría de Maslow",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "niveles": [
+                                                        "Fisiológicas",
+                                                        "Seguridad",
+                                                        "Sociales",
+                                                        "Estima",
+                                                        "Autorrealización",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Teoría de Herzberg",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "factores_higiene": [
+                                                        "Salario",
+                                                        "Condiciones",
+                                                        "Políticas",
+                                                    ],
+                                                    "factores_motivadores": [
+                                                        "Logro",
+                                                        "Reconocimiento",
+                                                        "Crecimiento",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Inteligencia Emocional",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "componentes": [
+                                                "Autoconciencia",
+                                                "Autorregulación",
+                                                "Empatía",
+                                                "Habilidades sociales",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Comunicación",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 4,
+                                    "temas": [
+                                        "Plan de comunicaciones",
+                                        "Reuniones efectivas",
+                                        "Reportes de avance",
+                                        "Comunicación con stakeholders",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Gestión de Conflictos",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 2,
+                                    "temas": [
+                                        "Fuentes de conflicto",
+                                        "Técnicas de resolución",
+                                        "Negociación",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Gestión de Riesgos y Calidad",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Identificación y mitigación de riesgos, aseguramiento de calidad",
+                            "creditos": 1.0,
+                            "horas": 16,
+                        },
+                        "children": [
+                            # NIVEL 2: Gestión de riesgos
+                            {
+                                "name": "Identificación de Riesgos",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 4,
+                                    "tecnicas": [
+                                        "Brainstorming",
+                                        "Checklist",
+                                        "Análisis SWOT",
+                                        "Diagrama de Ishikawa",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Análisis de Riesgos",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 6,
+                                    "descripcion": "Técnicas para analizar y priorizar riesgos",
+                                },
+                                "children": [
+                                    # NIVEL 3: Tipos de análisis de riesgos
+                                    {
+                                        "name": "Análisis Cualitativo",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "description": "Evaluación subjetiva de riesgos",
+                                        },
+                                        "children": [
+                                            {
+                                                "name": "Matriz de Probabilidad e Impacto",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "probabilidad": [
+                                                        "Muy Baja",
+                                                        "Baja",
+                                                        "Media",
+                                                        "Alta",
+                                                        "Muy Alta",
+                                                    ],
+                                                    "impacto": [
+                                                        "Muy Bajo",
+                                                        "Bajo",
+                                                        "Medio",
+                                                        "Alto",
+                                                        "Muy Alto",
+                                                    ],
+                                                    "niveles_riesgo": [
+                                                        "Bajo",
+                                                        "Medio",
+                                                        "Alto",
+                                                        "Crítico",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Categorización de Riesgos",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "categorias": [
+                                                        "Técnicos",
+                                                        "Organizacionales",
+                                                        "Externos",
+                                                        "Project Management",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Análisis Cuantitativo",
+                                        "type": FeatureType.OR_GROUP,
+                                        "properties": {
+                                            "description": "Técnicas numéricas - elegir al menos una",
+                                            "minimo_selecciones": 1,
+                                        },
+                                        "children": [
+                                            {
+                                                "name": "Análisis EMV (Expected Monetary Value)",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "formula": "EMV = Probabilidad × Impacto",
+                                                    "aplicacion": "Decisiones monetarias",
+                                                },
+                                            },
+                                            {
+                                                "name": "Árbol de Decisiones",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "componentes": [
+                                                        "Nodos de decisión",
+                                                        "Nodos de chance",
+                                                        "Valores esperados",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Simulación Monte Carlo",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "iteraciones": "Mínimo 1000",
+                                                    "salida": "Distribución de probabilidad",
+                                                    "herramientas": [
+                                                        "@RISK",
+                                                        "Crystal Ball",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Respuesta a Riesgos",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 3,
+                                    "estrategias": [
+                                        "Evitar",
+                                        "Transferir",
+                                        "Mitigar",
+                                        "Aceptar",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Gestión de Calidad",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 3,
+                                    "temas": [
+                                        "Plan de calidad",
+                                        "Métricas de calidad",
+                                        "Control de calidad vs Aseguramiento",
+                                        "Gestión de la configuración",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Metodologías Ágiles",
+                        "type": FeatureType.OR_GROUP,
+                        "properties": {
+                            "description": "Elegir al menos una metodología ágil para profundizar",
+                            "creditos": 0.5,
+                            "horas": 8,
+                            "minimo_selecciones": 1,
+                        },
+                        "children": [
+                            {
+                                "name": "Scrum",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Componentes de Scrum
+                                    {
+                                        "name": "Roles Scrum",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "descripcion": "Roles fundamentales del framework Scrum",
+                                        },
+                                        "children": [
+                                            # NIVEL 3: Detalles de cada rol
+                                            {
+                                                "name": "Product Owner",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "responsabilidades": [
+                                                        "Maximizar valor del producto",
+                                                        "Gestionar Product Backlog",
+                                                        "Definir historias de usuario",
+                                                        "Aceptar o rechazar trabajo",
+                                                    ],
+                                                    "habilidades_clave": [
+                                                        "Visión",
+                                                        "Comunicación",
+                                                        "Decisión",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Scrum Master",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "responsabilidades": [
+                                                        "Facilitar eventos Scrum",
+                                                        "Eliminar impedimentos",
+                                                        "Coaching al equipo",
+                                                        "Promover Scrum",
+                                                    ],
+                                                    "tipo_liderazgo": "Servant Leadership",
+                                                },
+                                            },
+                                            {
+                                                "name": "Development Team",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "caracteristicas": [
+                                                        "Auto-organizado",
+                                                        "Multifuncional",
+                                                        "Sin sub-equipos",
+                                                    ],
+                                                    "tamaño_ideal": "3-9 personas",
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Eventos Scrum",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "descripcion": "Eventos time-boxed de Scrum",
+                                        },
+                                        "children": [
+                                            # NIVEL 3: Detalles de cada evento
+                                            {
+                                                "name": "Sprint",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "duracion": "1-4 semanas",
+                                                    "objetivo": "Crear incremento potencialmente entregable",
+                                                },
+                                            },
+                                            {
+                                                "name": "Sprint Planning",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "duracion_max": "8 horas para sprint de 1 mes",
+                                                    "preguntas_clave": [
+                                                        "¿Qué se puede entregar en este Sprint?",
+                                                        "¿Cómo se logrará el trabajo?",
+                                                    ],
+                                                    "salida": "Sprint Goal y Sprint Backlog",
+                                                },
+                                            },
+                                            {
+                                                "name": "Daily Scrum",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "duracion_max": "15 minutos",
+                                                    "preguntas": [
+                                                        "¿Qué hice ayer?",
+                                                        "¿Qué haré hoy?",
+                                                        "¿Hay impedimentos?",
+                                                    ],
+                                                    "participantes": "Development Team",
+                                                },
+                                            },
+                                            {
+                                                "name": "Sprint Review",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "duracion_max": "4 horas para sprint de 1 mes",
+                                                    "actividades": [
+                                                        "Demo del incremento",
+                                                        "Revisión del Product Backlog",
+                                                        "Discusión colaborativa",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Sprint Retrospective",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "duracion_max": "3 horas para sprint de 1 mes",
+                                                    "enfoque": [
+                                                        "¿Qué salió bien?",
+                                                        "¿Qué puede mejorar?",
+                                                        "Plan de mejora",
+                                                    ],
+                                                    "salida": "Mejoras para el próximo Sprint",
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Artefactos Scrum",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "descripcion": "Artefactos que representan trabajo o valor",
+                                        },
+                                        "children": [
+                                            # NIVEL 3: Detalles de cada artefacto
+                                            {
+                                                "name": "Product Backlog",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "responsable": "Product Owner",
+                                                    "contenido": "Lista ordenada de todo lo necesario en el producto",
+                                                    "atributos": [
+                                                        "Descripción",
+                                                        "Orden",
+                                                        "Estimación",
+                                                        "Valor",
+                                                    ],
+                                                    "evolucion": "Nunca está completo",
+                                                },
+                                            },
+                                            {
+                                                "name": "Sprint Backlog",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "responsable": "Development Team",
+                                                    "contenido": [
+                                                        "Items del Product Backlog para el Sprint",
+                                                        "Plan para entregar el incremento",
+                                                    ],
+                                                    "visibilidad": "Altamente visible",
+                                                },
+                                            },
+                                            {
+                                                "name": "Increment",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "definicion": "Suma de todos los items completados + incrementos previos",
+                                                    "condicion": "Debe cumplir Definition of Done",
+                                                    "estado": "Potencialmente entregable",
+                                                },
+                                            },
+                                            {
+                                                "name": "Definition of Done",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "descripcion": "Entendimiento compartido de lo que significa 'Done'",
+                                                    "ejemplos": [
+                                                        "Código escrito",
+                                                        "Tests pasando",
+                                                        "Code review completado",
+                                                        "Documentación actualizada",
+                                                        "Desplegado en ambiente de prueba",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Kanban",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Componentes de Kanban
+                                    {
+                                        "name": "Principios Kanban",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "principios": [
+                                                "Visualizar el flujo de trabajo",
+                                                "Limitar el WIP (Work In Progress)",
+                                                "Gestionar el flujo",
+                                                "Hacer políticas explícitas",
+                                                "Implementar ciclos de feedback",
+                                                "Mejorar colaborativamente",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Métricas Kanban",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "metricas": [
+                                                "Lead Time",
+                                                "Cycle Time",
+                                                "Throughput",
+                                                "WIP",
+                                                "Diagrama de flujo acumulado",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "XP (Extreme Programming)",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Prácticas XP
+                                    {
+                                        "name": "Prácticas Técnicas XP",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "practicas": [
+                                                "TDD (Test Driven Development)",
+                                                "Pair Programming",
+                                                "Refactoring continuo",
+                                                "Continuous Integration",
+                                                "Código colectivo",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Valores y Principios XP",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "valores": [
+                                                "Comunicación",
+                                                "Simplicidad",
+                                                "Feedback",
+                                                "Coraje",
+                                                "Respeto",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Herramientas de Gestión",
+                        "type": FeatureType.OR_GROUP,
+                        "properties": {
+                            "description": "Aprender al menos una herramienta de gestión de proyectos",
+                            "creditos": 0.5,
+                            "horas": 8,
+                            "minimo_selecciones": 1,
+                        },
+                        "children": [
+                            {
+                                "name": "Jira",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "tipo": "Gestión ágil",
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Módulos de Jira
+                                    {
+                                        "name": "Jira Software",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "caracteristicas": [
+                                                "Tableros Scrum",
+                                                "Tableros Kanban",
+                                                "Backlog management",
+                                                "Sprints",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Reportes Jira",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "reportes": [
+                                                "Burndown chart",
+                                                "Velocity chart",
+                                                "Cumulative flow diagram",
+                                                "Custom dashboards",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Microsoft Project",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "tipo": "Gestión tradicional",
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Funcionalidades MS Project
+                                    {
+                                        "name": "Planificación en MS Project",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "funciones": [
+                                                "Diagramas de Gantt",
+                                                "Gestión de recursos",
+                                                "Camino crítico",
+                                                "Líneas base",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Seguimiento y Control",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "funciones": [
+                                                "Earned Value Management",
+                                                "Análisis de variaciones",
+                                                "Reportes de estado",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Trello",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "tipo": "Gestión visual simple",
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Características Trello
+                                    {
+                                        "name": "Tableros y Organización",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "elementos": [
+                                                "Tableros",
+                                                "Listas",
+                                                "Tarjetas",
+                                                "Labels",
+                                                "Due dates",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Automatización Trello",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "caracteristicas": [
+                                                "Butler automation",
+                                                "Power-Ups",
+                                                "Integraciones",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Asana",
+                                "type": FeatureType.OPTIONAL,
+                                "properties": {
+                                    "tipo": "Gestión colaborativa",
+                                    "horas": 8,
+                                },
+                                "children": [
+                                    # NIVEL 2: Funciones Asana
+                                    {
+                                        "name": "Gestión de Tareas",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "funciones": [
+                                                "Proyectos",
+                                                "Tareas y subtareas",
+                                                "Dependencias",
+                                                "Hitos",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        "name": "Vistas y Reportes",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "vistas": [
+                                                "Lista",
+                                                "Tablero",
+                                                "Cronograma",
+                                                "Calendario",
+                                                "Portfolios",
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Proyecto Práctico",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {
+                            "description": "Aplicación práctica de conceptos aprendidos",
+                            "creditos": 1.0,
+                            "horas": 16,
+                            "peso_evaluacion": "30%",
+                        },
+                        "children": [
+                            # NIVEL 2: Fases del proyecto
+                            {
+                                "name": "Iniciación del Proyecto",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 2,
+                                    "entregables": [
+                                        "Project Charter",
+                                        "Identificación de stakeholders",
+                                        "Objetivos SMART",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Planificación Detallada",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 6,
+                                    "entregables": [
+                                        "WBS completo",
+                                        "Cronograma (Gantt)",
+                                        "Estimaciones de esfuerzo",
+                                        "Plan de recursos",
+                                        "Presupuesto",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Gestión de Riesgos del Proyecto",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 3,
+                                    "entregables": [
+                                        "Registro de riesgos",
+                                        "Análisis cualitativo",
+                                        "Planes de respuesta",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Seguimiento con Herramienta",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 3,
+                                    "actividades": [
+                                        "Configurar proyecto en herramienta elegida",
+                                        "Cargar tareas y cronograma",
+                                        "Simular seguimiento semanal",
+                                        "Generar reportes",
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "Presentación Final",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "horas": 2,
+                                    "formato": "15-20 minutos + Q&A",
+                                    "contenido": [
+                                        "Resumen ejecutivo",
+                                        "Planificación y estimaciones",
+                                        "Gestión de riesgos",
+                                        "Demostración de herramienta",
+                                        "Lecciones aprendidas",
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                ],
+            }
+        ],
+        # Relaciones entre features (fundamentos para futuras expansiones)
+        "feature_relations": [
+            # Relaciones de nivel 1
+            {
+                "source": "Planificación y Estimación",
+                "target": "Fundamentos de Gestión de Proyectos",
+                "type": "requires",
+                "description": "La planificación requiere conocimientos fundamentales de gestión",
+            },
+            {
+                "source": "Gestión de Equipos",
+                "target": "Fundamentos de Gestión de Proyectos",
+                "type": "requires",
+                "description": "La gestión de equipos requiere fundamentos de proyectos",
+            },
+            {
+                "source": "Gestión de Riesgos y Calidad",
+                "target": "Planificación y Estimación",
+                "type": "requires",
+                "description": "La gestión de riesgos requiere habilidades de planificación",
+            },
+            {
+                "source": "Metodologías Ágiles",
+                "target": "Fundamentos de Gestión de Proyectos",
+                "type": "requires",
+                "description": "Las metodologías ágiles requieren comprensión de fundamentos",
+            },
+            {
+                "source": "Scrum",
+                "target": "Gestión de Equipos",
+                "type": "requires",
+                "description": "Scrum requiere conocimientos de gestión de equipos",
+            },
+            {
+                "source": "Kanban",
+                "target": "Gestión de Equipos",
+                "type": "requires",
+                "description": "Kanban requiere conocimientos de gestión de equipos",
+            },
+            {
+                "source": "Proyecto Práctico",
+                "target": "Planificación y Estimación",
+                "type": "requires",
+                "description": "El proyecto requiere habilidades de planificación",
+            },
+            {
+                "source": "Proyecto Práctico",
+                "target": "Gestión de Riesgos y Calidad",
+                "type": "requires",
+                "description": "El proyecto requiere conocimientos de riesgos y calidad",
+            },
+            {
+                "source": "Proyecto Práctico",
+                "target": "Metodologías Ágiles",
+                "type": "requires",
+                "description": "El proyecto debe aplicar al menos una metodología ágil",
+            },
+            {
+                "source": "Proyecto Práctico",
+                "target": "Herramientas de Gestión",
+                "type": "requires",
+                "description": "El proyecto debe usar al menos una herramienta de gestión",
+            },
+            # Relaciones de nivel 2 - Fundamentos
+            {
+                "source": "Marcos de Referencia",
+                "target": "Introducción a Proyectos",
+                "type": "requires",
+                "description": "Los marcos de referencia requieren conocer la introducción a proyectos",
+            },
+            {
+                "source": "Comparativa de Enfoques",
+                "target": "Marcos de Referencia",
+                "type": "requires",
+                "description": "Comparar enfoques requiere conocer los marcos de referencia",
+            },
+            # Relaciones de nivel 2 - Planificación
+            {
+                "source": "Técnicas de Estimación",
+                "target": "Descomposición del Trabajo",
+                "type": "requires",
+                "description": "La estimación requiere haber descompuesto el trabajo",
+            },
+            {
+                "source": "Gestión del Cronograma",
+                "target": "Técnicas de Estimación",
+                "type": "requires",
+                "description": "El cronograma requiere estimaciones previas",
+            },
+            # Relaciones de nivel 2 - Equipos
+            {
+                "source": "Liderazgo",
+                "target": "Formación y Desarrollo",
+                "type": "requires",
+                "description": "El liderazgo efectivo requiere entender la formación de equipos",
+            },
+            {
+                "source": "Gestión de Conflictos",
+                "target": "Comunicación",
+                "type": "requires",
+                "description": "La gestión de conflictos requiere habilidades de comunicación",
+            },
+            # Relaciones de nivel 2 - Riesgos
+            {
+                "source": "Análisis de Riesgos",
+                "target": "Identificación de Riesgos",
+                "type": "requires",
+                "description": "El análisis requiere haber identificado los riesgos primero",
+            },
+            {
+                "source": "Respuesta a Riesgos",
+                "target": "Análisis de Riesgos",
+                "type": "requires",
+                "description": "La respuesta requiere haber analizado los riesgos",
+            },
+            # Relaciones de nivel 2 - Scrum
+            {
+                "source": "Eventos Scrum",
+                "target": "Roles Scrum",
+                "type": "requires",
+                "description": "Los eventos de Scrum requieren comprender los roles",
+            },
+            {
+                "source": "Artefactos Scrum",
+                "target": "Roles Scrum",
+                "type": "requires",
+                "description": "Los artefactos de Scrum requieren comprender los roles",
+            },
+            # Relaciones de nivel 2 - Kanban
+            {
+                "source": "Métricas Kanban",
+                "target": "Principios Kanban",
+                "type": "requires",
+                "description": "Las métricas requieren comprender los principios de Kanban",
+            },
+            # Relaciones de nivel 2 - XP
+            {
+                "source": "Prácticas Técnicas XP",
+                "target": "Valores y Principios XP",
+                "type": "requires",
+                "description": "Las prácticas técnicas se basan en los valores y principios",
+            },
+            # Relaciones de nivel 2 - Jira
+            {
+                "source": "Reportes Jira",
+                "target": "Jira Software",
+                "type": "requires",
+                "description": "Los reportes requieren conocer Jira Software",
+            },
+            # Relaciones de nivel 2 - MS Project
+            {
+                "source": "Seguimiento y Control",
+                "target": "Planificación en MS Project",
+                "type": "requires",
+                "description": "El seguimiento requiere haber planificado el proyecto",
+            },
+            # Relaciones de nivel 2 - Trello
+            {
+                "source": "Automatización Trello",
+                "target": "Tableros y Organización",
+                "type": "requires",
+                "description": "La automatización requiere conocer los tableros básicos",
+            },
+            # Relaciones de nivel 2 - Asana
+            {
+                "source": "Vistas y Reportes",
+                "target": "Gestión de Tareas",
+                "type": "requires",
+                "description": "Las vistas requieren tener tareas creadas",
+            },
+            # Relaciones de nivel 2 - Proyecto Práctico
+            {
+                "source": "Planificación Detallada",
+                "target": "Iniciación del Proyecto",
+                "type": "requires",
+                "description": "La planificación detallada requiere haber iniciado el proyecto",
+            },
+            {
+                "source": "Gestión de Riesgos del Proyecto",
+                "target": "Planificación Detallada",
+                "type": "requires",
+                "description": "La gestión de riesgos requiere tener la planificación",
+            },
+            {
+                "source": "Seguimiento con Herramienta",
+                "target": "Planificación Detallada",
+                "type": "requires",
+                "description": "El seguimiento requiere tener el plan cargado",
+            },
+            {
+                "source": "Presentación Final",
+                "target": "Seguimiento con Herramienta",
+                "type": "requires",
+                "description": "La presentación incluye demostración de la herramienta",
+            },
+            # Relaciones de nivel 3 - Técnicas de Estimación
+            {
+                "source": "COCOMO II",
+                "target": "Descomposición del Trabajo",
+                "type": "requires",
+                "description": "COCOMO requiere conocer la descomposición del trabajo",
+            },
+            {
+                "source": "Puntos de Función (FPA)",
+                "target": "Descomposición del Trabajo",
+                "type": "requires",
+                "description": "FPA requiere identificar componentes funcionales",
+            },
+            {
+                "source": "Story Points",
+                "target": "Planning Poker",
+                "type": "requires",
+                "description": "Story Points se estiman típicamente con Planning Poker",
+            },
+            {
+                "source": "Estimación Algorítmica",
+                "target": "Estimación Ágil",
+                "type": "excludes",
+                "description": "Son enfoques diferentes - tradicional vs ágil",
+            },
+            # Relaciones de nivel 3 - Liderazgo
+            {
+                "source": "Liderazgo Situacional",
+                "target": "Teorías de Motivación",
+                "type": "requires",
+                "description": "El liderazgo situacional requiere entender la motivación",
+            },
+            {
+                "source": "Servant Leadership",
+                "target": "Inteligencia Emocional",
+                "type": "requires",
+                "description": "Servant leadership requiere alta inteligencia emocional",
+            },
+            {
+                "source": "Liderazgo Transformacional",
+                "target": "Liderazgo Situacional",
+                "type": "excludes",
+                "description": "Son estilos alternativos mutuamente excluyentes en el XOR",
+            },
+            # Relaciones de nivel 3 - Análisis de Riesgos
+            {
+                "source": "Análisis Cuantitativo",
+                "target": "Análisis Cualitativo",
+                "type": "requires",
+                "description": "El análisis cuantitativo requiere primero el cualitativo",
+            },
+            {
+                "source": "Análisis EMV (Expected Monetary Value)",
+                "target": "Matriz de Probabilidad e Impacto",
+                "type": "requires",
+                "description": "EMV usa los valores de probabilidad e impacto",
+            },
+            {
+                "source": "Árbol de Decisiones",
+                "target": "Matriz de Probabilidad e Impacto",
+                "type": "requires",
+                "description": "Los árboles de decisión usan análisis cualitativo previo",
+            },
+            {
+                "source": "Simulación Monte Carlo",
+                "target": "Análisis EMV (Expected Monetary Value)",
+                "type": "requires",
+                "description": "Monte Carlo es una extensión avanzada del análisis EMV",
+            },
+            # Relaciones de nivel 3 - Scrum Roles
+            {
+                "source": "Product Owner",
+                "target": "Estilos de Liderazgo",
+                "type": "requires",
+                "description": "El Product Owner necesita habilidades de liderazgo",
+            },
+            {
+                "source": "Scrum Master",
+                "target": "Servant Leadership",
+                "type": "requires",
+                "description": "El Scrum Master debe practicar Servant Leadership",
+            },
+            {
+                "source": "Development Team",
+                "target": "Formación y Desarrollo",
+                "type": "requires",
+                "description": "El equipo pasa por las fases de formación de Tuckman",
+            },
+            # Relaciones de nivel 3 - Scrum Eventos
+            {
+                "source": "Sprint Planning",
+                "target": "Product Backlog",
+                "type": "requires",
+                "description": "Sprint Planning requiere un Product Backlog ordenado",
+            },
+            {
+                "source": "Daily Scrum",
+                "target": "Sprint Backlog",
+                "type": "requires",
+                "description": "Daily Scrum revisa el progreso del Sprint Backlog",
+            },
+            {
+                "source": "Sprint Review",
+                "target": "Increment",
+                "type": "requires",
+                "description": "Sprint Review presenta el Increment completado",
+            },
+            {
+                "source": "Sprint Retrospective",
+                "target": "Sprint Review",
+                "type": "requires",
+                "description": "La retrospectiva ocurre después de la review",
+            },
+            {
+                "source": "Sprint",
+                "target": "Sprint Planning",
+                "type": "requires",
+                "description": "Cada Sprint comienza con Sprint Planning",
+            },
+            # Relaciones de nivel 3 - Scrum Artefactos
+            {
+                "source": "Sprint Backlog",
+                "target": "Product Backlog",
+                "type": "requires",
+                "description": "El Sprint Backlog se selecciona del Product Backlog",
+            },
+            {
+                "source": "Increment",
+                "target": "Sprint Backlog",
+                "type": "requires",
+                "description": "El Increment se crea completando items del Sprint Backlog",
+            },
+            {
+                "source": "Increment",
+                "target": "Definition of Done",
+                "type": "requires",
+                "description": "Todo Increment debe cumplir la Definition of Done",
+            },
+            {
+                "source": "Definition of Done",
+                "target": "Gestión de Calidad",
+                "type": "requires",
+                "description": "DoD está relacionada con estándares de calidad",
+            },
+        ],
+    },
+}
+
 # Lista de todos los modelos
 feature_models_data = [
     ingenieria_informatica_model,
     curso_fullstack_model,
     maestria_ciencia_datos_model,
     curso_desarrollo_movil_model,
+    asignatura_gpi_model,
 ]
