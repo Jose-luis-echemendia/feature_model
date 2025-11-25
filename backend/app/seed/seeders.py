@@ -349,6 +349,7 @@ def seed_feature_models(
         logger.info(f"    ✅ Creada versión: v{model_version.version_number}")
 
         # Crear features recursivamente
+        feature_map = {}  # Mapa de nombre -> feature para relaciones
         for feature_data in version_data["features"]:
             _create_feature_recursive(
                 session,
@@ -357,6 +358,13 @@ def seed_feature_models(
                 owner.id,
                 parent_id=None,
                 resource_id=resources[0].id if resources else None,
+                feature_map=feature_map,
+            )
+
+        # Crear relaciones entre features si existen
+        if "feature_relations" in version_data:
+            _create_feature_relations(
+                session, version_data["feature_relations"], feature_map, owner.id
             )
 
     session.commit()
@@ -372,6 +380,7 @@ def _create_feature_recursive(
     owner_id: int,
     parent_id: Optional[int] = None,
     resource_id: Optional[int] = None,
+    feature_map: Optional[dict] = None,
 ) -> Feature:
     """Crear feature y sus hijos recursivamente"""
 
@@ -390,16 +399,80 @@ def _create_feature_recursive(
     session.add(feature)
     session.flush()
 
+    # Agregar al mapa para relaciones posteriores
+    if feature_map is not None:
+        feature_map[feature.name] = feature
+
     indent = "      " if parent_id else "    "
     logger.info(f"{indent}✅ Feature: {feature.name} ({feature.type.value})")
 
     # Crear hijos
     for child_data in children:
         _create_feature_recursive(
-            session, child_data, version_id, owner_id, feature.id, resource_id
+            session,
+            child_data,
+            version_id,
+            owner_id,
+            feature.id,
+            resource_id,
+            feature_map,
         )
 
     return feature
+
+
+def _create_feature_relations(
+    session: Session,
+    relations_data: list[dict],
+    feature_map: dict,
+    owner_id: int,
+) -> None:
+    """Crear relaciones entre features (requires, excludes)"""
+
+    from app.enums import FeatureRelationType
+
+    logger.info("    🔗 Creando relaciones entre features...")
+
+    for relation_data in relations_data:
+        source_name = relation_data["source"]
+        target_name = relation_data["target"]
+        relation_type = relation_data["type"]
+
+        # Buscar features en el mapa
+        source_feature = feature_map.get(source_name)
+        target_feature = feature_map.get(target_name)
+
+        if not source_feature:
+            logger.warning(
+                f"      ⚠️  Feature source '{source_name}' no encontrado, omitiendo relación"
+            )
+            continue
+
+        if not target_feature:
+            logger.warning(
+                f"      ⚠️  Feature target '{target_name}' no encontrado, omitiendo relación"
+            )
+            continue
+
+        # Crear la relación
+        from app.models import FeatureRelation
+
+        relation = FeatureRelation(
+            source_feature_id=source_feature.id,
+            target_feature_id=target_feature.id,
+            relation_type=(
+                FeatureRelationType.REQUIRED
+                if relation_type == "requires"
+                else FeatureRelationType.EXCLUDES
+            ),
+            description=relation_data.get("description", ""),
+            created_by_id=owner_id,
+            is_active=True,
+        )
+        session.add(relation)
+        logger.info(f"      ✅ Relación: {source_name} {relation_type} {target_name}")
+
+    session.flush()
 
 
 # ==============================================================================
