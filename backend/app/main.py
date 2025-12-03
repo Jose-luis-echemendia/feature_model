@@ -1,6 +1,7 @@
 import sentry_sdk
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from starlette.middleware.cors import CORSMiddleware
 
@@ -10,6 +11,7 @@ from app.utils import custom_generate_unique_id
 from app.core.config import settings
 from app.api.v1.router import api_router as api_router_v1
 from app.services import RedisService, S3Service
+from app.middlewares import setup_middlewares
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
@@ -23,6 +25,21 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
 )
+
+
+# ========================================================================
+#              --- Servir documentación interna ---
+# ========================================================================
+app.mount(
+    "/internal-docs",
+    StaticFiles(directory="internal_docs/site", html=True),
+    name="internal-docs",
+)
+
+# ========================================================================
+#              --- CONFIGURACIÓN DE MIDDLEWARES ---
+# ========================================================================
+setup_middlewares(app)
 
 
 # ========================================================================
