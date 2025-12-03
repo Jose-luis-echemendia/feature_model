@@ -29,15 +29,30 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 ENV PYTHONPATH=/app
 
+
+# =================================================================================
+#                  --- COPIA DE CARPETAS NECESARIOS ---
+# =================================================================================
+
+# Copy backend scripts
 COPY ./scripts /app/scripts
 
+# copy config files
 COPY ./pyproject.toml ./uv.lock ./alembic.ini /app/
 
+# copy backend sistem files
 COPY ./app /app/app
+
+# Copy documentation folders for internal docs (only backend docs)
+COPY ./docs /app/docs
 
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync
+
+# =================================================================================
+#                       --- COMANDO A EJECUTAR ---
+# =================================================================================
 
 CMD ["fastapi", "run", "--workers", "4", "app/main.py"]

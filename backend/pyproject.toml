@@ -28,6 +28,8 @@ dependencies = [
     "boto3 (>=1.40.46,<1.40.62)",
     "aioboto3 (>=15.5.0,<16.0.0)",
     "gunicorn (>=23.0.0,<24.0.0)",
+    "mkdocs (>=1.6.1,<2.0.0)",
+    "mkdocs-material (>=9.7.0,<10.0.0)",
 ]
 
 [tool.uv]
