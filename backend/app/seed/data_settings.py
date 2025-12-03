@@ -42,4 +42,9 @@ settings_data = [
         120,
         "Créditos académicos por defecto para un programa completo",
     ),
+    (
+        "ALLOWS_USER_REGISTRATION",
+        False,
+        "Indica si el sistema permite el registro de nuevos usuarios"
+    )
 ]

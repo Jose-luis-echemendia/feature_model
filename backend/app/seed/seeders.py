@@ -67,7 +67,7 @@ def create_first_superuser(session: Session) -> Optional[User]:
     user_in = UserCreate(
         email=settings.FIRST_SUPERUSER,
         password=settings.FIRST_SUPERUSER_PASSWORD,
-        role=UserRole.ADMIN,
+        role=UserRole.DEVELOPER,
     )
 
     user = crud.create_user(session=session, user_create=user_in)
