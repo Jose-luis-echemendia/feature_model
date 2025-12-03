@@ -1,0 +1,27 @@
+site_name: Documentación Interna de la Plataforma
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.tabs
+    - search.suggest
+    - search.highlight
+nav:
+  - Inicio: index.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - codehilite
+  - footnotes
+  - tables
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          # Formatter function for the fence; use string reference which MkDocs/PyMdown accepts
+          format: "pymdownx.superfences.fence_code_format"
+  - pymdownx.highlight
