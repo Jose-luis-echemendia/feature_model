@@ -109,8 +109,7 @@ def get_users_count(*, session: Session) -> int:
 def search_users(*, session: Session, search_term: str, skip: int = 0, limit: int = 100) -> list[User]:
     """Buscar usuarios por email o nombre"""
     statement = select(User).where(
-        (User.email.ilike(f"%{search_term}%")) | 
-        (User.full_name.ilike(f"%{search_term}%"))
+        (User.email.ilike(f"%{search_term}%"))
     ).offset(skip).limit(limit)
     return session.exec(statement).all()
 

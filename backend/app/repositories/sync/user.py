@@ -23,7 +23,7 @@ class UserRepositorySync(BaseUserRepository, IUserRepositorySync):
         hashed_pw = self.prepare_password(data.password)
 
         obj = User(
-            email=data.email, full_name=data.full_name, hashed_password=hashed_pw
+            email=data.email, hashed_password=hashed_pw
         )
 
         self.session.add(obj)
@@ -93,7 +93,6 @@ class UserRepositorySync(BaseUserRepository, IUserRepositorySync):
             select(User)
             .where(
                 (User.email.ilike(f"%{search_term}%"))
-                | (User.full_name.ilike(f"%{search_term}%"))
             )
             .offset(skip)
             .limit(limit)
