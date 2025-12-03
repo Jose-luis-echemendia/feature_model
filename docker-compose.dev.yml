@@ -21,12 +21,51 @@ services:
       - shared-network
       - default
 
+  # SERVICIO DE REDIS PARA LA GESTIÓN DE TAREAS ASÍNCRONAS Y CACHE
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+
+  # SERVICIO DE MINIO PARA LA GESTIÓN DE ARCHIVOS MEDIA
+  minio:
+    ports:
+      - "9000:9000" # Para la API de S3
+      - "9001:9001" # Para la Consola Web
+    image: minio/minio:RELEASE.2024-10-02T17-50-41Z
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data # Volumen para persistir los archivos
+    environment:
+      - MINIO_ROOT_USER=minioadmin # Cambia esto por un usuario seguro
+      - MINIO_ROOT_PASSWORD=minioadminsecret # Cambia esto por una contraseña segura
+      - MINIO_DEFAULT_BUCKETS=media # Crea el bucket 'media' al iniciar
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
   # SERVICIO DE PRESTART PARA LA INICIALIZACIÓN DE LA BASE DE DATOS Y OTROS AJUSTES ANTES DE INICIAR EL BACKEND
   prestart:
     build:
       context: ./backend
     volumes:
+      # Backend app files
       - ./backend/app:/app/app
+      # Backend scripts (contains prestart.sh)
+      - ./backend/scripts:/app/scripts
+      # Root scripts (contains build_docs.sh)
+      - ./scripts:/app/root_scripts
+      # Backend docs (for sync_docs.py)
+      - ./backend/docs:/app/backend_docs
+      # Internal docs (for mkdocs build)
+      - ./internal_docs:/app/internal_docs
+      # Frontend docs (if needed by sync_docs.py)
+      - ./frontend/docs:/app/frontend_docs
+      # Root docs (if needed by sync_docs.py)
+      - ./docs:/app/root_docs
     depends_on:
       db:
         condition: service_healthy
@@ -52,36 +91,12 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - SENTRY_DSN=${SENTRY_DSN}
 
-  # SERVICIO DE REDIS PARA LA GESTIÓN DE TAREAS ASÍNCRONAS Y CACHE
-  redis:
-    image: redis:7-alpine
-    volumes:
-      - redis_data:/data
-
-  # SERVICIO DE MINIO PARA LA GESTIÓN DE ARCHIVOS MEDIA
-  minio:
-    ports:
-      - "9000:9000" # Para la API de S3
-      - "9001:9001" # Para la Consola Web
-    image: minio/minio:RELEASE.2024-10-02T17-50-41Z
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio_data:/data # Volumen para persistir los archivos
-    environment:
-      - MINIO_ROOT_USER=minioadmin # Cambia esto por un usuario seguro
-      - MINIO_ROOT_PASSWORD=minioadminsecret # Cambia esto por una contraseña segura
-      - MINIO_DEFAULT_BUCKETS=media # Crea el bucket 'media' al iniciar
-    
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-
   # SERVICIO DEL BACKEND
   backend:
     depends_on:
       db:
+        condition: service_healthy
+      minio:
         condition: service_healthy
       prestart:
         condition: service_completed_successfully
@@ -124,7 +139,20 @@ services:
     build:
       context: ./backend
     volumes:
+      # Backend app files
       - ./backend/app:/app/app
+      # Backend scripts (contains prestart.sh)
+      - ./backend/scripts:/app/scripts
+      # Root scripts (contains build_docs.sh)
+      - ./scripts:/app/root_scripts
+      # Backend docs (for sync_docs.py)
+      - ./backend/docs:/app/backend_docs
+      # Internal docs (for mkdocs build)
+      - ./internal_docs:/app/internal_docs
+      # Frontend docs (if needed by sync_docs.py)
+      - ./frontend/docs:/app/frontend_docs
+      # Root docs (if needed by sync_docs.py)
+      - ./docs:/app/root_docs
 
   # SERVICIO DEL WORKER DE CELERY PARA TAREAS ASÍNCRONAS
   celery_worker:
@@ -157,17 +185,17 @@ services:
   # SERVICIO DEL FRONTEND
   frontend:
     build:
-      context: ./frontend    
+      context: ./frontend
       dockerfile: Dockerfile.dev
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - /app/.next 
+      - /app/.next
     ports:
-      - "3000:3000" 
+      - "3000:3000"
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://backend:8000 
+      - NEXT_PUBLIC_API_URL=http://backend:8000
 
 volumes:
   app-db-data:
