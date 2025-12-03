@@ -35,6 +35,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 #           --- Endpoint para listar Usuarios ---
 # ===========================================================================
 
+
 @router.get(
     "/",
     response_model=UserListResponse,
@@ -46,13 +47,19 @@ async def read_users(
     limit: int = 100,
 ) -> UserListResponse:
     users = await repo.get_all(skip=skip, limit=limit)
-    count = await repo.count()
-    return UserListResponse(data=users, count=count)
+    total = await repo.count()
+
+    # Calcular la página actual (asumiendo que skip/limit es la paginación)
+    page = (skip // limit) + 1 if limit > 0 else 1
+    size = len(users)
+
+    return UserListResponse(data=users, total=total, page=page, size=size)
 
 
 # ===========================================================================
 #           --- Endpoint para listar Usuarios por roles ---
 # ===========================================================================
+
 
 @router.get("/by-role/{role}", response_model=UserListResponse)
 async def read_users_by_role(
@@ -63,13 +70,19 @@ async def read_users_by_role(
     limit: int = 100,
 ) -> UserListResponse:
     users = await repo.search(role, skip=skip, limit=limit)
-    count = len(users)
-    return UserListResponse(data=users, count=count)
+    total = len(users)
+
+    # Calcular la página actual
+    page = (skip // limit) + 1 if limit > 0 else 1
+    size = len(users)
+
+    return UserListResponse(data=users, total=total, page=page, size=size)
 
 
 # ===========================================================================
 #           --- Endpoint para crear Usuario ---
 # ===========================================================================
+
 
 @router.post("/", response_model=UserPublic)
 async def create_user(
@@ -84,7 +97,7 @@ async def create_user(
     **Permisos requeridos:**
     - Administradores pueden crear: diseñadores de modelos, editores de modelos, configuradores, espectadores, críticos  y administradores
     - Desarrolladores pueden crear: todos los roles, incluido desarrollador
-    
+
     **Validaciones**:
     - Email único
     - Contraseña fuerte (mínimo 8 caracteres)
@@ -103,7 +116,7 @@ async def create_user(
         raise HTTPException(
             status_code=403, detail="No tienes permisos suficientes para crear usuarios"
         )
-        
+
     try:
         user = await repo.create(user_in)
 
@@ -149,6 +162,7 @@ async def update_user_me_(
 #        --- Endpoint para cambiar la contraseña del usuario propio ---
 # ===========================================================================
 
+
 @router.patch("/me/password/", response_model=Message)
 async def update_password_me(
     *, repo: AsyncUserRepoDep, body: UpdatePassword, current_user: CurrentUser
@@ -185,6 +199,7 @@ async def read_user_me(*, current_user: CurrentUser) -> UserPublic:
 #       --- Endpoint para eliminar el usuario propio ---
 # ===========================================================================
 
+
 @router.delete("/me/", response_model=Message)
 async def delete_user_me(
     *, repo: AsyncUserRepoDep, current_user: CurrentUser
@@ -205,18 +220,24 @@ async def delete_user_me(
 #           --- Endpoint para registrar un nuevo usuario ---
 # ===========================================================================
 
+
 @router.post("/signup/", response_model=UserPublic)
 async def register_user(
-    *, repo: AsyncUserRepoDep, user_in: UserRegister, settings_service: SettingsService = Depends(get_settings_service)
+    *,
+    repo: AsyncUserRepoDep,
+    user_in: UserRegister,
+    settings_service: SettingsService = Depends(get_settings_service),
 ) -> UserPublic:
     """
     Create new user without the need to be logged in (async).
     """
-    allows_user_registration = await settings_service.aget("ALLOWS_USER_REGISTRATION", default=False)
+    allows_user_registration = await settings_service.aget(
+        "ALLOWS_USER_REGISTRATION", default=False
+    )
 
     if not allows_user_registration:
         return {"message": "El registro de usuarios está deshabilitado."}
-    
+
     try:
         user_create = UserCreate(
             email=user_in.email,
@@ -236,6 +257,7 @@ async def register_user(
 # ===========================================================================
 #     --- Endpoint para leer la información de los usuarios dado su id ---
 # ===========================================================================
+
 
 @router.get("/{user_id}/", response_model=UserPublic)
 async def read_user_by_id(
@@ -297,6 +319,7 @@ async def update_user(
 #       --- Endpoint para actualizar el rol de un usuario dado su id ---
 # ===========================================================================
 
+
 @router.put("/{user_id}/role/", response_model=UserPublic)
 async def update_user_role(
     *,
@@ -327,6 +350,7 @@ async def update_user_role(
 #       --- Endpoint para eliminar un usuario dado su id ---
 # ===========================================================================
 
+
 @router.delete("/{user_id}/", dependencies=[Depends(get_current_active_superuser)])
 async def delete_user(
     *, repo: AsyncUserRepoDep, current_user: CurrentUser, user_id: uuid.UUID
@@ -351,6 +375,7 @@ async def delete_user(
 #           --- Endpoint adicional para buscar usuarios ---
 # ===========================================================================
 
+
 @router.get("/search/{search_term}/", response_model=UserListResponse)
 async def search_users(
     *, repo: AsyncUserRepoDep, search_term: str, skip: int = 0, limit: int = 100
@@ -359,13 +384,19 @@ async def search_users(
     Search users by email or name (async).
     """
     users = await repo.search(search_term=search_term, skip=skip, limit=limit)
-    count = len(users)
-    return UserListResponse(data=users, count=count)
+    total = len(users)
+
+    # Calcular la página actual
+    page = (skip // limit) + 1 if limit > 0 else 1
+    size = len(users)
+
+    return UserListResponse(data=users, total=total, page=page, size=size)
 
 
 # ===========================================================================
 #       --- Endpoint para activar/desactivar usuarios ---
 # ===========================================================================
+
 
 @router.patch("/{user_id}/activate/", response_model=UserPublic)
 async def activate_user(
