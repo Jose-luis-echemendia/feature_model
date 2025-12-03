@@ -6,6 +6,7 @@ class UserRole(str, Enum):
     Enums para definir los roles del usuario
     """
 
+    DEVELOPER = "developer"
     ADMIN = "admin"
     MODEL_DESIGNER = "model_designer"
     MODEL_EDITOR = "model_editor"
