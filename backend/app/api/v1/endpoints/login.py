@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import Annotated, Any
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
@@ -22,6 +23,7 @@ from app.utils import (
 )
 
 router = APIRouter(tags=["login"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/login/access-token/")
@@ -61,27 +63,34 @@ async def login_access_token(
     }
     ```
     """
+    logger.info(f"🔐 Intento de login para email: {login_data.email}")
+    
     user = await user_repo.authenticate(
         email=login_data.email, password=login_data.password
     )
 
     if not user:
+        logger.warning(f"❌ Login fallido - Credenciales incorrectas para: {login_data.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect email or password",
         )
 
     if not user.is_active:
+        logger.warning(f"❌ Login fallido - Usuario inactivo: {login_data.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    return Token(
+    token = Token(
         access_token=security.create_access_token(
             user.id, expires_delta=access_token_expires
         )
     )
+    
+    logger.info(f"✅ Login exitoso para: {login_data.email} (ID: {user.id}, Rol: {user.role})")
+    return token
 
 
 @router.post("/login/test-token/", response_model=UserPublic)
@@ -121,6 +130,7 @@ async def test_token(current_user: AsyncCurrentUser) -> Any:
     }
     ```
     """
+    logger.info(f"🔍 Validación de token para usuario: {current_user.email} (ID: {current_user.id})")
     return current_user
 
 
@@ -156,9 +166,12 @@ async def recover_password(email: str, user_repo: AsyncUserRepoDep) -> Message:
     }
     ```
     """
+    logger.info(f"🔑 Solicitud de recuperación de contraseña para: {email}")
+    
     user = await user_repo.get_by_email(email=email)
 
     if not user:
+        logger.warning(f"❌ Usuario no encontrado para recuperación: {email}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="The user with this email does not exist in the system.",
@@ -173,6 +186,8 @@ async def recover_password(email: str, user_repo: AsyncUserRepoDep) -> Message:
         subject=email_data.subject,
         html_content=email_data.html_content,
     )
+    
+    logger.info(f"✅ Email de recuperación enviado a: {email}")
     return Message(message="Password recovery email sent")
 
 
@@ -217,20 +232,27 @@ async def reset_password(user_repo: AsyncUserRepoDep, body: NewPassword) -> Mess
     }
     ```
     """
+    logger.info("🔄 Intento de restablecimiento de contraseña")
+    
     email = verify_password_reset_token(token=body.token)
     if not email:
+        logger.warning("❌ Token de recuperación inválido")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token"
         )
 
+    logger.info(f"🔍 Token verificado para email: {email}")
+    
     user = await user_repo.get_by_email(email=email)
     if not user:
+        logger.error(f"❌ Usuario no encontrado: {email}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="The user with this email does not exist in the system.",
         )
 
     if not user.is_active:
+        logger.warning(f"❌ Usuario inactivo intentó restablecer contraseña: {email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
@@ -240,6 +262,7 @@ async def reset_password(user_repo: AsyncUserRepoDep, body: NewPassword) -> Mess
     user_repo.session.add(user)
     await user_repo.session.commit()
 
+    logger.info(f"✅ Contraseña actualizada exitosamente para: {email}")
     return Message(message="Password updated successfully")
 
 
@@ -287,9 +310,12 @@ async def recover_password_html_content(email: str, user_repo: AsyncUserRepoDep)
     HTML completo del email con el token de recuperación
     ```
     """
+    logger.info(f"📧 Preview de email de recuperación solicitado para: {email}")
+    
     user = await user_repo.get_by_email(email=email)
 
     if not user:
+        logger.warning(f"❌ Usuario no encontrado para preview: {email}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="The user with this email does not exist in the system.",
@@ -300,6 +326,7 @@ async def recover_password_html_content(email: str, user_repo: AsyncUserRepoDep)
         email_to=user.email, email=email, token=password_reset_token
     )
 
+    logger.info(f"✅ HTML de email generado para: {email}")
     return HTMLResponse(
         content=email_data.html_content, headers={"subject:": email_data.subject}
     )

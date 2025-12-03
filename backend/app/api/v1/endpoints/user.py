@@ -1,4 +1,5 @@
 import uuid
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -24,6 +25,7 @@ from app.models.user import (
 from app.utils import send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
+logger = logging.getLogger(__name__)
 
 
 #######################################
@@ -46,6 +48,8 @@ async def read_users(
     skip: int = 0,
     limit: int = 100,
 ) -> UserListResponse:
+    logger.info(f"📋 Listando usuarios - skip: {skip}, limit: {limit}")
+    
     users = await repo.get_all(skip=skip, limit=limit)
     total = await repo.count()
 
@@ -53,6 +57,7 @@ async def read_users(
     page = (skip // limit) + 1 if limit > 0 else 1
     size = len(users)
 
+    logger.info(f"✅ Usuarios obtenidos: {size} de {total} total")
     return UserListResponse(data=users, total=total, page=page, size=size)
 
 
@@ -69,6 +74,8 @@ async def read_users_by_role(
     skip: int = 0,
     limit: int = 100,
 ) -> UserListResponse:
+    logger.info(f"🔍 Buscando usuarios por rol: {role.value} - skip: {skip}, limit: {limit}")
+    
     users = await repo.search(role, skip=skip, limit=limit)
     total = len(users)
 
@@ -76,6 +83,7 @@ async def read_users_by_role(
     page = (skip // limit) + 1 if limit > 0 else 1
     size = len(users)
 
+    logger.info(f"✅ Encontrados {total} usuarios con rol {role.value}")
     return UserListResponse(data=users, total=total, page=page, size=size)
 
 
@@ -104,23 +112,29 @@ async def create_user(
     - Rol válido
     - Solo desarrolladores pueden crear otros desarrolladores
     """
+    logger.info(f"👤 Intento de creación de usuario - Email: {user_in.email}, Rol: {user_in.role.value} por {current_user.email}")
+    
     if user_in.role == UserRole.DEVELOPER:
         # Solo desarrolladores pueden crear otros desarrolladores
         if current_user.role != UserRole.DEVELOPER:
+            logger.warning(f"❌ Usuario {current_user.email} (rol: {current_user.role.value}) intentó crear un DEVELOPER")
             raise HTTPException(
                 status_code=403,
                 detail="Solo usuarios con rol DEVELOPER pueden crear otros desarrolladores",
             )
     elif not current_user.is_superuser:
         # Si no es superuser (admin o developer), no puede crear usuarios
+        logger.warning(f"❌ Usuario {current_user.email} sin permisos intentó crear usuario")
         raise HTTPException(
             status_code=403, detail="No tienes permisos suficientes para crear usuarios"
         )
 
     try:
         user = await repo.create(user_in)
+        logger.info(f"✅ Usuario creado exitosamente: {user.email} con rol {user.role.value}")
 
         if settings.emails_enabled and user_in.email:
+            logger.info(f"📧 Enviando email de bienvenida a: {user_in.email}")
             # usando thread pool si send_email es sync
             import anyio
 
@@ -134,6 +148,7 @@ async def create_user(
         return user
 
     except ValueError as e:
+        logger.error(f"❌ Error al crear usuario {user_in.email}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -149,12 +164,16 @@ async def update_user_me_(
     """
     Update own user (async).
     """
+    logger.info(f"👤 Usuario {current_user.email} actualizando su propio perfil")
+    
     try:
         user_update_data = UserUpdate(**user_in.model_dump(exclude_unset=True))
         updated_user = await repo.update(db_user=current_user, data=user_update_data)
+        logger.info(f"✅ Perfil actualizado exitosamente para: {current_user.email}")
         return updated_user
 
     except ValueError as e:
+        logger.error(f"❌ Error al actualizar perfil de {current_user.email}: {str(e)}")
         raise HTTPException(status_code=409, detail=str(e))
 
 
@@ -170,15 +189,19 @@ async def update_password_me(
     """
     Update own password (async).
     """
+    logger.info(f"🔑 Usuario {current_user.email} cambiando su contraseña")
+    
     try:
         await repo.change_password(
             db_user=current_user,
             current_password=body.current_password,
             new_password=body.new_password,
         )
+        logger.info(f"✅ Contraseña actualizada exitosamente para: {current_user.email}")
         return Message(message="Password updated successfully")
 
     except ValueError as e:
+        logger.warning(f"❌ Error al cambiar contraseña para {current_user.email}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -192,6 +215,7 @@ async def read_user_me(*, current_user: CurrentUser) -> UserPublic:
     """
     Get current user.
     """
+    logger.info(f"👤 Usuario {current_user.email} consultando su propio perfil")
     return current_user
 
 
@@ -207,12 +231,16 @@ async def delete_user_me(
     """
     Delete own user (async).
     """
+    logger.info(f"🗑️ Usuario {current_user.email} solicitando eliminar su propia cuenta")
+    
     if current_user.is_superuser:
+        logger.warning(f"❌ Superusuario {current_user.email} intentó auto-eliminarse")
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
 
     await repo.delete(db_user=current_user)
+    logger.info(f"✅ Cuenta eliminada exitosamente: {current_user.email}")
     return Message(message="User deleted successfully")
 
 
@@ -231,23 +259,27 @@ async def register_user(
     """
     Create new user without the need to be logged in (async).
     """
+    logger.info(f"📝 Intento de registro de nuevo usuario: {user_in.email}")
+    
     allows_user_registration = await settings_service.aget(
         "ALLOWS_USER_REGISTRATION", default=False
     )
 
     if not allows_user_registration:
+        logger.warning(f"❌ Registro bloqueado - función deshabilitada para: {user_in.email}")
         return {"message": "El registro de usuarios está deshabilitado."}
 
     try:
         user_create = UserCreate(
             email=user_in.email,
             password=user_in.password,
-            full_name=user_in.full_name,
         )
         user = await repo.create(data=user_create)
+        logger.info(f"✅ Usuario registrado exitosamente: {user.email}")
         return user
 
     except ValueError as e:
+        logger.error(f"❌ Error al registrar usuario {user_in.email}: {str(e)}")
         raise HTTPException(
             status_code=400,
             detail=str(e),
@@ -266,18 +298,25 @@ async def read_user_by_id(
     """
     Get a specific user by id (async).
     """
+    logger.info(f"🔍 Usuario {current_user.email} consultando información de user_id: {user_id}")
+    
     user = await repo.get(user_id=user_id)
     if not user:
+        logger.warning(f"❌ Usuario no encontrado - ID: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
 
     if user == current_user:
+        logger.info(f"✅ Usuario consultando su propia información: {current_user.email}")
         return user
 
     if not current_user.is_superuser:
+        logger.warning(f"❌ Usuario {current_user.email} sin permisos para ver información de {user.email}")
         raise HTTPException(
             status_code=403,
             detail="The user doesn't have enough privileges",
         )
+    
+    logger.info(f"✅ Información de usuario {user.email} entregada a superusuario {current_user.email}")
     return user
 
 
@@ -300,8 +339,11 @@ async def update_user(
     """
     Update a user (async).
     """
+    logger.info(f"👤 Superusuario actualizando usuario ID: {user_id}")
+    
     db_user = await repo.get(user_id=user_id)
     if not db_user:
+        logger.warning(f"❌ Usuario no encontrado para actualizar - ID: {user_id}")
         raise HTTPException(
             status_code=404,
             detail="The user with this id does not exist in the system",
@@ -309,9 +351,11 @@ async def update_user(
 
     try:
         updated_user = await repo.update(db_user=db_user, data=user_in)
+        logger.info(f"✅ Usuario {db_user.email} actualizado exitosamente")
         return updated_user
 
     except ValueError as e:
+        logger.error(f"❌ Error al actualizar usuario {db_user.email}: {str(e)}")
         raise HTTPException(status_code=409, detail=str(e))
 
 
@@ -331,7 +375,10 @@ async def update_user_role(
     """
     Update a user's role (async).
     """
+    logger.info(f"🔐 Usuario {current_user.email} intentando cambiar rol de user_id {user_id} a {role.value}")
+    
     if not current_user.is_superuser:
+        logger.warning(f"❌ Usuario {current_user.email} sin permisos para cambiar roles")
         raise HTTPException(
             status_code=403,
             detail="The user doesn't have enough privileges",
@@ -339,10 +386,13 @@ async def update_user_role(
 
     user = await repo.get(user_id=user_id)
     if not user:
+        logger.warning(f"❌ Usuario no encontrado para cambio de rol - ID: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
 
+    logger.info(f"🔄 Cambiando rol de {user.email} de {user.role.value} a {role.value}")
     user_update = UserUpdate(role=role)
     updated_user = await repo.update(db_user=user, data=user_update)
+    logger.info(f"✅ Rol actualizado exitosamente para {user.email}")
     return updated_user
 
 
@@ -358,16 +408,22 @@ async def delete_user(
     """
     Delete a user (async).
     """
+    logger.info(f"🗑️ Superusuario {current_user.email} solicitando eliminar usuario ID: {user_id}")
+    
     user = await repo.get(user_id=user_id)
     if not user:
+        logger.warning(f"❌ Usuario no encontrado para eliminar - ID: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
 
     if user == current_user:
+        logger.warning(f"❌ Superusuario {current_user.email} intentó auto-eliminarse")
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
 
+    logger.info(f"🗑️ Eliminando usuario: {user.email}")
     await repo.delete(db_user=user)
+    logger.info(f"✅ Usuario {user.email} eliminado exitosamente")
     return Message(message="User deleted successfully")
 
 
@@ -383,6 +439,8 @@ async def search_users(
     """
     Search users by email or name (async).
     """
+    logger.info(f"🔍 Búsqueda de usuarios con término: '{search_term}' - skip: {skip}, limit: {limit}")
+    
     users = await repo.search(search_term=search_term, skip=skip, limit=limit)
     total = len(users)
 
@@ -390,6 +448,7 @@ async def search_users(
     page = (skip // limit) + 1 if limit > 0 else 1
     size = len(users)
 
+    logger.info(f"✅ Búsqueda completada: {size} usuarios encontrados")
     return UserListResponse(data=users, total=total, page=page, size=size)
 
 
@@ -405,14 +464,19 @@ async def activate_user(
     """
     Activate a user (async).
     """
+    logger.info(f"🔓 Superusuario {current_user.email} activando usuario ID: {user_id}")
+    
     if not current_user.is_superuser:
+        logger.warning(f"❌ Usuario {current_user.email} sin permisos para activar usuarios")
         raise HTTPException(status_code=403, detail="Not enough privileges")
 
     user = await repo.get(user_id=user_id)
     if not user:
+        logger.warning(f"❌ Usuario no encontrado para activar - ID: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
 
     activated_user = await repo.activate(db_user=user)
+    logger.info(f"✅ Usuario {user.email} activado exitosamente")
     return activated_user
 
 
@@ -423,15 +487,21 @@ async def deactivate_user(
     """
     Deactivate a user (async).
     """
+    logger.info(f"🔒 Superusuario {current_user.email} desactivando usuario ID: {user_id}")
+    
     if not current_user.is_superuser:
+        logger.warning(f"❌ Usuario {current_user.email} sin permisos para desactivar usuarios")
         raise HTTPException(status_code=403, detail="Not enough privileges")
 
     user = await repo.get(user_id=user_id)
     if not user:
+        logger.warning(f"❌ Usuario no encontrado para desactivar - ID: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
 
     if user == current_user:
+        logger.warning(f"❌ Superusuario {current_user.email} intentó auto-desactivarse")
         raise HTTPException(status_code=403, detail="Cannot deactivate yourself")
 
     deactivated_user = await repo.deactivate(db_user=user)
+    logger.info(f"✅ Usuario {user.email} desactivado exitosamente")
     return deactivated_user
