@@ -34,8 +34,10 @@ async def protect_internal_docs_middleware(request: Request, call_next):
     """
     Middleware para proteger la documentación interna.
 
-    Solo usuarios con rol DEVELOPER pueden acceder a /internal-docs/
-    Valida el token JWT y verifica el rol del usuario.
+    En desarrollo: Acceso público sin autenticación
+    En producción: Solo usuarios con rol DEVELOPER pueden acceder a /internal-docs/
+
+    Valida el token JWT y verifica el rol del usuario en producción.
 
     Soporta tres métodos de autenticación:
     1. Header Authorization: Bearer <token>
@@ -60,6 +62,14 @@ async def protect_internal_docs_middleware(request: Request, call_next):
 
     # Protege todo lo que empiece con /internal-docs
     if path.startswith("/internal-docs"):
+        # 🆓 En desarrollo/local, permitir acceso público sin autenticación
+        if settings.ENVIRONMENT in ("development", "local"):
+            logger.debug(
+                f"📖 Acceso público a documentación interna ({settings.ENVIRONMENT}): {path}"
+            )
+            return await call_next(request)
+
+        # 🔒 En producción, validar autenticación
         # Permitir archivos estáticos sin autenticación (CSS, JS, imágenes, fuentes, etc.)
         static_extensions = (
             ".css",

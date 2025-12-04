@@ -1,116 +1,167 @@
 # 📚 Documentación Interna de la Plataforma
 
-Bienvenido a la documentación técnica de Feature Models Platform.
-
-## 🎯 Documentación Principal
-
-### 📦 Órdenes y Flujos
-
-- **[Flujo de Órdenes](order-flow.md)** - Ciclo completo de una orden desde creación hasta entrega
-- **[Actualización de Estado de Órdenes](order-status-update.md)** - Transiciones de estado y validaciones
-- **[Referencia Rápida de Estados](order-status-quick-reference.md)** - Guía rápida de estados de orden
-- **[Asignación y Entrega](order-assignment-&-delivery-lifecycle.md)** - Gestión de asignaciones a trabajadores
-
-### 🍕 Productos y Menú
-
-- **[Workflows de Productos](product-workflows.md)** - Gestión completa de productos
-- **[Guía de Actualización de Productos](product-update-guide.md)** - Documentación técnica del endpoint PATCH de productos
-- **[Gestión Batch de Imágenes](product-images-batch-guide.md)** - Upload y delete múltiple de imágenes
-- **[Addons (Complementos)](addons.md)** - Sistema de ingredientes adicionales
-- **[Pizzas Mitad y Mitad](half-and-half-pizzas.md)** - Configuración de pizzas personalizadas
-
-### 🤖 Agente de texto
-
-- **[VAPI Integration](vapi.md)** - Integración con asistente de texto
-- **[Estrategia de Resolución de Productos](vapi-product-resolution-strategy.md)** - Cómo manejar ambigüedad en nombres de productos
-
-### 💰 Ofertas y Promociones
-
-- **[Disponibilidad de Ofertas](offer_availability_feature.md)** - Control de disponibilidad
-- **[Control de Acceso a Ofertas](offer_endpoints_access_control.md)** - Permisos y seguridad
-- **[Validación de Productos en Ofertas](offer_product_uniqueness_validation.md)** - Reglas de negocio
-
-### 👥 Usuarios y Perfiles
-
-- **[Endpoints de Perfiles](profiles-endpoints.md)** - API de perfiles de clientes y trabajadores
-- **[API Keys](api_keys.md)** - Sistema de autenticación con claves API
-
-### 🛠️ Configuración y Utilidades
-
-- **[Comandos](commands.md)** - Comandos útiles del proyecto
-- **[Base de Datos](db.md)** - Configuración y gestión de BD
-- **[Logging Guide](logging-guide.md)** - Sistema de logs y debugging
-- **[Documentación](docs.md)** - Generación y gestión de docs
-- **[Campo is_pickup](is_pickup_field.md)** - Funcionalidad de recoger en tienda
-
-### 📖 Meta-Documentación
-
-- **[Guía Rápida de Scripts](scripts-guide.md)** - ⭐ **Tabla de referencia de todos los scripts**
-- **[Workflow de Despliegue](deployment-workflow.md)** - Proceso completo de despliegue
-- **[Flujo de Trabajo de Documentación](documentation-workflow.md)** - Cómo mantener esta documentación actualizada
-- **[Seguridad de Documentación Interna](internal-docs-security.md)** - Acceso y autenticación
-- **[Despliegue de Docs en Producción](production-docs-deployment.md)** - Configuración de producción
-
-## 🔧 Herramientas y Scripts
-
-### Scripts de Validación
-
-**`scripts/validate_docs_config.sh`** - Validar configuración de documentación antes de desplegar
-
-```bash
-# Ejecutar antes de desplegar a producción
-bash scripts/validate_docs_config.sh
-```
-
-Este script verifica:
-
-- ✅ Carpetas de documentación existen
-- ✅ Dockerfile tiene las copias correctas
-- ✅ Docker Compose tiene volúmenes montados
-- ✅ Scripts de build están configurados
-- ✅ Middleware de protección está implementado
-- ✅ Rol DEVELOPER está configurado
-
-**Cuándo ejecutar:**
-
-- Antes de hacer commit de cambios en docs/
-- Antes de desplegar a producción
-- Después de actualizar configuración de Docker
-
-## 🚀 Inicio Rápido
-
-### Para Desarrolladores Backend
-
-1. Revisa el [Flujo de Órdenes](order-flow.md) para entender el proceso principal
-2. Consulta [Workflows de Productos](product-workflows.md) para gestión de menú
-3. Lee la [Logging Guide](logging-guide.md) para debugging
-
-### Para Desarrolladores Frontend
-
-1. Revisa los [Endpoints de Perfiles](profiles-endpoints.md) para la API de usuarios
-2. Consulta [API Keys](api_keys.md) para autenticación
-3. Lee [Actualización de Estado de Órdenes](order-status-update.md) para el tracking
-
-### Para DevOps
-
-1. Revisa [Comandos](commands.md) para operaciones comunes
-2. Consulta [Base de Datos](db.md) para configuración
-3. Lee [Flujo de Trabajo de Documentación](documentation-workflow.md) para CI/CD
-
-## 🔍 Búsqueda
-
-Usa la barra de búsqueda en la parte superior para encontrar información específica en toda la documentación.
-
-## 📝 Contribuir
-
-Para actualizar esta documentación:
-
-1. Edita archivos en la carpeta `docs/`
-2. Ejecuta: `bash scripts/build_docs.sh`
-3. Verifica los cambios en `http://localhost:8000/internal-docs/`
-
-Consulta la [guía completa de documentación](documentation-workflow.md) para más detalles.
+Bienvenido a la documentación técnica completa del proyecto **Feature Model**. Esta documentación está organizada en tres secciones principales que cubren todos los aspectos del sistema.
 
 ---
 
-**Última actualización:** {{ git.date }}
+## 🚀 Acceso Rápido
+
+### 📦 Proyecto (Root)
+
+Documentación general del proyecto, arquitectura global y configuración de despliegue.
+
+[:octicons-arrow-right-24: **Explorar Documentación del Proyecto**](root_index.md){ .md-button .md-button--primary }
+
+---
+
+### ⚙️ Backend
+
+API, modelos de datos, servicios, migraciones y documentación técnica del backend.
+
+[:octicons-arrow-right-24: **Explorar Documentación del Backend**](backend_README.md){ .md-button .md-button--primary }
+
+---
+
+### 🎨 Frontend
+
+Componentes, páginas, hooks y documentación del frontend (En construcción).
+
+[:octicons-arrow-right-24: **Explorar Documentación del Frontend**](#frontend){ .md-button }
+
+---
+
+## 📖 Estructura de la Documentación
+
+### 📦 Proyecto (Root)
+
+Documentación de nivel superior que abarca:
+
+- **Arquitectura**: Estructura de carpetas, base de datos, arquitectura de despliegue
+- **Configuración**: Entornos de desarrollo y producción
+- **Requisitos**: Requisitos funcionales y no funcionales del sistema
+
+**Archivos principales:**
+
+- [Índice del Proyecto](root_index.md)
+- [README](root_README.md)
+- [Requisitos](root_requirements.md)
+- [Arquitectura - Estructura de Carpetas](root_1_architecture_folder_structure.md)
+- [Arquitectura - Base de Datos](root_1_architecture_db.md)
+- [Arquitectura - Despliegue](root_1_architecture_DEPLOYMENT_ARCHITECTURE.md)
+- [Configuración - Desarrollo](root_2_configuration_development.md)
+- [Configuración - Despliegue](root_2_configuration_deployment.md)
+
+---
+
+### ⚙️ Backend
+
+Documentación técnica del backend (FastAPI + PostgreSQL):
+
+**Core:**
+
+- [README Backend](backend_README.md) - Introducción y setup
+- [Comandos](backend_commands.md) - Comandos útiles de desarrollo
+- [Base de Datos](backend_db.md) - Esquema y migraciones
+- [Arquitectura S3](backend_s3_architecture.md) - Gestión de archivos
+
+**Refactorings y Mejoras:**
+
+- [Cambios Educativos](backend_CAMBIOS_EDUCATIVOS.md)
+- [Login Endpoints Refactor](backend_LOGIN_ENDPOINTS_REFACTOR.md)
+- [Resumen Refactor Login](backend_LOGIN_REFACTOR_SUMMARY.md)
+- [Maestría Ciencia de Datos](backend_MAESTRIA_CIENCIA_DATOS.md)
+- [Orden de Migraciones](backend_MIGRATION_ORDER_FIX.md)
+- [Servicio Prestart](backend_PRESTART_SERVICE.md)
+
+**Servicios S3:**
+
+- [Refactoring S3](backend_README_S3_REFACTORING.md)
+- [Ejemplos S3 Dependencies](backend_s3_dependency_examples.md)
+- [Cambios Servicio S3](backend_s3_service_changes.md)
+- [Uso Servicio S3](backend_s3_service_usage.md)
+
+**Gestión de Usuarios:**
+
+- [Migración User Endpoints](backend_user_endpoints_migration.md)
+- [Roles de Usuario](backend_user_role.md)
+- [Sugerencias de Código](backend_suggestions_code.md)
+- [Requisitos Funcionales](backend_rf.md)
+
+---
+
+### 🎨 Frontend
+
+Documentación del frontend (Next.js + TypeScript):
+
+!!! info "En construcción"
+La documentación del frontend está actualmente en desarrollo. Próximamente se agregarán documentos sobre componentes, hooks, páginas y servicios.
+
+---
+
+## 🔧 Características de esta Documentación
+
+Esta documentación incluye:
+
+- ✅ **Búsqueda en tiempo real** - Busca en todo el contenido
+- ✅ **Modo oscuro/claro** - Cambia el tema según tu preferencia
+- ✅ **Navegación por pestañas** - Organización clara por secciones
+- ✅ **Código con resaltado** - Syntax highlighting para múltiples lenguajes
+- ✅ **Diagramas Mermaid** - Visualización de flujos y arquitecturas
+- ✅ **Responsive** - Optimizada para desktop y móvil
+
+---
+
+## 📊 Tecnologías Documentadas
+
+=== "Backend"
+
+    - **Framework:** FastAPI 0.104+
+    - **Base de Datos:** PostgreSQL 17
+    - **ORM:** SQLModel + SQLAlchemy
+    - **Cache:** Redis
+    - **Storage:** MinIO (S3 compatible)
+    - **Tasks:** Celery
+    - **Migraciones:** Alembic
+
+=== "Frontend"
+
+    - **Framework:** Next.js 14+
+    - **Lenguaje:** TypeScript
+    - **UI Library:** React
+    - **Estilos:** CSS Modules / Tailwind
+    - **State:** Zustand / React Query
+
+=== "DevOps"
+
+    - **Containerización:** Docker + Docker Compose
+    - **CI/CD:** GitHub Actions
+    - **Documentación:** MkDocs Material
+    - **Linting:** ESLint, Ruff, MyPy
+
+---
+
+## 🆘 Ayuda y Soporte
+
+Si encuentras algún problema o tienes sugerencias:
+
+1. 📝 **Documentación incompleta:** Abre un issue en GitHub
+2. 🐛 **Bug en la aplicación:** Reporta en el repositorio
+3. 💡 **Sugerencia de mejora:** Crea una discusión en GitHub
+
+---
+
+## 📌 Enlaces Útiles
+
+- [:fontawesome-brands-github: Repositorio GitHub](https://github.com/Jose-luis-echemendia/characteristic_model)
+- [:material-api: API Docs (Swagger)]({{ config.extra.domain }}/docs)
+- [:material-api: API Docs (ReDoc)]({{ config.extra.domain }}/redoc)
+- [:material-application: Dashboard Frontend]({{ config.extra.frontend_url }})
+
+---
+
+<div align="center">
+
+**Feature Model Platform** | Documentación Interna  
+Última actualización: {{ git.date }}
+
+</div>

@@ -1,27 +1,145 @@
 site_name: Documentación Interna de la Plataforma
+site_description: Documentación técnica completa del proyecto - Root, Backend y Frontend
+site_author: Equipo de Desarrollo
+site_url: !ENV [DOCS_URL, 'http://localhost:8000/internal-docs/']
+use_directory_urls: true
+
 theme:
   name: material
+  language: es
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Cambiar a modo oscuro
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Cambiar a modo claro
   features:
     - navigation.instant
     - navigation.sections
     - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
     - search.suggest
     - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+
 nav:
-  - Inicio: index.md
+  - 🏠 Inicio: index.md
+  
+  - 📦 Proyecto (Root):
+      - Índice: root_index.md
+      - README: root_README.md
+      - Requisitos: root_requirements.md
+      - Arquitectura:
+          - Estructura de Carpetas: root_1_architecture_folder_structure.md
+          - Base de Datos: root_1_architecture_db.md
+          - Arquitectura de Despliegue: root_1_architecture_DEPLOYMENT_ARCHITECTURE.md
+      - Configuración:
+          - Desarrollo: root_2_configuration_development.md
+          - Despliegue: root_2_configuration_deployment.md
+  
+  - ⚙️ Backend:
+      - Índice: backend_README.md
+      - Comandos: backend_commands.md
+      - Base de Datos: backend_db.md
+      - Arquitectura S3: backend_s3_architecture.md
+      - Documentación Técnica:
+          - Cambios Educativos: backend_CAMBIOS_EDUCATIVOS.md
+          - Login Endpoints Refactor: backend_LOGIN_ENDPOINTS_REFACTOR.md
+          - Resumen Refactor Login: backend_LOGIN_REFACTOR_SUMMARY.md
+          - Maestría Ciencia de Datos: backend_MAESTRIA_CIENCIA_DATOS.md
+          - Orden de Migraciones: backend_MIGRATION_ORDER_FIX.md
+          - Servicio Prestart: backend_PRESTART_SERVICE.md
+          - Refactoring S3: backend_README_S3_REFACTORING.md
+          - Ejemplos S3 Dependencies: backend_s3_dependency_examples.md
+          - Cambios Servicio S3: backend_s3_service_changes.md
+          - Uso Servicio S3: backend_s3_service_usage.md
+          - Sugerencias de Código: backend_suggestions_code.md
+          - Migración User Endpoints: backend_user_endpoints_migration.md
+          - Roles de Usuario: backend_user_role.md
+          - Requisitos Funcionales: backend_rf.md
+  
+  - 🎨 Frontend:
+      - Índice: frontend_README.md
 
 markdown_extensions:
   - toc:
       permalink: true
+      toc_depth: 3
   - admonition
-  - codehilite
+  - codehilite:
+      guess_lang: false
   - footnotes
   - tables
+  - attr_list
+  - def_list
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.critic
   - pymdownx.details
+  # Emoji deshabilitado temporalmente por problemas de compatibilidad
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: Jose-luis-echemendia
+      repo: characteristic_model
+  - pymdownx.smartsymbols
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
-          # Formatter function for the fence; use string reference which MkDocs/PyMdown accepts
-          format: "pymdownx.superfences.fence_code_format"
-  - pymdownx.highlight
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+plugins:
+  - search:
+      lang: es
+  - tags
+
+extra:
+  # URLs dinámicas basadas en variables de entorno
+  domain: !ENV [DOMAIN, 'http://localhost:8000']
+  frontend_url: !ENV [FRONTEND_URL, 'http://localhost:3000']
+  
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Jose-luis-echemendia/feature_model
+      name: GitHub Repository
+  
+  generator: true
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/extra.js

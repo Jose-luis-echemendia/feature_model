@@ -43,8 +43,22 @@ COPY ./pyproject.toml ./uv.lock ./alembic.ini /app/
 # copy backend sistem files
 COPY ./app /app/app
 
-# Copy documentation folders for internal docs (only backend docs)
-COPY ./docs /app/docs
+# =================================================================================
+#          --- COPIA DE LAS 3 CARPETAS DE DOCUMENTACIÓN ---
+# =================================================================================
+
+# Copiar documentación del ROOT (docs/ en la raíz del proyecto)
+# Nota: En el contexto de build, ../docs NO funciona, por eso usamos volúmenes en docker-compose
+# En producción, estas carpetas se copiarán explícitamente
+
+# Copiar documentación del BACKEND (backend/docs/)
+COPY ./docs /app/backend_docs
+
+# Las carpetas root_docs y frontend_docs se montan via volúmenes en docker-compose
+# para desarrollo, y se copian en producción mediante CI/CD
+
+# Crear carpeta de internal_docs si no existe
+RUN mkdir -p /app/internal_docs/docs
 
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers

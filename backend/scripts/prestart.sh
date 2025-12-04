@@ -11,7 +11,10 @@ echo "👤 User: $(whoami)"
 echo "📂 Working directory: $(pwd)"
 echo ""
 
-# Let the DB start
+# ======================================================
+#           --- Let the DB start ---
+# ======================================================
+
 echo "⏳ Step 1/4: Waiting for database to be ready..."
 python app/backend_pre_start.py
 if [ $? -eq 0 ]; then
@@ -22,7 +25,10 @@ else
 fi
 echo ""
 
-# Run migrations
+# ======================================================
+#             --- Run migrations ---
+# ======================================================
+
 echo "🔄 Step 2/4: Running database migrations..."
 echo "📝 Alembic command: alembic upgrade head"
 alembic upgrade head
@@ -34,7 +40,10 @@ else
 fi
 echo ""
 
-# Sync documentation
+# ======================================================
+#             --- Sync documentation ---   
+# ======================================================
+
 echo "📚 Step 3/4: Building documentation..."
 if [ -f "root_scripts/build_docs.sh" ]; then
     bash root_scripts/build_docs.sh
@@ -56,7 +65,10 @@ else
 fi
 echo ""
 
-# Create initial data in DB
+# ======================================================
+#           --- Create initial data in DB ---
+# ======================================================
+
 echo "📊 Step 4/4: 🌱 Iniciando Database Seeding (Entorno: ${ENVIRONMENT:-local})..."
 python -m app.seed.main
 if [ $? -eq 0 ]; then
