@@ -1,2 +1,12 @@
-from .sync import UserRepositorySync, DomainRepositorySync
-from .a_sync import UserRepositoryAsync, DomainRepositoryAsync
+from .sync import (
+    UserRepositorySync,
+    DomainRepositorySync,
+    FeatureModelRepositorySync,
+    FeatureRepositorySync,
+)
+from .a_sync import (
+    UserRepositoryAsync,
+    DomainRepositoryAsync,
+    FeatureModelRepositoryAsync,
+    FeatureRepositoryAsync,
+)

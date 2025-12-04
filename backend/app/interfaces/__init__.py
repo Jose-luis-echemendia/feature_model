@@ -1,2 +1,12 @@
-from .a_sync import IUserRepositoryAsync, IDomainRepositoryAsync
-from .sync import IUserRepositorySync, IDomainRepositorySync
+from .a_sync import (
+    IUserRepositoryAsync,
+    IDomainRepositoryAsync,
+    IFeatureModelRepositoryAsync,
+    IFeatureRepositoryAsync,
+)
+from .sync import (
+    IUserRepositorySync,
+    IDomainRepositorySync,
+    IFeatureModelRepositorySync,
+    IFeatureRepositorySync,
+)
