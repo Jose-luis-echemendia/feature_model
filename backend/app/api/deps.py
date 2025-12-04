@@ -14,7 +14,6 @@ from app.models.common import TokenPayload
 from app.models.user import User
 from app.enums import UserRole
 from app.core import security
-from app import crud
 
 from app.core.config import settings
 from app.core.db import engine, a_engine
@@ -67,91 +66,6 @@ def get_db() -> Generator[Session, None, None]:
 
 
 SessionDep = Annotated[Session, Depends(get_db)]
-
-
-# ========================================================================
-#     --- DEPENDENCIAS PARA USUARIOS AUTENTICADOS ---
-# ========================================================================
-
-
-def get_current_user(session: SessionDep, token: TokenDep) -> User:
-    """
-    Obtener usuario actual basado en el token JWT.
-
-    Args:
-        session: Sesión de base de datos
-        token: Token JWT
-
-    Returns:
-        User: Usuario autenticado
-
-    Raises:
-        HTTPException: Si el token es inválido, expirado o el usuario no existe/inactivo
-    """
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    try:
-        payload = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[security.ALGORITHM],
-            options={"verify_exp": True},  # Asegurar verificación de expiración
-        )
-        token_data = TokenPayload(**payload)
-
-    except ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except (InvalidTokenError, ValidationError) as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # Usar el CRUD en lugar de session.get directamente
-    user = crud.get_user(session=session, user_id=token_data.sub)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-        )
-
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Inactive user",
-        )
-
-    return user
-
-
-def get_optional_user(
-    session: SessionDep, token: OptionalTokenDep = None
-) -> User | None:
-    """
-    Obtener usuario actual si existe token, sino retornar None.
-    Útil para endpoints que funcionan tanto para usuarios autenticados como anónimos.
-    """
-    if not token:
-        return None
-
-    try:
-        return get_current_user(session=session, token=token)
-    except HTTPException:
-        return None
-
-
-CurrentUser = Annotated[User, Depends(get_current_user)]
-OptionalUser = Annotated[User | None, Depends(get_optional_user)]
 
 
 # ========================================================================
@@ -214,6 +128,92 @@ AsyncFeatureModelRepoDep = Annotated[
 ]
 FeatureRepoDep = Annotated[FeatureRepositorySync, Depends(get_feature_repo)]
 AsyncFeatureRepoDep = Annotated[FeatureRepositoryAsync, Depends(aget_feature_repo)]
+
+
+# ========================================================================
+#     --- DEPENDENCIAS PARA USUARIOS AUTENTICADOS ---
+# ========================================================================
+
+
+def get_current_user(session: SessionDep, token: TokenDep) -> User:
+    """
+    Obtener usuario actual basado en el token JWT.
+
+    Args:
+        session: Sesión de base de datos
+        token: Token JWT
+
+    Returns:
+        User: Usuario autenticado
+
+    Raises:
+        HTTPException: Si el token es inválido, expirado o el usuario no existe/inactivo
+    """
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[security.ALGORITHM],
+            options={"verify_exp": True},  # Asegurar verificación de expiración
+        )
+        token_data = TokenPayload(**payload)
+
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except (InvalidTokenError, ValidationError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Usar el repositorio para obtener el usuario
+    user_repo = UserRepositorySync(session)
+    user = user_repo.get(user_id=token_data.sub)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Inactive user",
+        )
+
+    return user
+
+
+def get_optional_user(
+    session: SessionDep, token: OptionalTokenDep = None
+) -> User | None:
+    """
+    Obtener usuario actual si existe token, sino retornar None.
+    Útil para endpoints que funcionan tanto para usuarios autenticados como anónimos.
+    """
+    if not token:
+        return None
+
+    try:
+        return get_current_user(token=token)
+    except HTTPException:
+        return None
+
+
+CurrentUser = Annotated[User, Depends(get_current_user)]
+OptionalUser = Annotated[User | None, Depends(get_optional_user)]
 
 
 # --- VERSIONES ASÍNCRONAS DE AUTENTICACIÓN ---
@@ -381,12 +381,17 @@ def get_developer_user() -> Callable[[CurrentUser], User]:
 
 def get_admin_user() -> Callable[[CurrentUser], User]:
     """Dependencia para usuarios administradores."""
-    return role_required([UserRole.ADMIN])
+    return role_required([UserRole.ADMIN, UserRole.DEVELOPER])
 
 
 def get_model_designer_user() -> Callable[[CurrentUser], User]:
     """Dependencia para usuarios diseñadores de modelos."""
     return role_required([UserRole.MODEL_DESIGNER, UserRole.ADMIN])
+
+
+def get_editor_user() -> Callable[[CurrentUser], User]:
+    """Dependencia para usuarios editores"""
+    return role_required([UserRole.MODEL_EDITOR, UserRole.ADMIN])
 
 
 def get_configurator_user() -> Callable[[CurrentUser], User]:
@@ -399,14 +404,22 @@ def get_viewer_user() -> Callable[[CurrentUser], User]:
     return role_required([UserRole.VIEWER, UserRole.ADMIN])
 
 
+def get_reviewer_user() -> Callable[[CurrentUser], User]:
+    """Dependencia para usuarios revisores"""
+    return role_required([UserRole.REVIEWER, UserRole.ADMIN])
+
+
 def get_verified_user() -> Callable[[CurrentUser], User]:
     """Dependencia para usuarios verificados (no guests)."""
     return role_required(
         [
+            UserRole.DEVELOPER,
             UserRole.ADMIN,
             UserRole.MODEL_DESIGNER,
+            UserRole.MODEL_EDITOR,
             UserRole.CONFIGURATOR,
             UserRole.VIEWER,
+            UserRole.REVIEWER,
         ]
     )
 
