@@ -50,6 +50,7 @@ async def read_users(
 ) -> UserListResponse:
     logger.info(f"📋 Listando usuarios - skip: {skip}, limit: {limit}")
 
+    
     users = await repo.get_all(skip=skip, limit=limit)
     total = await repo.count()
 
@@ -74,10 +75,8 @@ async def read_users_by_role(
     skip: int = 0,
     limit: int = 100,
 ) -> UserListResponse:
-    logger.info(
-        f"🔍 Buscando usuarios por rol: {role.value} - skip: {skip}, limit: {limit}"
-    )
-
+    logger.info(f"🔍 Buscando usuarios por rol: {role.value} - skip: {skip}, limit: {limit}")
+    
     users = await repo.search(role, skip=skip, limit=limit)
     total = len(users)
 
@@ -114,34 +113,26 @@ async def create_user(
     - Rol válido
     - Solo desarrolladores pueden crear otros desarrolladores
     """
-    logger.info(
-        f"👤 Intento de creación de usuario - Email: {user_in.email}, Rol: {user_in.role.value} por {current_user.email}"
-    )
-
+    logger.info(f"👤 Intento de creación de usuario - Email: {user_in.email}, Rol: {user_in.role.value} por {current_user.email}")
+    
     if user_in.role == UserRole.DEVELOPER:
         # Solo desarrolladores pueden crear otros desarrolladores
         if current_user.role != UserRole.DEVELOPER:
-            logger.warning(
-                f"❌ Usuario {current_user.email} (rol: {current_user.role.value}) intentó crear un DEVELOPER"
-            )
+            logger.warning(f"❌ Usuario {current_user.email} (rol: {current_user.role.value}) intentó crear un DEVELOPER")
             raise HTTPException(
                 status_code=403,
                 detail="Solo usuarios con rol DEVELOPER pueden crear otros desarrolladores",
             )
     elif not current_user.is_superuser:
         # Si no es superuser (admin o developer), no puede crear usuarios
-        logger.warning(
-            f"❌ Usuario {current_user.email} sin permisos intentó crear usuario"
-        )
+        logger.warning(f"❌ Usuario {current_user.email} sin permisos intentó crear usuario")
         raise HTTPException(
             status_code=403, detail="No tienes permisos suficientes para crear usuarios"
         )
 
     try:
         user = await repo.create(user_in)
-        logger.info(
-            f"✅ Usuario creado exitosamente: {user.email} con rol {user.role.value}"
-        )
+        logger.info(f"✅ Usuario creado exitosamente: {user.email} con rol {user.role.value}")
 
         if settings.emails_enabled and user_in.email:
             logger.info(f"📧 Enviando email de bienvenida a: {user_in.email}")
@@ -175,7 +166,7 @@ async def update_user_me_(
     Update own user (async).
     """
     logger.info(f"👤 Usuario {current_user.email} actualizando su propio perfil")
-
+    
     try:
         user_update_data = UserUpdate(**user_in.model_dump(exclude_unset=True))
         updated_user = await repo.update(db_user=current_user, data=user_update_data)
@@ -200,22 +191,18 @@ async def update_password_me(
     Update own password (async).
     """
     logger.info(f"🔑 Usuario {current_user.email} cambiando su contraseña")
-
+    
     try:
         await repo.change_password(
             db_user=current_user,
             current_password=body.current_password,
             new_password=body.new_password,
         )
-        logger.info(
-            f"✅ Contraseña actualizada exitosamente para: {current_user.email}"
-        )
+        logger.info(f"✅ Contraseña actualizada exitosamente para: {current_user.email}")
         return Message(message="Password updated successfully")
 
     except ValueError as e:
-        logger.warning(
-            f"❌ Error al cambiar contraseña para {current_user.email}: {str(e)}"
-        )
+        logger.warning(f"❌ Error al cambiar contraseña para {current_user.email}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -246,7 +233,7 @@ async def delete_user_me(
     Delete own user (async).
     """
     logger.info(f"🗑️ Usuario {current_user.email} solicitando eliminar su propia cuenta")
-
+    
     if current_user.is_superuser:
         logger.warning(f"❌ Superusuario {current_user.email} intentó auto-eliminarse")
         raise HTTPException(
@@ -274,15 +261,13 @@ async def register_user(
     Create new user without the need to be logged in (async).
     """
     logger.info(f"📝 Intento de registro de nuevo usuario: {user_in.email}")
-
+    
     allows_user_registration = await settings_service.aget(
         "ALLOWS_USER_REGISTRATION", default=False
     )
 
     if not allows_user_registration:
-        logger.warning(
-            f"❌ Registro bloqueado - función deshabilitada para: {user_in.email}"
-        )
+        logger.warning(f"❌ Registro bloqueado - función deshabilitada para: {user_in.email}")
         return {"message": "El registro de usuarios está deshabilitado."}
 
     try:
@@ -314,33 +299,25 @@ async def read_user_by_id(
     """
     Get a specific user by id (async).
     """
-    logger.info(
-        f"🔍 Usuario {current_user.email} consultando información de user_id: {user_id}"
-    )
-
+    logger.info(f"🔍 Usuario {current_user.email} consultando información de user_id: {user_id}")
+    
     user = await repo.get(user_id=user_id)
     if not user:
         logger.warning(f"❌ Usuario no encontrado - ID: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
 
     if user == current_user:
-        logger.info(
-            f"✅ Usuario consultando su propia información: {current_user.email}"
-        )
+        logger.info(f"✅ Usuario consultando su propia información: {current_user.email}")
         return user
 
     if not current_user.is_superuser:
-        logger.warning(
-            f"❌ Usuario {current_user.email} sin permisos para ver información de {user.email}"
-        )
+        logger.warning(f"❌ Usuario {current_user.email} sin permisos para ver información de {user.email}")
         raise HTTPException(
             status_code=403,
             detail="The user doesn't have enough privileges",
         )
-
-    logger.info(
-        f"✅ Información de usuario {user.email} entregada a superusuario {current_user.email}"
-    )
+    
+    logger.info(f"✅ Información de usuario {user.email} entregada a superusuario {current_user.email}")
     return user
 
 
@@ -364,7 +341,7 @@ async def update_user(
     Update a user (async).
     """
     logger.info(f"👤 Superusuario actualizando usuario ID: {user_id}")
-
+    
     db_user = await repo.get(user_id=user_id)
     if not db_user:
         logger.warning(f"❌ Usuario no encontrado para actualizar - ID: {user_id}")
@@ -399,14 +376,10 @@ async def update_user_role(
     """
     Update a user's role (async).
     """
-    logger.info(
-        f"🔐 Usuario {current_user.email} intentando cambiar rol de user_id {user_id} a {role.value}"
-    )
-
+    logger.info(f"🔐 Usuario {current_user.email} intentando cambiar rol de user_id {user_id} a {role.value}")
+    
     if not current_user.is_superuser:
-        logger.warning(
-            f"❌ Usuario {current_user.email} sin permisos para cambiar roles"
-        )
+        logger.warning(f"❌ Usuario {current_user.email} sin permisos para cambiar roles")
         raise HTTPException(
             status_code=403,
             detail="The user doesn't have enough privileges",
@@ -436,10 +409,8 @@ async def delete_user(
     """
     Delete a user (async).
     """
-    logger.info(
-        f"🗑️ Superusuario {current_user.email} solicitando eliminar usuario ID: {user_id}"
-    )
-
+    logger.info(f"🗑️ Superusuario {current_user.email} solicitando eliminar usuario ID: {user_id}")
+    
     user = await repo.get(user_id=user_id)
     if not user:
         logger.warning(f"❌ Usuario no encontrado para eliminar - ID: {user_id}")
@@ -469,10 +440,8 @@ async def search_users(
     """
     Search users by email or name (async).
     """
-    logger.info(
-        f"🔍 Búsqueda de usuarios con término: '{search_term}' - skip: {skip}, limit: {limit}"
-    )
-
+    logger.info(f"🔍 Búsqueda de usuarios con término: '{search_term}' - skip: {skip}, limit: {limit}")
+    
     users = await repo.search(search_term=search_term, skip=skip, limit=limit)
     total = len(users)
 
@@ -497,11 +466,9 @@ async def activate_user(
     Activate a user (async).
     """
     logger.info(f"🔓 Superusuario {current_user.email} activando usuario ID: {user_id}")
-
+    
     if not current_user.is_superuser:
-        logger.warning(
-            f"❌ Usuario {current_user.email} sin permisos para activar usuarios"
-        )
+        logger.warning(f"❌ Usuario {current_user.email} sin permisos para activar usuarios")
         raise HTTPException(status_code=403, detail="Not enough privileges")
 
     user = await repo.get(user_id=user_id)
@@ -521,14 +488,10 @@ async def deactivate_user(
     """
     Deactivate a user (async).
     """
-    logger.info(
-        f"🔒 Superusuario {current_user.email} desactivando usuario ID: {user_id}"
-    )
-
+    logger.info(f"🔒 Superusuario {current_user.email} desactivando usuario ID: {user_id}")
+    
     if not current_user.is_superuser:
-        logger.warning(
-            f"❌ Usuario {current_user.email} sin permisos para desactivar usuarios"
-        )
+        logger.warning(f"❌ Usuario {current_user.email} sin permisos para desactivar usuarios")
         raise HTTPException(status_code=403, detail="Not enough privileges")
 
     user = await repo.get(user_id=user_id)
@@ -537,9 +500,7 @@ async def deactivate_user(
         raise HTTPException(status_code=404, detail="User not found")
 
     if user == current_user:
-        logger.warning(
-            f"❌ Superusuario {current_user.email} intentó auto-desactivarse"
-        )
+        logger.warning(f"❌ Superusuario {current_user.email} intentó auto-desactivarse")
         raise HTTPException(status_code=403, detail="Cannot deactivate yourself")
 
     deactivated_user = await repo.deactivate(db_user=user)

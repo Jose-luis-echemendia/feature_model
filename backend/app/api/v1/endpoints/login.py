@@ -10,7 +10,6 @@ from app.core.config import settings
 from app.core.security import get_password_hash
 from app.api.deps import (
     AsyncCurrentUser,
-    AsyncSessionDep,
     AsyncUserRepoDep,
     get_current_active_superuser,
 )
@@ -70,9 +69,7 @@ async def login_access_token(
     )
 
     if not user:
-        logger.warning(
-            f"❌ Login fallido - Credenciales incorrectas para: {login_data.email}"
-        )
+        logger.warning(f"❌ Login fallido - Credenciales incorrectas para: {login_data.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect email or password",
@@ -90,10 +87,8 @@ async def login_access_token(
             user.id, expires_delta=access_token_expires, role=user.role.value
         )
     )
-
-    logger.info(
-        f"✅ Login exitoso para: {login_data.email} (ID: {user.id}, Rol: {user.role})"
-    )
+    
+    logger.info(f"✅ Login exitoso para: {login_data.email} (ID: {user.id}, Rol: {user.role})")
     return token
 
 
@@ -134,9 +129,7 @@ async def test_token(current_user: AsyncCurrentUser) -> Any:
     }
     ```
     """
-    logger.info(
-        f"🔍 Validación de token para usuario: {current_user.email} (ID: {current_user.id})"
-    )
+    logger.info(f"🔍 Validación de token para usuario: {current_user.email} (ID: {current_user.id})")
     return current_user
 
 
@@ -173,7 +166,7 @@ async def recover_password(email: str, user_repo: AsyncUserRepoDep) -> Message:
     ```
     """
     logger.info(f"🔑 Solicitud de recuperación de contraseña para: {email}")
-
+    
     user = await user_repo.get_by_email(email=email)
 
     if not user:
@@ -192,7 +185,7 @@ async def recover_password(email: str, user_repo: AsyncUserRepoDep) -> Message:
         subject=email_data.subject,
         html_content=email_data.html_content,
     )
-
+    
     logger.info(f"✅ Email de recuperación enviado a: {email}")
     return Message(message="Password recovery email sent")
 
@@ -239,7 +232,7 @@ async def reset_password(user_repo: AsyncUserRepoDep, body: NewPassword) -> Mess
     ```
     """
     logger.info("🔄 Intento de restablecimiento de contraseña")
-
+    
     email = verify_password_reset_token(token=body.token)
     if not email:
         logger.warning("❌ Token de recuperación inválido")
@@ -248,7 +241,7 @@ async def reset_password(user_repo: AsyncUserRepoDep, body: NewPassword) -> Mess
         )
 
     logger.info(f"🔍 Token verificado para email: {email}")
-
+    
     user = await user_repo.get_by_email(email=email)
     if not user:
         logger.error(f"❌ Usuario no encontrado: {email}")
@@ -317,7 +310,7 @@ async def recover_password_html_content(email: str, user_repo: AsyncUserRepoDep)
     ```
     """
     logger.info(f"📧 Preview de email de recuperación solicitado para: {email}")
-
+    
     user = await user_repo.get_by_email(email=email)
 
     if not user:
