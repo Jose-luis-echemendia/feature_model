@@ -25,12 +25,69 @@ T = TypeVar("T")
 class PaginatedResponse(BaseModel, Generic[T]):
     """
     Modelo genérico para respuestas de API que incluyen paginación.
+
+    Attributes:
+        data: Los ítems de la página actual
+        count: El número total de ítems que coinciden con los filtros (sin paginación)
+        page: El número de la página actual (basado en skip/limit)
+        size: El número de ítems en esta página específica
+        total_pages: El número total de páginas disponibles
+        has_next: Indica si hay una página siguiente
+        has_prev: Indica si hay una página anterior
     """
 
-    total: int  # El número total de ítems en la base de datos.
-    page: int  # El número de la página actual que se está devolviendo.
-    size: int  # El número de ítems en esta página específica (puede ser menor que el 'limit').
-    data: list[T]  # Los ítems de la página actual.
+    data: list[T]  # Los ítems de la página actual
+    count: int  # El número total de ítems que coinciden con los filtros
+    page: int  # El número de la página actual (1-indexed)
+    size: int  # El número de ítems en esta página
+    total_pages: int  # El número total de páginas
+    has_next: bool  # ¿Hay página siguiente?
+    has_prev: bool  # ¿Hay página anterior?
+
+    @classmethod
+    def create(
+        cls,
+        data: list[T],
+        count: int,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> "PaginatedResponse[T]":
+        """
+        Método helper para crear una respuesta paginada con todos los campos calculados.
+
+        Args:
+            data: Lista de ítems de la página actual
+            count: Total de ítems que coinciden con los filtros
+            skip: Número de ítems omitidos (offset)
+            limit: Tamaño máximo de página
+
+        Returns:
+            PaginatedResponse con todos los campos calculados
+        """
+        import math
+
+        # Calcular número de página (1-indexed)
+        page = (skip // limit) + 1 if limit > 0 else 1
+
+        # Número de ítems en esta página
+        size = len(data)
+
+        # Total de páginas
+        total_pages = math.ceil(count / limit) if limit > 0 and count > 0 else 0
+
+        # Indicadores de navegación
+        has_next = (skip + limit) < count
+        has_prev = skip > 0
+
+        return cls(
+            count=count,
+            page=page,
+            size=size,
+            total_pages=total_pages,
+            has_next=has_next,
+            has_prev=has_prev,
+            data=data,
+        )
 
 
 class BaseTable(SQLModel):
