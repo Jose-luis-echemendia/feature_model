@@ -39,12 +39,17 @@ async def read_feature_models(
         models = await feature_model_repo.get_by_domain(
             domain_id=domain_id, skip=skip, limit=limit
         )
-        count = await feature_model_repo.count()
+        count = await feature_model_repo.count(domain_id=domain_id)
     else:
         models = await feature_model_repo.get_all(skip=skip, limit=limit)
         count = await feature_model_repo.count()
 
-    return FeatureModelListResponse(data=models, count=count)
+    return FeatureModelListResponse.create(
+        data=models,
+        count=count,
+        skip=skip,
+        limit=limit,
+    )
 
 
 @router.post(
