@@ -100,3 +100,16 @@ class DomainRepositoryAsync(BaseDomainRepository, IDomainRepositoryAsync):
         )
         result = await self.session.execute(stmt)
         return result.scalars().all()
+
+    async def count_search(self, search_term: str) -> int:
+        """Contar resultados de búsqueda por nombre o descripción."""
+        stmt = (
+            select(func.count())
+            .select_from(Domain)
+            .where(
+                (Domain.name.ilike(f"%{search_term}%"))
+                | (Domain.description.ilike(f"%{search_term}%"))
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()

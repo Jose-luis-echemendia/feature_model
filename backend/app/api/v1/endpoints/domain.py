@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.api.deps import AsyncDomainRepoDep, AsyncCurrentUser, AdminUser
+from app.api.deps import AsyncDomainRepoDep, AdminUser, get_verified_user
 from app.models.common import Message
 from app.models.domain import (
     DomainPublic,
@@ -21,20 +21,19 @@ router = APIRouter(prefix="/domains", tags=["domains"])
 
 @router.get(
     "/",
+    dependencies=[Depends(get_verified_user())],
     response_model=DomainListResponse,
 )
 async def read_domains(
     domain_repo: AsyncDomainRepoDep,
-    current_user: AsyncCurrentUser,
     skip: int = 0,
     limit: int = 100,
 ) -> DomainListResponse:
     """
-    Read domains (accesible para todos los roles autenticados).
+    Read domains (solo accesible para administradores).
 
     Args:
         domain_repo: Repositorio de dominios
-        current_user: Usuario autenticado
         skip: Número de registros a saltar
         limit: Número máximo de registros a retornar
 
@@ -44,28 +43,33 @@ async def read_domains(
     domains = await domain_repo.get_all(skip=skip, limit=limit)
     count = await domain_repo.count()
 
-    return DomainListResponse(data=domains, count=count)
+    return DomainListResponse.create(
+        data=domains,
+        count=count,
+        skip=skip,
+        limit=limit,
+    )
 
 
 # ---------------------------------------------------------------------------
-# Endpoint para obtener un dominio por ID (accesible para varios roles)
+# Endpoint para obtener un dominio por ID (solo admin)
 # ---------------------------------------------------------------------------
-@router.get("/{domain_id}/", response_model=DomainPublic)
+@router.get(
+    "/{domain_id}/", dependencies=[Depends(AdminUser)], response_model=DomainPublic
+)
 async def read_domain(
     *,
     domain_id: uuid.UUID,
     domain_repo: AsyncDomainRepoDep,
-    current_user: AsyncCurrentUser,
 ) -> DomainPublic:
     """
     Get a specific domain by ID.
 
-    Accessible to authenticated users with appropriate roles.
+    Only accessible to administrators.
 
     Args:
         domain_id: Domain ID
         domain_repo: Repositorio de dominios
-        current_user: Usuario autenticado
 
     Returns:
         DomainPublic: Domain data
@@ -196,13 +200,16 @@ async def delete_domain(
 
 
 # ---------------------------------------------------------------------------
-# Endpoint para buscar dominios por nombre (accesible para varios roles)
+# Endpoint para buscar dominios por nombre (solo admin)
 # ---------------------------------------------------------------------------
-@router.get("/search/{search_term}/", response_model=DomainListResponse)
+@router.get(
+    "/search/{search_term}/",
+    dependencies=[Depends(AdminUser)],
+    response_model=DomainListResponse,
+)
 async def search_domains(
     *,
     domain_repo: AsyncDomainRepoDep,
-    current_user: AsyncCurrentUser,
     search_term: str,
     skip: int = 0,
     limit: int = 100,
@@ -210,11 +217,10 @@ async def search_domains(
     """
     Search domains by name or description.
 
-    Accessible to authenticated users with appropriate roles.
+    Only accessible to administrators.
 
     Args:
         domain_repo: Repositorio de dominios
-        current_user: Usuario autenticado
         search_term: Term to search for
         skip: Pagination offset
         limit: Pagination limit
@@ -223,30 +229,37 @@ async def search_domains(
         DomainListResponse: Search results
     """
     domains = await domain_repo.search(search_term, skip=skip, limit=limit)
-    count = len(domains)
+    count = await domain_repo.count_search(search_term)
 
-    return DomainListResponse(data=domains, count=count)
+    return DomainListResponse.create(
+        data=domains,
+        count=count,
+        skip=skip,
+        limit=limit,
+    )
 
 
 # ---------------------------------------------------------------------------
-# Endpoint para obtener dominio con sus feature models (accesible para varios roles)
+# Endpoint para obtener dominio con sus feature models (solo admin)
 # ---------------------------------------------------------------------------
-@router.get("/{domain_id}/with-feature-models/", response_model=DomainPublic)
+@router.get(
+    "/{domain_id}/with-feature-models/",
+    dependencies=[Depends(AdminUser)],
+    response_model=DomainPublic,
+)
 async def read_domain_with_feature_models(
     *,
     domain_id: uuid.UUID,
     domain_repo: AsyncDomainRepoDep,
-    current_user: AsyncCurrentUser,
 ) -> DomainPublic:
     """
     Get a domain with its associated feature models.
 
-    Accessible to authenticated users with appropriate roles.
+    Only accessible to administrators.
 
     Args:
         domain_id: Domain ID
         domain_repo: Repositorio de dominios
-        current_user: Usuario autenticado
 
     Returns:
         DomainPublic: Domain with feature models

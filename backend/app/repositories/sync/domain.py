@@ -92,3 +92,15 @@ class DomainRepositorySync(BaseDomainRepository, IDomainRepositorySync):
             .limit(limit)
         )
         return self.session.exec(stmt).all()
+
+    def count_search(self, search_term: str) -> int:
+        """Contar resultados de búsqueda por nombre o descripción."""
+        stmt = (
+            select(func.count())
+            .select_from(Domain)
+            .where(
+                (Domain.name.ilike(f"%{search_term}%"))
+                | (Domain.description.ilike(f"%{search_term}%"))
+            )
+        )
+        return self.session.exec(stmt).one()
