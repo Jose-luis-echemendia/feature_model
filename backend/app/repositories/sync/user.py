@@ -22,9 +22,7 @@ class UserRepositorySync(BaseUserRepository, IUserRepositorySync):
 
         hashed_pw = self.prepare_password(data.password)
 
-        obj = User(
-            email=data.email, hashed_password=hashed_pw
-        )
+        obj = User(email=data.email, hashed_password=hashed_pw)
 
         self.session.add(obj)
         self.session.commit()
@@ -91,13 +89,20 @@ class UserRepositorySync(BaseUserRepository, IUserRepositorySync):
     def search(self, search_term: str, skip: int = 0, limit: int = 100) -> list[User]:
         stmt = (
             select(User)
-            .where(
-                (User.email.ilike(f"%{search_term}%"))
-            )
+            .where((User.email.ilike(f"%{search_term}%")))
             .offset(skip)
             .limit(limit)
         )
         return self.session.exec(stmt).all()
+
+    def count_search(self, search_term: str) -> int:
+        """Contar resultados de búsqueda por email."""
+        stmt = (
+            select(func.count())
+            .select_from(User)
+            .where((User.email.ilike(f"%{search_term}%")))
+        )
+        return self.session.exec(stmt).one()
 
     def deactivate(self, db_user: User) -> User:
         db_user.is_active = False
