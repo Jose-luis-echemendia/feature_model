@@ -1,2 +1,2 @@
-from .a_sync import IUserRepositoryAsync
-from .sync import IUserRepositorySync
+from .a_sync import IUserRepositoryAsync, IDomainRepositoryAsync
+from .sync import IUserRepositorySync, IDomainRepositorySync

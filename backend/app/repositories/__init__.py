@@ -1,2 +1,2 @@
-from .sync import UserRepositorySync
-from .a_sync import UserRepositoryAsync
+from .sync import UserRepositorySync, DomainRepositorySync
+from .a_sync import UserRepositoryAsync, DomainRepositoryAsync
