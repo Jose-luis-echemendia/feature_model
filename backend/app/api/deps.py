@@ -158,7 +158,16 @@ OptionalUser = Annotated[User | None, Depends(get_optional_user)]
 #     --- DEPENDENCIAS PARA LOS REPOSITORIOS ---
 # ========================================================================
 
-from app.repositories import UserRepositorySync, UserRepositoryAsync
+from app.repositories import (
+    UserRepositorySync,
+    UserRepositoryAsync,
+    DomainRepositorySync,
+    DomainRepositoryAsync,
+    FeatureModelRepositorySync,
+    FeatureModelRepositoryAsync,
+    FeatureRepositorySync,
+    FeatureRepositoryAsync,
+)
 
 
 def get_user_repo(session: SessionDep):
@@ -169,8 +178,42 @@ async def aget_user_repo(session: AsyncSessionDep):
     return UserRepositoryAsync(session)
 
 
+def get_domain_repo(session: SessionDep):
+    return DomainRepositorySync(session)
+
+
+async def aget_domain_repo(session: AsyncSessionDep):
+    return DomainRepositoryAsync(session)
+
+
+def get_feature_model_repo(session: SessionDep):
+    return FeatureModelRepositorySync(session)
+
+
+async def aget_feature_model_repo(session: AsyncSessionDep):
+    return FeatureModelRepositoryAsync(session)
+
+
+def get_feature_repo(session: SessionDep):
+    return FeatureRepositorySync(session)
+
+
+async def aget_feature_repo(session: AsyncSessionDep):
+    return FeatureRepositoryAsync(session)
+
+
 UserRepoDep = Annotated[UserRepositorySync, Depends(get_user_repo)]
 AsyncUserRepoDep = Annotated[UserRepositoryAsync, Depends(aget_user_repo)]
+DomainRepoDep = Annotated[DomainRepositorySync, Depends(get_domain_repo)]
+AsyncDomainRepoDep = Annotated[DomainRepositoryAsync, Depends(aget_domain_repo)]
+FeatureModelRepoDep = Annotated[
+    FeatureModelRepositorySync, Depends(get_feature_model_repo)
+]
+AsyncFeatureModelRepoDep = Annotated[
+    FeatureModelRepositoryAsync, Depends(aget_feature_model_repo)
+]
+FeatureRepoDep = Annotated[FeatureRepositorySync, Depends(get_feature_repo)]
+AsyncFeatureRepoDep = Annotated[FeatureRepositoryAsync, Depends(aget_feature_repo)]
 
 
 # --- VERSIONES ASÍNCRONAS DE AUTENTICACIÓN ---

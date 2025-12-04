@@ -2,8 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app import crud
-from app.api.deps import SessionDep, get_current_user, AdminUser
+from app.api.deps import AsyncDomainRepoDep, AsyncCurrentUser, AdminUser
 from app.models.common import Message
 from app.models.domain import (
     DomainPublic,
@@ -22,25 +21,28 @@ router = APIRouter(prefix="/domains", tags=["domains"])
 
 @router.get(
     "/",
-    dependencies=[Depends(get_current_user)],
     response_model=DomainListResponse,
 )
-def read_domains(
-    session: SessionDep, skip: int = 0, limit: int = 100
+async def read_domains(
+    domain_repo: AsyncDomainRepoDep,
+    current_user: AsyncCurrentUser,
+    skip: int = 0,
+    limit: int = 100,
 ) -> DomainListResponse:
-    """read domains (accesible para todos los roles)
+    """
+    Read domains (accesible para todos los roles autenticados).
 
     Args:
-        session (SessionDep): _description_
-        skip (int, optional): _description_. Defaults to 0.
-        limit (int, optional): _description_. Defaults to 100.
+        domain_repo: Repositorio de dominios
+        current_user: Usuario autenticado
+        skip: Número de registros a saltar
+        limit: Número máximo de registros a retornar
 
     Returns:
-        DomainListResponse: _description_
+        DomainListResponse: Lista de dominios con conteo total
     """
-
-    domains = crud.get_domains(session=session, skip=skip, limit=limit)
-    count = crud.get_domains_count(session=session)
+    domains = await domain_repo.get_all(skip=skip, limit=limit)
+    count = await domain_repo.count()
 
     return DomainListResponse(data=domains, count=count)
 
@@ -49,7 +51,12 @@ def read_domains(
 # Endpoint para obtener un dominio por ID (accesible para varios roles)
 # ---------------------------------------------------------------------------
 @router.get("/{domain_id}/", response_model=DomainPublic)
-def read_domain(*, domain_id: uuid.UUID, session: SessionDep) -> DomainPublic:
+async def read_domain(
+    *,
+    domain_id: uuid.UUID,
+    domain_repo: AsyncDomainRepoDep,
+    current_user: AsyncCurrentUser,
+) -> DomainPublic:
     """
     Get a specific domain by ID.
 
@@ -57,7 +64,8 @@ def read_domain(*, domain_id: uuid.UUID, session: SessionDep) -> DomainPublic:
 
     Args:
         domain_id: Domain ID
-        session: Database session
+        domain_repo: Repositorio de dominios
+        current_user: Usuario autenticado
 
     Returns:
         DomainPublic: Domain data
@@ -65,7 +73,7 @@ def read_domain(*, domain_id: uuid.UUID, session: SessionDep) -> DomainPublic:
     Raises:
         HTTPException: If domain not found
     """
-    domain = crud.get_domain(session=session, domain_id=domain_id)
+    domain = await domain_repo.get(domain_id)
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
     return DomainPublic.model_validate(domain)
@@ -75,9 +83,9 @@ def read_domain(*, domain_id: uuid.UUID, session: SessionDep) -> DomainPublic:
 # Endpoint para crear un nuevo dominio (solo admin)
 # ---------------------------------------------------------------------------
 @router.post("/", dependencies=[Depends(AdminUser)], response_model=DomainPublic)
-def create_domain(
+async def create_domain(
     *,
-    session: SessionDep,
+    domain_repo: AsyncDomainRepoDep,
     domain_in: DomainCreate,
 ) -> DomainPublic:
     """
@@ -86,9 +94,8 @@ def create_domain(
     Only administrators can create new domains.
 
     Args:
-        session: Database session
+        domain_repo: Repositorio de dominios
         domain_in: Domain creation data
-        admin: Authenticated admin user
 
     Returns:
         DomainPublic: Created domain
@@ -97,7 +104,7 @@ def create_domain(
         HTTPException: If domain with same name already exists
     """
     try:
-        domain = crud.create_domain(session=session, domain_create=domain_in)
+        domain = await domain_repo.create(domain_in)
         return DomainPublic.model_validate(domain)
 
     except ValueError as e:
@@ -109,11 +116,13 @@ def create_domain(
 # ---------------------------------------------------------------------------
 
 
-@router.patch("/{domain_id}/", dependencies=[Depends(AdminUser)], response_model=DomainPublic)
-def update_domain(
+@router.patch(
+    "/{domain_id}/", dependencies=[Depends(AdminUser)], response_model=DomainPublic
+)
+async def update_domain(
     *,
     domain_id: uuid.UUID,
-    session: SessionDep,
+    domain_repo: AsyncDomainRepoDep,
     domain_in: DomainUpdate,
 ) -> DomainPublic:
     """
@@ -123,9 +132,8 @@ def update_domain(
 
     Args:
         domain_id: Domain ID to update
-        session: Database session
+        domain_repo: Repositorio de dominios
         domain_in: Domain update data
-        admin: Authenticated admin user
 
     Returns:
         DomainPublic: Updated domain
@@ -134,14 +142,12 @@ def update_domain(
         HTTPException: If domain not found or validation error
     """
     # Primero verificar que el dominio existe
-    db_domain = crud.get_domain(session=session, domain_id=domain_id)
+    db_domain = await domain_repo.get(domain_id)
     if not db_domain:
         raise HTTPException(status_code=404, detail="Domain not found")
 
     try:
-        updated_domain = crud.update_domain(
-            session=session, db_domain=db_domain, domain_in=domain_in
-        )
+        updated_domain = await domain_repo.update(db_domain, domain_in)
         return DomainPublic.model_validate(updated_domain)
 
     except ValueError as e:
@@ -154,10 +160,10 @@ def update_domain(
 @router.delete(
     "/{domain_id}/", dependencies=[Depends(AdminUser)], response_model=Message
 )
-def delete_domain(
+async def delete_domain(
     *,
     domain_id: uuid.UUID,
-    session: SessionDep,
+    domain_repo: AsyncDomainRepoDep,
 ) -> Message:
     """
     Delete a domain.
@@ -166,8 +172,7 @@ def delete_domain(
 
     Args:
         domain_id: Domain ID to delete
-        session: Database session
-        admin: Authenticated admin user
+        domain_repo: Repositorio de dominios
 
     Returns:
         Message: Success message
@@ -175,7 +180,7 @@ def delete_domain(
     Raises:
         HTTPException: If domain not found
     """
-    domain = crud.get_domain(session=session, domain_id=domain_id)
+    domain = await domain_repo.get(domain_id)
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
 
@@ -186,7 +191,7 @@ def delete_domain(
             detail="Cannot delete domain with associated feature models. Delete the feature models first.",
         )
 
-    crud.delete_domain(session=session, db_domain=domain)
+    await domain_repo.delete(domain)
     return Message(message="Domain deleted successfully")
 
 
@@ -194,8 +199,13 @@ def delete_domain(
 # Endpoint para buscar dominios por nombre (accesible para varios roles)
 # ---------------------------------------------------------------------------
 @router.get("/search/{search_term}/", response_model=DomainListResponse)
-def search_domains(
-    *, session: SessionDep, search_term: str, skip: int = 0, limit: int = 100
+async def search_domains(
+    *,
+    domain_repo: AsyncDomainRepoDep,
+    current_user: AsyncCurrentUser,
+    search_term: str,
+    skip: int = 0,
+    limit: int = 100,
 ) -> DomainListResponse:
     """
     Search domains by name or description.
@@ -203,7 +213,8 @@ def search_domains(
     Accessible to authenticated users with appropriate roles.
 
     Args:
-        session: Database session
+        domain_repo: Repositorio de dominios
+        current_user: Usuario autenticado
         search_term: Term to search for
         skip: Pagination offset
         limit: Pagination limit
@@ -211,9 +222,7 @@ def search_domains(
     Returns:
         DomainListResponse: Search results
     """
-    domains = crud.search_domains(
-        session=session, search_term=search_term, skip=skip, limit=limit
-    )
+    domains = await domain_repo.search(search_term, skip=skip, limit=limit)
     count = len(domains)
 
     return DomainListResponse(data=domains, count=count)
@@ -223,8 +232,11 @@ def search_domains(
 # Endpoint para obtener dominio con sus feature models (accesible para varios roles)
 # ---------------------------------------------------------------------------
 @router.get("/{domain_id}/with-feature-models/", response_model=DomainPublic)
-def read_domain_with_feature_models(
-    *, domain_id: uuid.UUID, session: SessionDep
+async def read_domain_with_feature_models(
+    *,
+    domain_id: uuid.UUID,
+    domain_repo: AsyncDomainRepoDep,
+    current_user: AsyncCurrentUser,
 ) -> DomainPublic:
     """
     Get a domain with its associated feature models.
@@ -233,7 +245,8 @@ def read_domain_with_feature_models(
 
     Args:
         domain_id: Domain ID
-        session: Database session
+        domain_repo: Repositorio de dominios
+        current_user: Usuario autenticado
 
     Returns:
         DomainPublic: Domain with feature models
@@ -241,7 +254,7 @@ def read_domain_with_feature_models(
     Raises:
         HTTPException: If domain not found
     """
-    domain = crud.get_domain_with_feature_models(session=session, domain_id=domain_id)
+    domain = await domain_repo.get_with_feature_models(domain_id)
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
     return domain
