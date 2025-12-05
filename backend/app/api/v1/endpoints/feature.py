@@ -1,5 +1,6 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi_cache.decorator import cache
 
 from app.api.deps import (
     AsyncFeatureRepoDep,
@@ -24,6 +25,7 @@ router = APIRouter(prefix="/features", tags=["features"])
     dependencies=[Depends(VerifiedUser)],
     response_model=list[FeaturePublicWithChildren],
 )
+@cache(expire=300)  # Cache por 5 minutos
 async def read_features_by_model(
     *,
     feature_repo: AsyncFeatureRepoDep,
@@ -96,6 +98,7 @@ async def create_feature(
 @router.get(
     "/{feature_id}/", dependencies=[Depends(VerifiedUser)], response_model=FeaturePublic
 )
+@cache(expire=300)  # Cache por 5 minutos
 async def read_feature(
     *, feature_id: uuid.UUID, feature_repo: AsyncFeatureRepoDep
 ) -> FeaturePublic:
