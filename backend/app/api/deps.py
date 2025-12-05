@@ -374,54 +374,105 @@ def role_required(allowed_roles: list[UserRole]) -> Callable[[CurrentUser], User
 # Dependencias predefinidas para roles comunes
 
 
-def get_developer_user() -> Callable[[CurrentUser], User]:
+def get_developer_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios desarrolladores (máximo nivel de acceso)."""
-    return role_required([UserRole.DEVELOPER])
+    if current_user.role != UserRole.DEVELOPER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required role: DEVELOPER. Current role: {current_user.role.value}",
+        )
+    return current_user
 
 
-def get_admin_user() -> Callable[[CurrentUser], User]:
+def get_admin_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios administradores."""
-    return role_required([UserRole.ADMIN, UserRole.DEVELOPER])
+    if current_user.role not in [UserRole.ADMIN, UserRole.DEVELOPER]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: ADMIN or DEVELOPER. Current role: {current_user.role.value}",
+        )
+    return current_user
 
 
-def get_model_designer_user() -> Callable[[CurrentUser], User]:
+def get_model_designer_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios diseñadores de modelos."""
-    return role_required([UserRole.MODEL_DESIGNER, UserRole.ADMIN])
+    if current_user.role not in [
+        UserRole.MODEL_DESIGNER,
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+    ]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: MODEL_DESIGNER, ADMIN or DEVELOPER. Current role: {current_user.role.value}",
+        )
+    return current_user
 
 
-def get_editor_user() -> Callable[[CurrentUser], User]:
+def get_editor_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios editores"""
-    return role_required([UserRole.MODEL_EDITOR, UserRole.ADMIN])
+    if current_user.role not in [
+        UserRole.MODEL_EDITOR,
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+    ]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: MODEL_EDITOR, ADMIN or DEVELOPER. Current role: {current_user.role.value}",
+        )
+    return current_user
 
 
-def get_configurator_user() -> Callable[[CurrentUser], User]:
+def get_configurator_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios configuradores"""
-    return role_required([UserRole.CONFIGURATOR, UserRole.ADMIN])
+    if current_user.role not in [
+        UserRole.CONFIGURATOR,
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+    ]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: CONFIGURATOR, ADMIN or DEVELOPER. Current role: {current_user.role.value}",
+        )
+    return current_user
 
 
-def get_viewer_user() -> Callable[[CurrentUser], User]:
+def get_viewer_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios observadores"""
-    return role_required([UserRole.VIEWER, UserRole.ADMIN])
+    if current_user.role not in [UserRole.VIEWER, UserRole.ADMIN, UserRole.DEVELOPER]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: VIEWER, ADMIN or DEVELOPER. Current role: {current_user.role.value}",
+        )
+    return current_user
 
 
-def get_reviewer_user() -> Callable[[CurrentUser], User]:
+def get_reviewer_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios revisores"""
-    return role_required([UserRole.REVIEWER, UserRole.ADMIN])
+    if current_user.role not in [UserRole.REVIEWER, UserRole.ADMIN, UserRole.DEVELOPER]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: REVIEWER, ADMIN or DEVELOPER. Current role: {current_user.role.value}",
+        )
+    return current_user
 
 
-def get_verified_user() -> Callable[[CurrentUser], User]:
+def get_verified_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios verificados (no guests)."""
-    return role_required(
-        [
-            UserRole.DEVELOPER,
-            UserRole.ADMIN,
-            UserRole.MODEL_DESIGNER,
-            UserRole.MODEL_EDITOR,
-            UserRole.CONFIGURATOR,
-            UserRole.VIEWER,
-            UserRole.REVIEWER,
-        ]
-    )
+    allowed_roles = [
+        UserRole.DEVELOPER,
+        UserRole.ADMIN,
+        UserRole.MODEL_DESIGNER,
+        UserRole.MODEL_EDITOR,
+        UserRole.CONFIGURATOR,
+        UserRole.VIEWER,
+        UserRole.REVIEWER,
+    ]
+    if current_user.role not in allowed_roles:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. User must have a verified role. Current role: {current_user.role.value}",
+        )
+    return current_user
 
 
 # Atajos comunes

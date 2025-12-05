@@ -8,7 +8,8 @@ from app.api.deps import (
     get_current_active_superuser,
     get_admin_user,
     CurrentUser,
-    AsyncUserRepoDep
+    AsyncUserRepoDep,
+    AdminUser,
 )
 from app.services import SettingsService
 from app.core.config import settings
@@ -42,7 +43,7 @@ logger = logging.getLogger(__name__)
 @router.get(
     "/",
     response_model=UserListResponse,
-    dependencies=[Depends(get_admin_user())],
+    dependencies=[Depends(get_admin_user)],
 )
 async def read_users(
     *,
@@ -50,7 +51,11 @@ async def read_users(
     skip: int = 0,
     limit: int = 100,
 ) -> UserListResponse:
-    logger.info(f"📋 Listando usuarios - skip: {skip}, limit: {limit}")
+    """
+    Lista todos los usuarios (solo administradores y desarrolladores).
+
+    Requiere autenticación y rol de ADMIN o DEVELOPER.
+    """
 
     users = await user_repo.get_all(skip=skip, limit=limit)
     count = await user_repo.count()

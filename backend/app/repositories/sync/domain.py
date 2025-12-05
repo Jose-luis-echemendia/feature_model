@@ -104,3 +104,19 @@ class DomainRepositorySync(BaseDomainRepository, IDomainRepositorySync):
             )
         )
         return self.session.exec(stmt).one()
+
+    def activate(self, db_domain: Domain) -> Domain:
+        """Activar un dominio."""
+        db_domain.is_active = True
+        self.session.add(db_domain)
+        self.session.commit()
+        self.session.refresh(db_domain)
+        return db_domain
+
+    def deactivate(self, db_domain: Domain) -> Domain:
+        """Desactivar un dominio."""
+        db_domain.is_active = False
+        self.session.add(db_domain)
+        self.session.commit()
+        self.session.refresh(db_domain)
+        return db_domain

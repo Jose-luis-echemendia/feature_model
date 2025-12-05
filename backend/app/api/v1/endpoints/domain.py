@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.api.deps import AsyncDomainRepoDep, AdminUser, get_verified_user
+from app.api.deps import AsyncDomainRepoDep, get_verified_user, get_admin_user
 from app.models.common import Message
 from app.models.domain import (
     DomainPublic,
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/domains", tags=["domains"])
 
 @router.get(
     "/",
-    dependencies=[Depends(get_verified_user())],
+    dependencies=[Depends(get_verified_user)],
     response_model=DomainListResponse,
 )
 async def read_domains(
@@ -55,7 +55,9 @@ async def read_domains(
 # Endpoint para obtener un dominio por ID (solo admin)
 # ---------------------------------------------------------------------------
 @router.get(
-    "/{domain_id}/", dependencies=[Depends(AdminUser)], response_model=DomainPublic
+    "/{domain_id}/",
+    dependencies=[Depends(get_verified_user)],
+    response_model=DomainPublic,
 )
 async def read_domain(
     *,
@@ -86,7 +88,7 @@ async def read_domain(
 # ---------------------------------------------------------------------------
 # Endpoint para crear un nuevo dominio (solo admin)
 # ---------------------------------------------------------------------------
-@router.post("/", dependencies=[Depends(AdminUser)], response_model=DomainPublic)
+@router.post("/", dependencies=[Depends(get_admin_user)], response_model=DomainPublic)
 async def create_domain(
     *,
     domain_repo: AsyncDomainRepoDep,
@@ -121,7 +123,7 @@ async def create_domain(
 
 
 @router.patch(
-    "/{domain_id}/", dependencies=[Depends(AdminUser)], response_model=DomainPublic
+    "/{domain_id}/", dependencies=[Depends(get_admin_user)], response_model=DomainPublic
 )
 async def update_domain(
     *,
@@ -162,7 +164,7 @@ async def update_domain(
 # Endpoint para eliminar un dominio (solo admin)
 # ---------------------------------------------------------------------------
 @router.delete(
-    "/{domain_id}/", dependencies=[Depends(AdminUser)], response_model=Message
+    "/{domain_id}/", dependencies=[Depends(get_admin_user)], response_model=Message
 )
 async def delete_domain(
     *,
@@ -204,7 +206,7 @@ async def delete_domain(
 # ---------------------------------------------------------------------------
 @router.get(
     "/search/{search_term}/",
-    dependencies=[Depends(AdminUser)],
+    dependencies=[Depends(get_admin_user)],
     response_model=DomainListResponse,
 )
 async def search_domains(
@@ -244,7 +246,7 @@ async def search_domains(
 # ---------------------------------------------------------------------------
 @router.get(
     "/{domain_id}/with-feature-models/",
-    dependencies=[Depends(AdminUser)],
+    dependencies=[Depends(get_admin_user)],
     response_model=DomainPublic,
 )
 async def read_domain_with_feature_models(
@@ -271,3 +273,77 @@ async def read_domain_with_feature_models(
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
     return domain
+
+
+# ======================================================================================
+#       --- Endpoint para activar un dominio. ---
+# ======================================================================================
+
+
+@router.patch(
+    "/{domain_id}/activate/",
+    dependencies=[Depends(get_admin_user)],
+    response_model=DomainPublic,
+)
+async def activate_domain(
+    *,
+    domain_id: uuid.UUID,
+    domain_repo: AsyncDomainRepoDep,
+) -> DomainPublic:
+    """
+    Activar un dominio (solo accesible para administradores).
+
+    Args:
+        domain_id: ID del dominio a activar
+        domain_repo: Repositorio de dominios
+
+    Returns:
+        DomainPublic: Dominio activado
+
+    Raises:
+        HTTPException: Si el dominio no existe
+    """
+    domain = await domain_repo.get(domain_id)
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+
+    # Activar el dominio
+    activated_domain = await domain_repo.activate(domain)
+    return activated_domain
+
+
+# ======================================================================================
+#       --- Endpoint para desactivar un dominio. ---
+# ======================================================================================
+
+
+@router.patch(
+    "/{domain_id}/deactivate/",
+    dependencies=[Depends(get_admin_user)],
+    response_model=DomainPublic,
+)
+async def deactivate_domain(
+    *,
+    domain_id: uuid.UUID,
+    domain_repo: AsyncDomainRepoDep,
+) -> DomainPublic:
+    """
+    Desactivar un dominio (solo accesible para administradores).
+
+    Args:
+        domain_id: ID del dominio a desactivar
+        domain_repo: Repositorio de dominios
+
+    Returns:
+        DomainPublic: Dominio desactivado
+
+    Raises:
+        HTTPException: Si el dominio no existe
+    """
+    domain = await domain_repo.get(domain_id)
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+
+    # Desactivar el dominio
+    deactivated_domain = await domain_repo.deactivate(domain)
+    return deactivated_domain
