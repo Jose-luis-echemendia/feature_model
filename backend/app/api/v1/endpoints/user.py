@@ -2,6 +2,7 @@ import uuid
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_cache.decorator import cache
 
 from app.api.deps import (
     get_settings_service,
@@ -45,6 +46,7 @@ logger = logging.getLogger(__name__)
     response_model=UserListResponse,
     dependencies=[Depends(get_admin_user)],
 )
+@cache(expire=300)  # Cache por 5 minutos
 async def read_users(
     *,
     user_repo: AsyncUserRepoDep,
@@ -76,6 +78,7 @@ async def read_users(
 
 
 @router.get("/by-role/{role}", response_model=UserListResponse)
+@cache(expire=300)  # Cache por 5 minutos
 async def read_users_by_role(
     *,
     user_repo: AsyncUserRepoDep,
@@ -323,6 +326,7 @@ async def register_user(
 
 
 @router.get("/{user_id}/", response_model=UserPublic)
+@cache(expire=300)  # Cache por 5 minutos
 async def read_user_by_id(
     *, user_id: uuid.UUID, user_repo: AsyncUserRepoDep, current_user: CurrentUser
 ) -> UserPublic:
@@ -478,6 +482,7 @@ async def delete_user(
 
 
 @router.get("/search/{search_term}/", response_model=UserListResponse)
+@cache(expire=300)  # Cache por 5 minutos
 async def search_users(
     *, user_repo: AsyncUserRepoDep, search_term: str, skip: int = 0, limit: int = 100
 ) -> UserListResponse:
