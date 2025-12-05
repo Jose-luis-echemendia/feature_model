@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_cache.decorator import cache
 
 from app.api.deps import AsyncDomainRepoDep, get_verified_user, get_admin_user
 from app.models.common import Message
@@ -24,6 +25,7 @@ router = APIRouter(prefix="/domains", tags=["domains"])
     dependencies=[Depends(get_verified_user)],
     response_model=DomainListResponse,
 )
+@cache(expire=300)  # Cache por 5 minutos
 async def read_domains(
     domain_repo: AsyncDomainRepoDep,
     skip: int = 0,
@@ -59,6 +61,7 @@ async def read_domains(
     dependencies=[Depends(get_verified_user)],
     response_model=DomainPublic,
 )
+@cache(expire=300)  # Cache por 5 minutos
 async def read_domain(
     *,
     domain_id: uuid.UUID,
@@ -205,10 +208,11 @@ async def delete_domain(
 # Endpoint para buscar dominios por nombre (solo admin)
 # ---------------------------------------------------------------------------
 @router.get(
-    "/search/{search_term}/",
+    "/search/",
     dependencies=[Depends(get_admin_user)],
     response_model=DomainListResponse,
 )
+@cache(expire=300)  # Cache por 5 minutos
 async def search_domains(
     *,
     domain_repo: AsyncDomainRepoDep,
@@ -249,6 +253,7 @@ async def search_domains(
     dependencies=[Depends(get_admin_user)],
     response_model=DomainPublic,
 )
+@cache(expire=300)  # Cache por 5 minutos
 async def read_domain_with_feature_models(
     *,
     domain_id: uuid.UUID,
@@ -306,7 +311,7 @@ async def activate_domain(
     domain = await domain_repo.get(domain_id)
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
-    
+
     return await domain_repo.activate(domain)
 
 
@@ -341,5 +346,5 @@ async def deactivate_domain(
     domain = await domain_repo.get(domain_id)
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
-    
+
     return await domain_repo.deactivate(domain)
