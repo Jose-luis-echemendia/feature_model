@@ -6,6 +6,12 @@ Bienvenido a la documentación técnica completa del proyecto **Feature Model**.
 
 ## 🚀 Acceso Rápido
 
+### :fontawesome-brands-git-alt: Repositorio
+
+[:fontawesome-brands-github: **Repositorio GitHub**](https://github.com/Jose-luis-echemendia/characteristic_model){ .md-button .md-button--primary }
+
+---
+
 ### 📦 Proyecto (Root)
 
 Documentación general del proyecto, arquitectura global y configuración de despliegue.
@@ -153,9 +159,55 @@ Si encuentras algún problema o tienes sugerencias:
 ## 📌 Enlaces Útiles
 
 - [:fontawesome-brands-github: Repositorio GitHub](https://github.com/Jose-luis-echemendia/characteristic_model)
-- [:material-api: API Docs (Swagger)]({{ config.extra.domain }}/docs)
-- [:material-api: API Docs (ReDoc)]({{ config.extra.domain }}/redoc)
-- [:material-application: Dashboard Frontend]({{ config.extra.frontend_url }})
+
+**Servicios de la Aplicación:**
+
+!!! tip "URLs Dinámicas"
+Los siguientes enlaces se configuran automáticamente según el entorno:
+
+    - **Desarrollo:** `http://localhost:8000` (backend), `http://localhost:5173` (frontend)
+    - **Producción:** Configurado mediante variables de entorno `DOMAIN` y `FRONTEND_URL`
+
+=== "API Documentation"
+
+    - **Swagger UI:** `{{ config.extra.domain }}/docs`
+    - **ReDoc:** `{{ config.extra.domain }}/redoc`
+
+=== "Frontend"
+
+    - **Dashboard:** `{{ config.extra.frontend_url }}`
+
+---
+
+**Enlaces Rápidos (Desarrollo):**
+
+<div class="grid cards" markdown>
+
+- :material-api:{ .lg .middle } **API Docs - Swagger**
+
+  ***
+
+  Documentación interactiva de la API con interfaz Swagger UI
+
+  [:octicons-arrow-right-24: Abrir Swagger](http://localhost:8000/docs){ .md-button }
+
+- :material-book-open-page-variant:{ .lg .middle } **API Docs - ReDoc**
+
+  ***
+
+  Documentación de la API en formato ReDoc
+
+  [:octicons-arrow-right-24: Abrir ReDoc](http://localhost:8000/redoc){ .md-button }
+
+- :material-view-dashboard:{ .lg .middle } **Dashboard Frontend**
+
+  ***
+
+  Interfaz de usuario de la aplicación
+
+  [:octicons-arrow-right-24: Abrir Dashboard](http://localhost:5173){ .md-button }
+
+</div>
 
 ---
 
