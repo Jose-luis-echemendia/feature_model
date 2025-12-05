@@ -105,14 +105,16 @@ class UserRepositorySync(BaseUserRepository, IUserRepositorySync):
         return self.session.exec(stmt).one()
 
     def deactivate(self, db_user: User) -> User:
-        db_user.is_active = False
+        """Desactivar un usuario."""
+        self._set_active_status(db_user, False)
         self.session.add(db_user)
         self.session.commit()
         self.session.refresh(db_user)
         return db_user
 
     def activate(self, db_user: User) -> User:
-        db_user.is_active = True
+        """Activar un usuario."""
+        self._set_active_status(db_user, True)
         self.session.add(db_user)
         self.session.commit()
         self.session.refresh(db_user)

@@ -116,7 +116,7 @@ class DomainRepositoryAsync(BaseDomainRepository, IDomainRepositoryAsync):
 
     async def activate(self, db_domain: Domain) -> Domain:
         """Activar un dominio."""
-        db_domain.is_active = True
+        self._set_active_status(db_domain, True)
         self.session.add(db_domain)
         await self.session.commit()
         await self.session.refresh(db_domain)
@@ -124,7 +124,7 @@ class DomainRepositoryAsync(BaseDomainRepository, IDomainRepositoryAsync):
 
     async def deactivate(self, db_domain: Domain) -> Domain:
         """Desactivar un dominio."""
-        db_domain.is_active = False
+        self._set_active_status(db_domain, False)
         self.session.add(db_domain)
         await self.session.commit()
         await self.session.refresh(db_domain)

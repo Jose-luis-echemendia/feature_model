@@ -107,7 +107,7 @@ class DomainRepositorySync(BaseDomainRepository, IDomainRepositorySync):
 
     def activate(self, db_domain: Domain) -> Domain:
         """Activar un dominio."""
-        db_domain.is_active = True
+        self._set_active_status(db_domain, True)
         self.session.add(db_domain)
         self.session.commit()
         self.session.refresh(db_domain)
@@ -115,7 +115,7 @@ class DomainRepositorySync(BaseDomainRepository, IDomainRepositorySync):
 
     def deactivate(self, db_domain: Domain) -> Domain:
         """Desactivar un dominio."""
-        db_domain.is_active = False
+        self._set_active_status(db_domain, False)
         self.session.add(db_domain)
         self.session.commit()
         self.session.refresh(db_domain)

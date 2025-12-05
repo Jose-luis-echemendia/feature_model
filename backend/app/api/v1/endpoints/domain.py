@@ -306,10 +306,8 @@ async def activate_domain(
     domain = await domain_repo.get(domain_id)
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
-
-    # Activar el dominio
-    activated_domain = await domain_repo.activate(domain)
-    return activated_domain
+    
+    return await domain_repo.activate(domain)
 
 
 # ======================================================================================
@@ -343,7 +341,5 @@ async def deactivate_domain(
     domain = await domain_repo.get(domain_id)
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
-
-    # Desactivar el dominio
-    deactivated_domain = await domain_repo.deactivate(domain)
-    return deactivated_domain
+    
+    return await domain_repo.deactivate(domain)

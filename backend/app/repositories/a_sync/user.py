@@ -119,14 +119,16 @@ class UserRepositoryAsync(BaseUserRepository, IUserRepositoryAsync):
         return result.scalar_one()
 
     async def deactivate(self, db_user: User) -> User:
-        db_user.is_active = False
+        """Desactivar un usuario."""
+        self._set_active_status(db_user, False)
         self.session.add(db_user)
         await self.session.commit()
         await self.session.refresh(db_user)
         return db_user
 
     async def activate(self, db_user: User) -> User:
-        db_user.is_active = True
+        """Activar un usuario."""
+        self._set_active_status(db_user, True)
         self.session.add(db_user)
         await self.session.commit()
         await self.session.refresh(db_user)

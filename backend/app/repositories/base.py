@@ -9,6 +9,10 @@ class BaseUserRepository:
 
         return get_password_hash(password)
 
+    def _set_active_status(self, user, is_active: bool):
+        """Helper para establecer el estado is_active de un usuario."""
+        user.is_active = is_active
+
 
 class BaseDomainRepository:
     """Clase base con lógica compartida para repositorios de dominios."""
@@ -22,6 +26,10 @@ class BaseDomainRepository:
             raise ValueError(
                 f"Ya existe un dominio con el nombre: {existing_domain.name}"
             )
+
+    def _set_active_status(self, entity, is_active: bool):
+        """Helper para establecer el estado is_active de una entidad."""
+        entity.is_active = is_active
 
 
 class BaseFeatureModelRepository:
