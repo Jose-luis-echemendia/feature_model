@@ -3,6 +3,7 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi_cache.decorator import cache
 
 from app.api.deps import (
     AsyncFeatureModelRepoDep,
@@ -25,6 +26,7 @@ router = APIRouter(prefix="/feature-models", tags=["feature-models"])
 @router.get(
     "/", dependencies=[Depends(VerifiedUser)], response_model=FeatureModelListResponse
 )
+@cache(expire=300)  # Cache por 5 minutos
 async def read_feature_models(
     feature_model_repo: AsyncFeatureModelRepoDep,
     skip: int = 0,
@@ -96,6 +98,7 @@ async def create_feature_model(
     dependencies=[Depends(VerifiedUser)],
     response_model=FeatureModelPublic,
 )
+@cache(expire=300)  # Cache por 5 minutos
 async def read_feature_model(
     *, model_id: uuid.UUID, feature_model_repo: AsyncFeatureModelRepoDep
 ) -> FeatureModelPublic:
