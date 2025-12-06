@@ -94,3 +94,9 @@ class BaseFeatureRelationRepository:
             raise ValueError(
                 "Source and target features must belong to the same model version."
             )
+
+
+class BaseFeatureModelVersionRepository:
+    """Clase base con lógica compartida para repositorios de versiones de feature models."""
+
+    pass  # Por ahora no hay lógica compartida específica, pero la estructura está lista

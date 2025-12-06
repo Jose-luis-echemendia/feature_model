@@ -3,3 +3,4 @@ from .domain import DomainRepositorySync
 from .feature_model import FeatureModelRepositorySync
 from .feature import FeatureRepositorySync
 from .feature_relation import FeatureRelationRepositorySync
+from .feature_model_version import FeatureModelVersionRepositorySync
