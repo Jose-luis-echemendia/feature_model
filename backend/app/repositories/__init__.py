@@ -5,6 +5,7 @@ from .sync import (
     FeatureRepositorySync,
     FeatureRelationRepositorySync,
     FeatureGroupRepositorySync,
+    ConstraintRepositorySync,
     FeatureModelVersionRepositorySync,
 )
 from .a_sync import (
@@ -14,5 +15,6 @@ from .a_sync import (
     FeatureRepositoryAsync,
     FeatureRelationRepositoryAsync,
     FeatureGroupRepositoryAsync,
+    ConstraintRepositoryAsync,
     FeatureModelVersionRepositoryAsync,
 )

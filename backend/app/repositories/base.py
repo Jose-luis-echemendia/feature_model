@@ -105,6 +105,15 @@ class BaseFeatureGroupRepository:
             raise ValueError("Parent feature not found.")
 
 
+class BaseConstraintRepository:
+    """Clase base con lógica compartida para repositorios de constraints."""
+
+    def validate_feature_model_version_exists(self, version):
+        """Valida que la versión del feature model existe."""
+        if not version:
+            raise ValueError("Source Feature Model Version not found.")
+
+
 class BaseFeatureModelVersionRepository:
     """Clase base con lógica compartida para repositorios de versiones de feature models."""
 
