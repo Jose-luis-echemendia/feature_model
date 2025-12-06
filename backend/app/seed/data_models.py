@@ -104,7 +104,7 @@ tags_data = [
     {
         "name": "cloud",
         "description": "Despliegue en la nube",
-    }
+    },
 ]
 
 # ============================================================================
@@ -223,7 +223,7 @@ resources_data = [
         "status": ResourceStatus.PUBLISHED,
         "license": LicenseType.CREATIVE_COMMONS_BY,
         "content_url_or_data": {"url": "https://example.com/docs/sql-vs-nosql.pdf"},
-    }
+    },
 ]
 
 # ============================================================================
@@ -231,9 +231,9 @@ resources_data = [
 # ============================================================================
 from app.enums import FeatureType, ModelStatus
 
-"""
+
 # Modelo 1: Carrera de Ingeniería Informática
-ingenieria_informatica_model = {
+computer_engineering_degree_model = {
     "name": "Ingeniería en Ciencias Informáticas",
     "description": "Plan de estudios completo para la carrera de Ingeniería en Ciencias Informáticas (5 años)",
     "domain_name": "Ingeniería Informática",
@@ -333,86 +333,100 @@ ingenieria_informatica_model = {
                             },
                             {
                                 "name": "Especialización",
-                                "type": FeatureType.XOR_GROUP,
+                                "type": FeatureType.MANDATORY,
                                 "properties": {
                                     "description": "Elegir una especialización",
                                     "creditos": 30,
                                 },
-                                "children": [
+                                "groups": [
                                     {
-                                        "name": "Desarrollo de Software",
-                                        "type": FeatureType.ALTERNATIVE,
-                                        "properties": {
-                                            "creditos": 30,
-                                            "asignaturas": [
-                                                "Arquitectura de Software",
-                                                "DevOps y CI/CD",
-                                                "Microservicios",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Ciencia de Datos",
-                                        "type": FeatureType.ALTERNATIVE,
-                                        "properties": {
-                                            "creditos": 30,
-                                            "asignaturas": [
-                                                "Machine Learning",
-                                                "Big Data",
-                                                "Visualización de Datos",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Seguridad Informática",
-                                        "type": FeatureType.ALTERNATIVE,
-                                        "properties": {
-                                            "creditos": 30,
-                                            "asignaturas": [
-                                                "Criptografía",
-                                                "Hacking Ético",
-                                                "Seguridad en Redes",
-                                            ],
-                                        },
-                                    },
+                                        "type": "XOR",  # Solo una especialización
+                                        "min": 1,
+                                        "max": 1,
+                                        "features": [
+                                            {
+                                                "name": "Desarrollo de Software",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "creditos": 30,
+                                                    "asignaturas": [
+                                                        "Arquitectura de Software",
+                                                        "DevOps y CI/CD",
+                                                        "Microservicios",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Ciencia de Datos",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "creditos": 30,
+                                                    "asignaturas": [
+                                                        "Machine Learning",
+                                                        "Big Data",
+                                                        "Visualización de Datos",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Seguridad Informática",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "creditos": 30,
+                                                    "asignaturas": [
+                                                        "Criptografía",
+                                                        "Hacking Ético",
+                                                        "Seguridad en Redes",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    }
                                 ],
                             },
                         ],
                     },
                     {
                         "name": "Asignaturas Electivas",
-                        "type": FeatureType.OR_GROUP,
+                        "type": FeatureType.MANDATORY,
                         "properties": {
                             "description": "Elegir al menos 3 electivas",
                             "creditos_minimos": 18,
                             "creditos_por_asignatura": 6,
                         },
-                        "children": [
+                        "groups": [
                             {
-                                "name": "Desarrollo Móvil",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {"creditos": 6},
-                            },
-                            {
-                                "name": "Computación en la Nube",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {"creditos": 6},
-                            },
-                            {
-                                "name": "Internet de las Cosas",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {"creditos": 6},
-                            },
-                            {
-                                "name": "Blockchain",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {"creditos": 6},
-                            },
-                            {
-                                "name": "Realidad Virtual y Aumentada",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {"creditos": 6},
-                            },
+                                "type": "OR",  # Elegir una o más
+                                "min": 3,
+                                "max": 5,
+                                "features": [
+                                    {
+                                        "name": "Desarrollo Móvil",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {"creditos": 6},
+                                    },
+                                    {
+                                        "name": "Computación en la Nube",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {"creditos": 6},
+                                    },
+                                    {
+                                        "name": "Internet de las Cosas",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {"creditos": 6},
+                                    },
+                                    {
+                                        "name": "Blockchain",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {"creditos": 6},
+                                    },
+                                    {
+                                        "name": "Realidad Virtual y Aumentada",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {"creditos": 6},
+                                    },
+                                ],
+                            }
                         ],
                     },
                     {
@@ -438,8 +452,9 @@ ingenieria_informatica_model = {
     },
 }
 
+
 # Modelo 2: Curso de Desarrollo Web Full Stack
-curso_fullstack_model = {
+fullstack_web_development_course_model = {
     "name": "Desarrollo Web Full Stack",
     "description": "Curso intensivo de desarrollo web frontend y backend",
     "domain_name": "Desarrollo de Software",
@@ -476,26 +491,33 @@ curso_fullstack_model = {
                             },
                             {
                                 "name": "Framework Frontend",
-                                "type": FeatureType.XOR_GROUP,
+                                "type": FeatureType.MANDATORY,
                                 "properties": {
                                     "descripcion": "Elegir un framework",
                                 },
-                                "children": [
+                                "groups": [
                                     {
-                                        "name": "React",
-                                        "type": FeatureType.ALTERNATIVE,
-                                        "properties": {"horas": 60},
-                                    },
-                                    {
-                                        "name": "Vue.js",
-                                        "type": FeatureType.ALTERNATIVE,
-                                        "properties": {"horas": 60},
-                                    },
-                                    {
-                                        "name": "Angular",
-                                        "type": FeatureType.ALTERNATIVE,
-                                        "properties": {"horas": 60},
-                                    },
+                                        "type": "XOR",
+                                        "min": 1,
+                                        "max": 1,
+                                        "features": [
+                                            {
+                                                "name": "React",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {"horas": 60},
+                                            },
+                                            {
+                                                "name": "Vue.js",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {"horas": 60},
+                                            },
+                                            {
+                                                "name": "Angular",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {"horas": 60},
+                                            },
+                                        ],
+                                    }
                                 ],
                             },
                         ],
@@ -527,26 +549,33 @@ curso_fullstack_model = {
                     },
                     {
                         "name": "Módulos Opcionales",
-                        "type": FeatureType.OR_GROUP,
+                        "type": FeatureType.MANDATORY,
                         "properties": {
                             "descripcion": "Elegir al menos uno",
                         },
-                        "children": [
+                        "groups": [
                             {
-                                "name": "DevOps Básico",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {"horas": 20},
-                            },
-                            {
-                                "name": "Testing Avanzado",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {"horas": 20},
-                            },
-                            {
-                                "name": "Seguridad Web",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {"horas": 20},
-                            },
+                                "type": "OR",
+                                "min": 1,
+                                "max": 3,
+                                "features": [
+                                    {
+                                        "name": "DevOps Básico",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {"horas": 20},
+                                    },
+                                    {
+                                        "name": "Testing Avanzado",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {"horas": 20},
+                                    },
+                                    {
+                                        "name": "Seguridad Web",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {"horas": 20},
+                                    },
+                                ],
+                            }
                         ],
                     },
                     {
@@ -560,11 +589,14 @@ curso_fullstack_model = {
                 ],
             }
         ],
+        "feature_relations": [],
     },
 }
 
+
+
 # Modelo 3: Maestría en Ciencia de Datos
-maestria_ciencia_datos_model = {
+master_degree_in_data_science_model = {
     "name": "Maestría en Ciencia de Datos e Inteligencia Artificial",
     "description": "Programa de posgrado avanzado en ciencia de datos, machine learning e inteligencia artificial (2 años, 90 créditos)",
     "domain_name": "Ciencia de Datos",
@@ -865,315 +897,336 @@ maestria_ciencia_datos_model = {
                                     },
                                     {
                                         "name": "Especialización en Arquitecturas",
-                                        "type": FeatureType.XOR_GROUP,
+                                        "type": FeatureType.MANDATORY,
                                         "properties": {
                                             "description": "Elegir una especialización profunda",
                                             "creditos": 6,
                                         },
+                                        "groups": [
+                                            {
+                                                "type": "XOR",
+                                                "min": 1,
+                                                "max": 1,
+                                                "features": [
+                                                    {
+                                                        "name": "Visión por Computadora (CNN)",
+                                                        "type": FeatureType.OPTIONAL,
+                                                        "properties": {
+                                                            "creditos": 6,
+                                                            "temas": [
+                                                                "ResNet",
+                                                                "YOLO",
+                                                                "Segmentación",
+                                                                "GANs",
+                                                            ],
+                                                            "frameworks": [
+                                                                "PyTorch",
+                                                                "TensorFlow",
+                                                            ],
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Procesamiento de Lenguaje Natural (NLP)",
+                                                        "type": FeatureType.OPTIONAL,
+                                                        "properties": {
+                                                            "creditos": 6,
+                                                            "temas": [
+                                                                "Transformers",
+                                                                "BERT",
+                                                                "GPT",
+                                                                "Attention",
+                                                            ],
+                                                            "frameworks": [
+                                                                "Hugging Face",
+                                                                "spaCy",
+                                                            ],
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Series Temporales (RNN/LSTM)",
+                                                        "type": FeatureType.OPTIONAL,
+                                                        "properties": {
+                                                            "creditos": 6,
+                                                            "temas": [
+                                                                "RNN",
+                                                                "LSTM",
+                                                                "GRU",
+                                                                "Forecasting",
+                                                            ],
+                                                            "aplicaciones": [
+                                                                "Finanzas",
+                                                                "Clima",
+                                                                "IoT",
+                                                            ],
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                            # NIVEL 2: Big Data e Infraestructura
+                            {
+                                "name": "Big Data e Infraestructura",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "description": "Procesamiento de grandes volúmenes de datos",
+                                    "creditos": 12,
+                                    "semestre": 3,
+                                },
+                                "children": [
+                                    # NIVEL 3: Tecnologías Big Data
+                                    {
+                                        "name": "Tecnologías Distribuidas",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "creditos": 6,
+                                            "horas": 90,
+                                        },
                                         "children": [
+                                            # NIVEL 4: Herramientas específicas
                                             {
-                                                "name": "Visión por Computadora (CNN)",
-                                                "type": FeatureType.ALTERNATIVE,
+                                                "name": "Apache Spark",
+                                                "type": FeatureType.MANDATORY,
                                                 "properties": {
-                                                    "creditos": 6,
+                                                    "creditos": 3,
                                                     "temas": [
-                                                        "ResNet",
-                                                        "YOLO",
-                                                        "Segmentación",
-                                                        "GANs",
-                                                    ],
-                                                    "frameworks": [
-                                                        "PyTorch",
-                                                        "TensorFlow",
+                                                        "RDD",
+                                                        "DataFrames",
+                                                        "MLlib",
+                                                        "Streaming",
                                                     ],
                                                 },
                                             },
                                             {
-                                                "name": "Procesamiento de Lenguaje Natural (NLP)",
-                                                "type": FeatureType.ALTERNATIVE,
+                                                "name": "Hadoop Ecosystem",
+                                                "type": FeatureType.OPTIONAL,
                                                 "properties": {
-                                                    "creditos": 6,
+                                                    "creditos": 3,
                                                     "temas": [
-                                                        "Transformers",
-                                                        "BERT",
-                                                        "GPT",
-                                                        "Attention",
+                                                        "HDFS",
+                                                        "MapReduce",
+                                                        "Hive",
+                                                        "Pig",
                                                     ],
-                                                    "frameworks": [
-                                                        "Hugging Face",
-                                                        "spaCy",
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Cloud Computing para ML",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "creditos": 6,
+                                            "horas": 90,
+                                        },
+                                        "children": [
+                                            # NIVEL 4: Plataformas cloud (OR group - elegir al menos una)
+                                            {
+                                                "name": "Plataformas Cloud",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "description": "Elegir al menos una plataforma cloud",
+                                                    "minimo_selecciones": 1,
+                                                },
+                                                "groups": [
+                                                    {
+                                                        "type": "OR",
+                                                        "min": 1,
+                                                        "max": 3,
+                                                        "features": [
+                                                            {
+                                                                "name": "AWS SageMaker",
+                                                                "type": FeatureType.OPTIONAL,
+                                                                "properties": {
+                                                                    "creditos": 2,
+                                                                    "servicios": [
+                                                                        "S3",
+                                                                        "EC2",
+                                                                        "Lambda",
+                                                                        "SageMaker",
+                                                                    ],
+                                                                },
+                                                            },
+                                                            {
+                                                                "name": "Google Cloud AI",
+                                                                "type": FeatureType.OPTIONAL,
+                                                                "properties": {
+                                                                    "creditos": 2,
+                                                                    "servicios": [
+                                                                        "Vertex AI",
+                                                                        "BigQuery",
+                                                                        "Cloud Functions",
+                                                                    ],
+                                                                },
+                                                            },
+                                                            {
+                                                                "name": "Azure Machine Learning",
+                                                                "type": FeatureType.OPTIONAL,
+                                                                "properties": {
+                                                                    "creditos": 2,
+                                                                    "servicios": [
+                                                                        "Azure ML",
+                                                                        "Databricks",
+                                                                        "Cognitive Services",
+                                                                    ],
+                                                                },
+                                                            },
+                                                        ],
+                                                    }
+                                                ],
+                                            },
+                                            {
+                                                "name": "MLOps y Deployment",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "creditos": 4,
+                                                    "temas": [
+                                                        "Docker",
+                                                        "Kubernetes",
+                                                        "CI/CD",
+                                                        "Monitoring",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                            # NIVEL 2: Asignaturas Complementarias (OR group)
+                            {
+                                "name": "Asignaturas Complementarias",
+                                "type": FeatureType.MANDATORY,
+                                "properties": {
+                                    "description": "Elegir al menos 2 asignaturas complementarias",
+                                    "creditos_minimos": 8,
+                                    "creditos_por_asignatura": 4,
+                                    "minimo_selecciones": 2,
+                                },
+                                "groups": [
+                                    {
+                                        "type": "OR",
+                                        "min": 2,
+                                        "max": 5,
+                                        "features": [
+                                            # NIVEL 3: Opciones complementarias
+                                            {
+                                                "name": "Ética en IA",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "creditos": 4,
+                                                    "semestre": 3,
+                                                    "temas": [
+                                                        "Bias",
+                                                        "Fairness",
+                                                        "Privacy",
+                                                        "Transparency",
                                                     ],
                                                 },
                                             },
                                             {
-                                                "name": "Series Temporales (RNN/LSTM)",
-                                                "type": FeatureType.ALTERNATIVE,
+                                                "name": "Visualización de Datos Avanzada",
+                                                "type": FeatureType.OPTIONAL,
                                                 "properties": {
-                                                    "creditos": 6,
-                                                    "temas": [
-                                                        "RNN",
-                                                        "LSTM",
-                                                        "GRU",
-                                                        "Forecasting",
+                                                    "creditos": 4,
+                                                    "semestre": 3,
+                                                    "herramientas": [
+                                                        "D3.js",
+                                                        "Tableau",
+                                                        "Power BI",
+                                                        "Plotly",
                                                     ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Aprendizaje por Refuerzo",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "creditos": 4,
+                                                    "semestre": 3,
+                                                    "temas": [
+                                                        "Q-Learning",
+                                                        "Policy Gradients",
+                                                        "Actor-Critic",
+                                                    ],
+                                                    "prerequisitos": ["Deep Learning"],
+                                                },
+                                            },
+                                            {
+                                                "name": "Graph Neural Networks",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "creditos": 4,
+                                                    "semestre": 3,
+                                                    "temas": [
+                                                        "GCN",
+                                                        "GraphSAGE",
+                                                        "GAT",
+                                                        "Knowledge Graphs",
+                                                    ],
+                                                    "prerequisitos": ["Deep Learning"],
+                                                },
+                                            },
+                                            {
+                                                "name": "Análisis de Datos Biomédicos",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "creditos": 4,
+                                                    "semestre": 3,
                                                     "aplicaciones": [
-                                                        "Finanzas",
-                                                        "Clima",
-                                                        "IoT",
+                                                        "Genómica",
+                                                        "Diagnóstico",
+                                                        "Drug Discovery",
                                                     ],
                                                 },
                                             },
                                         ],
-                                    },
+                                    }
                                 ],
                             },
-                        ],
-                    },
-                    # NIVEL 2: Big Data e Infraestructura
-                    {
-                        "name": "Big Data e Infraestructura",
-                        "type": FeatureType.MANDATORY,
-                        "properties": {
-                            "description": "Procesamiento de grandes volúmenes de datos",
-                            "creditos": 12,
-                            "semestre": 3,
-                        },
-                        "children": [
-                            # NIVEL 3: Tecnologías Big Data
+                            # NIVEL 2: Proyecto de Investigación
                             {
-                                "name": "Tecnologías Distribuidas",
+                                "name": "Trabajo de Fin de Maestría",
                                 "type": FeatureType.MANDATORY,
                                 "properties": {
-                                    "creditos": 6,
-                                    "horas": 90,
+                                    "description": "Proyecto de investigación o aplicación práctica",
+                                    "creditos": 10,
+                                    "semestre": 4,
+                                    "duracion_meses": 6,
                                 },
                                 "children": [
-                                    # NIVEL 4: Herramientas específicas
+                                    # NIVEL 3: Componentes del proyecto
                                     {
-                                        "name": "Apache Spark",
+                                        "name": "Propuesta de Investigación",
                                         "type": FeatureType.MANDATORY,
                                         "properties": {
-                                            "creditos": 3,
-                                            "temas": [
-                                                "RDD",
-                                                "DataFrames",
-                                                "MLlib",
-                                                "Streaming",
-                                            ],
+                                            "peso": "20%",
+                                            "entregable": "Documento de propuesta",
                                         },
                                     },
                                     {
-                                        "name": "Hadoop Ecosystem",
-                                        "type": FeatureType.OPTIONAL,
+                                        "name": "Desarrollo e Implementación",
+                                        "type": FeatureType.MANDATORY,
                                         "properties": {
-                                            "creditos": 3,
-                                            "temas": [
-                                                "HDFS",
-                                                "MapReduce",
-                                                "Hive",
-                                                "Pig",
-                                            ],
+                                            "peso": "50%",
+                                            "entregable": "Código y modelos",
+                                        },
+                                    },
+                                    {
+                                        "name": "Documentación y Defensa",
+                                        "type": FeatureType.MANDATORY,
+                                        "properties": {
+                                            "peso": "30%",
+                                            "entregable": "Tesis y presentación",
                                         },
                                     },
                                 ],
-                            },
-                            {
-                                "name": "Cloud Computing para ML",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "creditos": 6,
-                                    "horas": 90,
-                                },
-                                "children": [
-                                    # NIVEL 4: Plataformas cloud (OR group - elegir al menos una)
-                                    {
-                                        "name": "Plataformas Cloud",
-                                        "type": FeatureType.OR_GROUP,
-                                        "properties": {
-                                            "description": "Elegir al menos una plataforma cloud",
-                                            "minimo_selecciones": 1,
-                                        },
-                                        "children": [
-                                            {
-                                                "name": "AWS SageMaker",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "creditos": 2,
-                                                    "servicios": [
-                                                        "S3",
-                                                        "EC2",
-                                                        "Lambda",
-                                                        "SageMaker",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "Google Cloud AI",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "creditos": 2,
-                                                    "servicios": [
-                                                        "Vertex AI",
-                                                        "BigQuery",
-                                                        "Cloud Functions",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "Azure Machine Learning",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "creditos": 2,
-                                                    "servicios": [
-                                                        "Azure ML",
-                                                        "Databricks",
-                                                        "Cognitive Services",
-                                                    ],
-                                                },
-                                            },
-                                        ],
-                                    },
-                                    {
-                                        "name": "MLOps y Deployment",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "creditos": 4,
-                                            "temas": [
-                                                "Docker",
-                                                "Kubernetes",
-                                                "CI/CD",
-                                                "Monitoring",
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                    # NIVEL 2: Asignaturas Complementarias (OR group)
-                    {
-                        "name": "Asignaturas Complementarias",
-                        "type": FeatureType.OR_GROUP,
-                        "properties": {
-                            "description": "Elegir al menos 2 asignaturas complementarias",
-                            "creditos_minimos": 8,
-                            "creditos_por_asignatura": 4,
-                            "minimo_selecciones": 2,
-                        },
-                        "children": [
-                            # NIVEL 3: Opciones complementarias
-                            {
-                                "name": "Ética en IA",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "creditos": 4,
-                                    "semestre": 3,
-                                    "temas": [
-                                        "Bias",
-                                        "Fairness",
-                                        "Privacy",
-                                        "Transparency",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Visualización de Datos Avanzada",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "creditos": 4,
-                                    "semestre": 3,
-                                    "herramientas": [
-                                        "D3.js",
-                                        "Tableau",
-                                        "Power BI",
-                                        "Plotly",
-                                    ],
-                                },
-                            },
-                            {
-                                "name": "Aprendizaje por Refuerzo",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "creditos": 4,
-                                    "semestre": 3,
-                                    "temas": [
-                                        "Q-Learning",
-                                        "Policy Gradients",
-                                        "Actor-Critic",
-                                    ],
-                                    "prerequisitos": ["Deep Learning"],
-                                },
-                            },
-                            {
-                                "name": "Graph Neural Networks",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "creditos": 4,
-                                    "semestre": 3,
-                                    "temas": [
-                                        "GCN",
-                                        "GraphSAGE",
-                                        "GAT",
-                                        "Knowledge Graphs",
-                                    ],
-                                    "prerequisitos": ["Deep Learning"],
-                                },
-                            },
-                            {
-                                "name": "Análisis de Datos Biomédicos",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "creditos": 4,
-                                    "semestre": 3,
-                                    "aplicaciones": [
-                                        "Genómica",
-                                        "Diagnóstico",
-                                        "Drug Discovery",
-                                    ],
-                                },
-                            },
-                        ],
-                    },
-                    # NIVEL 2: Proyecto de Investigación
-                    {
-                        "name": "Trabajo de Fin de Maestría",
-                        "type": FeatureType.MANDATORY,
-                        "properties": {
-                            "description": "Proyecto de investigación o aplicación práctica",
-                            "creditos": 10,
-                            "semestre": 4,
-                            "duracion_meses": 6,
-                        },
-                        "children": [
-                            # NIVEL 3: Componentes del proyecto
-                            {
-                                "name": "Propuesta de Investigación",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "peso": "20%",
-                                    "entregable": "Documento de propuesta",
-                                },
-                            },
-                            {
-                                "name": "Desarrollo e Implementación",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "peso": "50%",
-                                    "entregable": "Código y modelos",
-                                },
-                            },
-                            {
-                                "name": "Documentación y Defensa",
-                                "type": FeatureType.MANDATORY,
-                                "properties": {
-                                    "peso": "30%",
-                                    "entregable": "Tesis y presentación",
-                                },
                             },
                         ],
                     },
                 ],
-            }
+            },
         ],
         # Relaciones entre features (constraints)
         "feature_relations": [
@@ -1223,8 +1276,9 @@ maestria_ciencia_datos_model = {
     },
 }
 
+
 # Modelo 4: Curso de Desarrollo Móvil Básico
-curso_desarrollo_movil_model = {
+mobile_development_course_model = {
     "name": "Desarrollo de Aplicaciones Móviles - Nivel Básico",
     "description": "Curso intensivo de desarrollo móvil multiplataforma (3 meses, 120 horas)",
     "domain_name": "Desarrollo de Software",
@@ -1295,374 +1349,402 @@ curso_desarrollo_movil_model = {
                     # NIVEL 2: Plataforma de Desarrollo (XOR - elegir una)
                     {
                         "name": "Plataforma de Desarrollo",
-                        "type": FeatureType.XOR_GROUP,
+                        "type": FeatureType.MANDATORY,
                         "properties": {
                             "description": "Elegir una plataforma principal",
                             "horas": 60,
                             "semanas": "3-8",
                         },
-                        "children": [
-                            # NIVEL 3: Opción 1 - React Native
+                        "groups": [
                             {
-                                "name": "React Native (Multiplataforma)",
-                                "type": FeatureType.ALTERNATIVE,
-                                "properties": {
-                                    "horas": 60,
-                                    "lenguaje": "JavaScript/TypeScript",
-                                    "plataformas": ["iOS", "Android"],
-                                },
-                                "children": [
+                                "type": "XOR",
+                                "min": 1,
+                                "max": 1,
+                                "features": [
+                                    # NIVEL 3: Opción 1 - React Native
                                     {
-                                        "name": "React Fundamentals",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 12,
-                                            "temas": [
-                                                "Components",
-                                                "Props",
-                                                "State",
-                                                "Hooks",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "React Native Core",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 20,
-                                            "temas": [
-                                                "View",
-                                                "Text",
-                                                "FlatList",
-                                                "Navigation",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Native Modules",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 12,
-                                            "temas": [
-                                                "Camera",
-                                                "Geolocation",
-                                                "Push Notifications",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Estado Global",
-                                        "type": FeatureType.OR_GROUP,
-                                        "properties": {
-                                            "description": "Elegir al menos una librería de estado",
-                                        },
-                                        "children": [
-                                            {
-                                                "name": "Redux",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "horas": 8,
-                                                    "temas": [
-                                                        "Store",
-                                                        "Actions",
-                                                        "Reducers",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "Context API",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "horas": 8,
-                                                    "temas": [
-                                                        "Provider",
-                                                        "Consumer",
-                                                        "useContext",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "MobX",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "horas": 8,
-                                                    "temas": [
-                                                        "Observables",
-                                                        "Actions",
-                                                        "Reactions",
-                                                    ],
-                                                },
-                                            },
-                                        ],
-                                    },
-                                    {
-                                        "name": "Styling en React Native",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 8,
-                                            "temas": [
-                                                "StyleSheet",
-                                                "Flexbox",
-                                                "Styled Components",
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
-                            # NIVEL 3: Opción 2 - Flutter
-                            {
-                                "name": "Flutter (Multiplataforma)",
-                                "type": FeatureType.ALTERNATIVE,
-                                "properties": {
-                                    "horas": 60,
-                                    "lenguaje": "Dart",
-                                    "plataformas": ["iOS", "Android", "Web"],
-                                },
-                                "children": [
-                                    {
-                                        "name": "Dart Fundamentals",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 12,
-                                            "temas": [
-                                                "Variables",
-                                                "Functions",
-                                                "Classes",
-                                                "Async",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Flutter Widgets",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 20,
-                                            "temas": [
-                                                "StatelessWidget",
-                                                "StatefulWidget",
-                                                "Layout",
-                                                "Material",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Navigation & Routing",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 8,
-                                            "temas": [
-                                                "Navigator",
-                                                "Routes",
-                                                "Named Routes",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "State Management Flutter",
-                                        "type": FeatureType.OR_GROUP,
-                                        "properties": {
-                                            "description": "Elegir al menos una solución de estado",
-                                        },
-                                        "children": [
-                                            {
-                                                "name": "Provider",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "horas": 8,
-                                                    "temas": [
-                                                        "ChangeNotifier",
-                                                        "Consumer",
-                                                        "Selector",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "Riverpod",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "horas": 8,
-                                                    "temas": [
-                                                        "Providers",
-                                                        "StateNotifier",
-                                                        "FutureProvider",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "BLoC Pattern",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "horas": 8,
-                                                    "temas": [
-                                                        "Events",
-                                                        "States",
-                                                        "Streams",
-                                                    ],
-                                                },
-                                            },
-                                        ],
-                                    },
-                                    {
-                                        "name": "Flutter Plugins",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 12,
-                                            "temas": [
-                                                "http",
-                                                "shared_preferences",
-                                                "image_picker",
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
-                            # NIVEL 3: Opción 3 - Android Nativo
-                            {
-                                "name": "Android Nativo (Kotlin)",
-                                "type": FeatureType.ALTERNATIVE,
-                                "properties": {
-                                    "horas": 60,
-                                    "lenguaje": "Kotlin",
-                                    "plataformas": ["Android"],
-                                },
-                                "children": [
-                                    {
-                                        "name": "Kotlin Fundamentals",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 12,
-                                            "temas": [
-                                                "Variables",
-                                                "Functions",
-                                                "Classes",
-                                                "Coroutines",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Android Components",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 20,
-                                            "temas": [
-                                                "Activities",
-                                                "Fragments",
-                                                "Services",
-                                                "Receivers",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Jetpack Components",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 16,
-                                            "temas": [
-                                                "ViewModel",
-                                                "LiveData",
-                                                "Room",
-                                                "Navigation",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "UI en Android",
-                                        "type": FeatureType.XOR_GROUP,
-                                        "properties": {
-                                            "description": "Elegir tecnología de UI",
-                                        },
-                                        "children": [
-                                            {
-                                                "name": "XML Layouts",
-                                                "type": FeatureType.ALTERNATIVE,
-                                                "properties": {
-                                                    "horas": 12,
-                                                    "temas": [
-                                                        "ConstraintLayout",
-                                                        "RecyclerView",
-                                                        "Material Components",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "Jetpack Compose",
-                                                "type": FeatureType.ALTERNATIVE,
-                                                "properties": {
-                                                    "horas": 12,
-                                                    "temas": [
-                                                        "Composables",
-                                                        "State",
-                                                        "Layouts",
-                                                        "Material3",
-                                                    ],
-                                                },
-                                            },
-                                        ],
-                                    },
-                                ],
-                            },
-                            # NIVEL 3: Opción 4 - iOS Nativo
-                            {
-                                "name": "iOS Nativo (Swift)",
-                                "type": FeatureType.ALTERNATIVE,
-                                "properties": {
-                                    "horas": 60,
-                                    "lenguaje": "Swift",
-                                    "plataformas": ["iOS", "iPadOS"],
-                                },
-                                "children": [
-                                    {
-                                        "name": "Swift Fundamentals",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 12,
-                                            "temas": [
-                                                "Variables",
-                                                "Optionals",
-                                                "Closures",
-                                                "Protocols",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "UIKit Basics",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "horas": 20,
-                                            "temas": [
-                                                "UIViewController",
-                                                "UITableView",
-                                                "Auto Layout",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "SwiftUI",
+                                        "name": "React Native (Multiplataforma)",
                                         "type": FeatureType.OPTIONAL,
                                         "properties": {
-                                            "horas": 16,
-                                            "temas": [
-                                                "Views",
-                                                "State",
-                                                "Bindings",
-                                                "Navigation",
-                                            ],
+                                            "horas": 60,
+                                            "lenguaje": "JavaScript/TypeScript",
+                                            "plataformas": ["iOS", "Android"],
                                         },
+                                        "children": [
+                                            {
+                                                "name": "React Fundamentals",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 12,
+                                                    "temas": [
+                                                        "Components",
+                                                        "Props",
+                                                        "State",
+                                                        "Hooks",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "React Native Core",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 20,
+                                                    "temas": [
+                                                        "View",
+                                                        "Text",
+                                                        "FlatList",
+                                                        "Navigation",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Native Modules",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 12,
+                                                    "temas": [
+                                                        "Camera",
+                                                        "Geolocation",
+                                                        "Push Notifications",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Estado Global",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "description": "Elegir al menos una librería de estado",
+                                                },
+                                                "groups": [
+                                                    {
+                                                        "type": "OR",
+                                                        "min": 1,
+                                                        "max": 3,
+                                                        "features": [
+                                                            {
+                                                                "name": "Redux",
+                                                                "type": FeatureType.OPTIONAL,
+                                                                "properties": {
+                                                                    "horas": 8,
+                                                                    "temas": [
+                                                                        "Store",
+                                                                        "Actions",
+                                                                        "Reducers",
+                                                                    ],
+                                                                },
+                                                            },
+                                                            {
+                                                                "name": "Context API",
+                                                                "type": FeatureType.OPTIONAL,
+                                                                "properties": {
+                                                                    "horas": 8,
+                                                                    "temas": [
+                                                                        "Provider",
+                                                                        "Consumer",
+                                                                        "useContext",
+                                                                    ],
+                                                                },
+                                                            },
+                                                            {
+                                                                "name": "MobX",
+                                                                "type": FeatureType.OPTIONAL,
+                                                                "properties": {
+                                                                    "horas": 8,
+                                                                    "temas": [
+                                                                        "Observables",
+                                                                        "Actions",
+                                                                        "Reactions",
+                                                                    ],
+                                                                },
+                                                            },
+                                                        ],
+                                                    }
+                                                ],
+                                            },
+                                            {
+                                                "name": "Styling en React Native",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 8,
+                                                    "temas": [
+                                                        "StyleSheet",
+                                                        "Flexbox",
+                                                        "Styled Components",
+                                                    ],
+                                                },
+                                            },
+                                        ],
                                     },
+                                    # NIVEL 3: Opción 2 - Flutter
                                     {
-                                        "name": "iOS Frameworks",
-                                        "type": FeatureType.MANDATORY,
+                                        "name": "Flutter (Multiplataforma)",
+                                        "type": FeatureType.OPTIONAL,
                                         "properties": {
-                                            "horas": 12,
-                                            "temas": [
-                                                "URLSession",
-                                                "Core Data",
-                                                "UserDefaults",
-                                            ],
+                                            "horas": 60,
+                                            "lenguaje": "Dart",
+                                            "plataformas": ["iOS", "Android", "Web"],
                                         },
+                                        "children": [
+                                            {
+                                                "name": "Dart Fundamentals",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 12,
+                                                    "temas": [
+                                                        "Variables",
+                                                        "Functions",
+                                                        "Classes",
+                                                        "Async",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Flutter Widgets",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 20,
+                                                    "temas": [
+                                                        "StatelessWidget",
+                                                        "StatefulWidget",
+                                                        "Layout",
+                                                        "Material",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Navigation & Routing",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 8,
+                                                    "temas": [
+                                                        "Navigator",
+                                                        "Routes",
+                                                        "Named Routes",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "State Management Flutter",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "description": "Elegir al menos una solución de estado",
+                                                },
+                                                "groups": [
+                                                    {
+                                                        "type": "OR",
+                                                        "min": 1,
+                                                        "max": 3,
+                                                        "features": [
+                                                            {
+                                                                "name": "Provider",
+                                                                "type": FeatureType.OPTIONAL,
+                                                                "properties": {
+                                                                    "horas": 8,
+                                                                    "temas": [
+                                                                        "ChangeNotifier",
+                                                                        "Consumer",
+                                                                        "Selector",
+                                                                    ],
+                                                                },
+                                                            },
+                                                            {
+                                                                "name": "Riverpod",
+                                                                "type": FeatureType.OPTIONAL,
+                                                                "properties": {
+                                                                    "horas": 8,
+                                                                    "temas": [
+                                                                        "Providers",
+                                                                        "StateNotifier",
+                                                                        "FutureProvider",
+                                                                    ],
+                                                                },
+                                                            },
+                                                            {
+                                                                "name": "BLoC Pattern",
+                                                                "type": FeatureType.OPTIONAL,
+                                                                "properties": {
+                                                                    "horas": 8,
+                                                                    "temas": [
+                                                                        "Events",
+                                                                        "States",
+                                                                        "Streams",
+                                                                    ],
+                                                                },
+                                                            },
+                                                        ],
+                                                    }
+                                                ],
+                                            },
+                                            {
+                                                "name": "Flutter Plugins",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 12,
+                                                    "temas": [
+                                                        "http",
+                                                        "shared_preferences",
+                                                        "image_picker",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    # NIVEL 3: Opción 3 - Android Nativo
+                                    {
+                                        "name": "Android Nativo (Kotlin)",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "horas": 60,
+                                            "lenguaje": "Kotlin",
+                                            "plataformas": ["Android"],
+                                        },
+                                        "children": [
+                                            {
+                                                "name": "Kotlin Fundamentals",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 12,
+                                                    "temas": [
+                                                        "Variables",
+                                                        "Functions",
+                                                        "Classes",
+                                                        "Coroutines",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Android Components",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 20,
+                                                    "temas": [
+                                                        "Activities",
+                                                        "Fragments",
+                                                        "Services",
+                                                        "Receivers",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Jetpack Components",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 16,
+                                                    "temas": [
+                                                        "ViewModel",
+                                                        "LiveData",
+                                                        "Room",
+                                                        "Navigation",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "UI en Android",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "description": "Elegir tecnología de UI",
+                                                },
+                                                "groups": [
+                                                    {
+                                                        "type": "XOR",
+                                                        "min": 1,
+                                                        "max": 1,
+                                                        "features": [
+                                                            {
+                                                                "name": "XML Layouts",
+                                                                "type": FeatureType.OPTIONAL,
+                                                                "properties": {
+                                                                    "horas": 12,
+                                                                    "temas": [
+                                                                        "ConstraintLayout",
+                                                                        "RecyclerView",
+                                                                        "Material Components",
+                                                                    ],
+                                                                },
+                                                            },
+                                                            {
+                                                                "name": "Jetpack Compose",
+                                                                "type": FeatureType.OPTIONAL,
+                                                                "properties": {
+                                                                    "horas": 12,
+                                                                    "temas": [
+                                                                        "Composables",
+                                                                        "State",
+                                                                        "Layouts",
+                                                                        "Material3",
+                                                                    ],
+                                                                },
+                                                            },
+                                                        ],
+                                                    }
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                    # NIVEL 3: Opción 4 - iOS Nativo
+                                    {
+                                        "name": "iOS Nativo (Swift)",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "horas": 60,
+                                            "lenguaje": "Swift",
+                                            "plataformas": ["iOS", "iPadOS"],
+                                        },
+                                        "children": [
+                                            {
+                                                "name": "Swift Fundamentals",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 12,
+                                                    "temas": [
+                                                        "Variables",
+                                                        "Optionals",
+                                                        "Closures",
+                                                        "Protocols",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "UIKit Basics",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 20,
+                                                    "temas": [
+                                                        "UIViewController",
+                                                        "UITableView",
+                                                        "Auto Layout",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "SwiftUI",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "horas": 16,
+                                                    "temas": [
+                                                        "Views",
+                                                        "State",
+                                                        "Bindings",
+                                                        "Navigation",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "iOS Frameworks",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "horas": 12,
+                                                    "temas": [
+                                                        "URLSession",
+                                                        "Core Data",
+                                                        "UserDefaults",
+                                                    ],
+                                                },
+                                            },
+                                        ],
                                     },
                                 ],
-                            },
+                            }
                         ],
                     },
                     # NIVEL 2: Backend Integration
@@ -1727,35 +1809,42 @@ curso_desarrollo_movil_model = {
                             },
                             {
                                 "name": "Deployment",
-                                "type": FeatureType.OR_GROUP,
+                                "type": FeatureType.MANDATORY,
                                 "properties": {
                                     "description": "Publicar en al menos una tienda",
                                 },
-                                "children": [
+                                "groups": [
                                     {
-                                        "name": "Google Play Store",
-                                        "type": FeatureType.OPTIONAL,
-                                        "properties": {
-                                            "horas": 4,
-                                            "temas": [
-                                                "App Bundle",
-                                                "Signing",
-                                                "Store Listing",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Apple App Store",
-                                        "type": FeatureType.OPTIONAL,
-                                        "properties": {
-                                            "horas": 4,
-                                            "temas": [
-                                                "App Store Connect",
-                                                "TestFlight",
-                                                "Review Process",
-                                            ],
-                                        },
-                                    },
+                                        "type": "OR",
+                                        "min": 1,
+                                        "max": 10,
+                                        "features": [
+                                            {
+                                                "name": "Google Play Store",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "horas": 4,
+                                                    "temas": [
+                                                        "App Bundle",
+                                                        "Signing",
+                                                        "Store Listing",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Apple App Store",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "horas": 4,
+                                                    "temas": [
+                                                        "App Store Connect",
+                                                        "TestFlight",
+                                                        "Review Process",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    }
                                 ],
                             },
                             {
@@ -1902,8 +1991,11 @@ curso_desarrollo_movil_model = {
     },
 }
 
+
+# ==========================================================================
 # Modelo 5: Asignatura Gestión de Proyectos Informáticos (GPI)
-asignatura_gpi_model = {
+# ==========================================================================
+subject_gpi_model = {
     "name": "Gestión de Proyectos Informáticos (GPI)",
     "description": "Asignatura completa sobre metodologías, técnicas y herramientas para la gestión exitosa de proyectos de software (1 semestre, 6 créditos)",
     "domain_name": "Ingeniería Informática",
@@ -2020,46 +2112,53 @@ asignatura_gpi_model = {
                                     # NIVEL 3: Categorías de técnicas de estimación
                                     {
                                         "name": "Estimación Algorítmica",
-                                        "type": FeatureType.OR_GROUP,
+                                        "type": FeatureType.MANDATORY,
                                         "properties": {
                                             "description": "Elegir al menos un método algorítmico",
                                             "minimo_selecciones": 1,
                                         },
-                                        "children": [
+                                        "groups": [
                                             {
-                                                "name": "COCOMO II",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "niveles": [
-                                                        "Básico",
-                                                        "Intermedio",
-                                                        "Detallado",
-                                                    ],
-                                                    "factores": [
-                                                        "tamaño",
-                                                        "complejidad",
-                                                        "experiencia",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "Puntos de Función (FPA)",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "componentes": [
-                                                        "ILF",
-                                                        "EIF",
-                                                        "EI",
-                                                        "EO",
-                                                        "EQ",
-                                                    ],
-                                                    "complejidad": [
-                                                        "Simple",
-                                                        "Media",
-                                                        "Compleja",
-                                                    ],
-                                                },
-                                            },
+                                                "type": "OR",
+                                                "min": 1,
+                                                "max": 10,
+                                                "features": [
+                                                    {
+                                                        "name": "COCOMO II",
+                                                        "type": FeatureType.OPTIONAL,
+                                                        "properties": {
+                                                            "niveles": [
+                                                                "Básico",
+                                                                "Intermedio",
+                                                                "Detallado",
+                                                            ],
+                                                            "factores": [
+                                                                "tamaño",
+                                                                "complejidad",
+                                                                "experiencia",
+                                                            ],
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Puntos de Función (FPA)",
+                                                        "type": FeatureType.OPTIONAL,
+                                                        "properties": {
+                                                            "componentes": [
+                                                                "ILF",
+                                                                "EIF",
+                                                                "EI",
+                                                                "EO",
+                                                                "EQ",
+                                                            ],
+                                                            "complejidad": [
+                                                                "Simple",
+                                                                "Media",
+                                                                "Compleja",
+                                                            ],
+                                                        },
+                                                    },
+                                                ],
+                                            }
                                         ],
                                     },
                                     {
@@ -2148,52 +2247,59 @@ asignatura_gpi_model = {
                                     # NIVEL 3: Componentes de liderazgo
                                     {
                                         "name": "Estilos de Liderazgo",
-                                        "type": FeatureType.XOR_GROUP,
+                                        "type": FeatureType.MANDATORY,
                                         "properties": {
                                             "description": "Elegir un estilo principal a profundizar",
                                         },
-                                        "children": [
+                                        "groups": [
                                             {
-                                                "name": "Liderazgo Transformacional",
-                                                "type": FeatureType.ALTERNATIVE,
-                                                "properties": {
-                                                    "caracteristicas": [
-                                                        "Visión",
-                                                        "Inspiración",
-                                                        "Cambio",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "Liderazgo Situacional",
-                                                "type": FeatureType.ALTERNATIVE,
-                                                "properties": {
-                                                    "niveles_madurez": [
-                                                        "M1",
-                                                        "M2",
-                                                        "M3",
-                                                        "M4",
-                                                    ],
-                                                    "estilos": [
-                                                        "Dirigir",
-                                                        "Persuadir",
-                                                        "Participar",
-                                                        "Delegar",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "Servant Leadership",
-                                                "type": FeatureType.ALTERNATIVE,
-                                                "properties": {
-                                                    "principios": [
-                                                        "Servicio",
-                                                        "Empatía",
-                                                        "Empoderamiento",
-                                                    ],
-                                                    "aplicacion": "Ideal para equipos ágiles",
-                                                },
-                                            },
+                                                "type": "XOR",
+                                                "min": 1,
+                                                "max": 1,
+                                                "features": [
+                                                    {
+                                                        "name": "Liderazgo Transformacional",
+                                                        "type": FeatureType.OPTIONAL,
+                                                        "properties": {
+                                                            "caracteristicas": [
+                                                                "Visión",
+                                                                "Inspiración",
+                                                                "Cambio",
+                                                            ],
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Liderazgo Situacional",
+                                                        "type": FeatureType.OPTIONAL,
+                                                        "properties": {
+                                                            "niveles_madurez": [
+                                                                "M1",
+                                                                "M2",
+                                                                "M3",
+                                                                "M4",
+                                                            ],
+                                                            "estilos": [
+                                                                "Dirigir",
+                                                                "Persuadir",
+                                                                "Participar",
+                                                                "Delegar",
+                                                            ],
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Servant Leadership",
+                                                        "type": FeatureType.OPTIONAL,
+                                                        "properties": {
+                                                            "principios": [
+                                                                "Servicio",
+                                                                "Empatía",
+                                                                "Empoderamiento",
+                                                            ],
+                                                            "aplicacion": "Ideal para equipos ágiles",
+                                                        },
+                                                    },
+                                                ],
+                                            }
                                         ],
                                     },
                                     {
@@ -2356,43 +2462,50 @@ asignatura_gpi_model = {
                                     },
                                     {
                                         "name": "Análisis Cuantitativo",
-                                        "type": FeatureType.OR_GROUP,
+                                        "type": FeatureType.MANDATORY,
                                         "properties": {
                                             "description": "Técnicas numéricas - elegir al menos una",
                                             "minimo_selecciones": 1,
                                         },
-                                        "children": [
+                                        "groups": [
                                             {
-                                                "name": "Análisis EMV (Expected Monetary Value)",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "formula": "EMV = Probabilidad × Impacto",
-                                                    "aplicacion": "Decisiones monetarias",
-                                                },
-                                            },
-                                            {
-                                                "name": "Árbol de Decisiones",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "componentes": [
-                                                        "Nodos de decisión",
-                                                        "Nodos de chance",
-                                                        "Valores esperados",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "Simulación Monte Carlo",
-                                                "type": FeatureType.OPTIONAL,
-                                                "properties": {
-                                                    "iteraciones": "Mínimo 1000",
-                                                    "salida": "Distribución de probabilidad",
-                                                    "herramientas": [
-                                                        "@RISK",
-                                                        "Crystal Ball",
-                                                    ],
-                                                },
-                                            },
+                                                "type": "OR",
+                                                "min": 1,
+                                                "max": 10,
+                                                "features": [
+                                                    {
+                                                        "name": "Análisis EMV (Expected Monetary Value)",
+                                                        "type": FeatureType.OPTIONAL,
+                                                        "properties": {
+                                                            "formula": "EMV = Probabilidad × Impacto",
+                                                            "aplicacion": "Decisiones monetarias",
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Árbol de Decisiones",
+                                                        "type": FeatureType.OPTIONAL,
+                                                        "properties": {
+                                                            "componentes": [
+                                                                "Nodos de decisión",
+                                                                "Nodos de chance",
+                                                                "Valores esperados",
+                                                            ],
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Simulación Monte Carlo",
+                                                        "type": FeatureType.OPTIONAL,
+                                                        "properties": {
+                                                            "iteraciones": "Mínimo 1000",
+                                                            "salida": "Distribución de probabilidad",
+                                                            "herramientas": [
+                                                                "@RISK",
+                                                                "Crystal Ball",
+                                                            ],
+                                                        },
+                                                    },
+                                                ],
+                                            }
                                         ],
                                     },
                                 ],
@@ -2427,429 +2540,443 @@ asignatura_gpi_model = {
                     },
                     {
                         "name": "Metodologías Ágiles",
-                        "type": FeatureType.OR_GROUP,
+                        "type": FeatureType.MANDATORY,
                         "properties": {
                             "description": "Elegir al menos una metodología ágil para profundizar",
                             "creditos": 0.5,
                             "horas": 8,
                             "minimo_selecciones": 1,
                         },
-                        "children": [
+                        "groups": [
                             {
-                                "name": "Scrum",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Componentes de Scrum
+                                "type": "OR",
+                                "min": 1,
+                                "max": 10,
+                                "features": [
                                     {
-                                        "name": "Roles Scrum",
-                                        "type": FeatureType.MANDATORY,
+                                        "name": "Scrum",
+                                        "type": FeatureType.OPTIONAL,
                                         "properties": {
-                                            "descripcion": "Roles fundamentales del framework Scrum",
+                                            "horas": 8,
                                         },
                                         "children": [
-                                            # NIVEL 3: Detalles de cada rol
+                                            # NIVEL 2: Componentes de Scrum
                                             {
-                                                "name": "Product Owner",
+                                                "name": "Roles Scrum",
                                                 "type": FeatureType.MANDATORY,
                                                 "properties": {
-                                                    "responsabilidades": [
-                                                        "Maximizar valor del producto",
-                                                        "Gestionar Product Backlog",
-                                                        "Definir historias de usuario",
-                                                        "Aceptar o rechazar trabajo",
+                                                    "descripcion": "Roles fundamentales del framework Scrum",
+                                                },
+                                                "children": [
+                                                    # NIVEL 3: Detalles de cada rol
+                                                    {
+                                                        "name": "Product Owner",
+                                                        "type": FeatureType.MANDATORY,
+                                                        "properties": {
+                                                            "responsabilidades": [
+                                                                "Maximizar valor del producto",
+                                                                "Gestionar Product Backlog",
+                                                                "Definir historias de usuario",
+                                                                "Aceptar o rechazar trabajo",
+                                                            ],
+                                                            "habilidades_clave": [
+                                                                "Visión",
+                                                                "Comunicación",
+                                                                "Decisión",
+                                                            ],
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Scrum Master",
+                                                        "type": FeatureType.MANDATORY,
+                                                        "properties": {
+                                                            "responsabilidades": [
+                                                                "Facilitar eventos Scrum",
+                                                                "Eliminar impedimentos",
+                                                                "Coaching al equipo",
+                                                                "Promover Scrum",
+                                                            ],
+                                                            "tipo_liderazgo": "Servant Leadership",
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Development Team",
+                                                        "type": FeatureType.MANDATORY,
+                                                        "properties": {
+                                                            "caracteristicas": [
+                                                                "Auto-organizado",
+                                                                "Multifuncional",
+                                                                "Sin sub-equipos",
+                                                            ],
+                                                            "tamaño_ideal": "3-9 personas",
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                            {
+                                                "name": "Eventos Scrum",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "descripcion": "Eventos time-boxed de Scrum",
+                                                },
+                                                "children": [
+                                                    # NIVEL 3: Detalles de cada evento
+                                                    {
+                                                        "name": "Sprint",
+                                                        "type": FeatureType.MANDATORY,
+                                                        "properties": {
+                                                            "duracion": "1-4 semanas",
+                                                            "objetivo": "Crear incremento potencialmente entregable",
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Sprint Planning",
+                                                        "type": FeatureType.MANDATORY,
+                                                        "properties": {
+                                                            "duracion_max": "8 horas para sprint de 1 mes",
+                                                            "preguntas_clave": [
+                                                                "¿Qué se puede entregar en este Sprint?",
+                                                                "¿Cómo se logrará el trabajo?",
+                                                            ],
+                                                            "salida": "Sprint Goal y Sprint Backlog",
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Daily Scrum",
+                                                        "type": FeatureType.MANDATORY,
+                                                        "properties": {
+                                                            "duracion_max": "15 minutos",
+                                                            "preguntas": [
+                                                                "¿Qué hice ayer?",
+                                                                "¿Qué haré hoy?",
+                                                                "¿Hay impedimentos?",
+                                                            ],
+                                                            "participantes": "Development Team",
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Sprint Review",
+                                                        "type": FeatureType.MANDATORY,
+                                                        "properties": {
+                                                            "duracion_max": "4 horas para sprint de 1 mes",
+                                                            "actividades": [
+                                                                "Demo del incremento",
+                                                                "Revisión del Product Backlog",
+                                                                "Discusión colaborativa",
+                                                            ],
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Sprint Retrospective",
+                                                        "type": FeatureType.MANDATORY,
+                                                        "properties": {
+                                                            "duracion_max": "3 horas para sprint de 1 mes",
+                                                            "enfoque": [
+                                                                "¿Qué salió bien?",
+                                                                "¿Qué puede mejorar?",
+                                                                "Plan de mejora",
+                                                            ],
+                                                            "salida": "Mejoras para el próximo Sprint",
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                            {
+                                                "name": "Artefactos Scrum",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "descripcion": "Artefactos que representan trabajo o valor",
+                                                },
+                                                "children": [
+                                                    # NIVEL 3: Detalles de cada artefacto
+                                                    {
+                                                        "name": "Product Backlog",
+                                                        "type": FeatureType.MANDATORY,
+                                                        "properties": {
+                                                            "responsable": "Product Owner",
+                                                            "contenido": "Lista ordenada de todo lo necesario en el producto",
+                                                            "atributos": [
+                                                                "Descripción",
+                                                                "Orden",
+                                                                "Estimación",
+                                                                "Valor",
+                                                            ],
+                                                            "evolucion": "Nunca está completo",
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Sprint Backlog",
+                                                        "type": FeatureType.MANDATORY,
+                                                        "properties": {
+                                                            "responsable": "Development Team",
+                                                            "contenido": [
+                                                                "Items del Product Backlog para el Sprint",
+                                                                "Plan para entregar el incremento",
+                                                            ],
+                                                            "visibilidad": "Altamente visible",
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Increment",
+                                                        "type": FeatureType.MANDATORY,
+                                                        "properties": {
+                                                            "definicion": "Suma de todos los items completados + incrementos previos",
+                                                            "condicion": "Debe cumplir Definition of Done",
+                                                            "estado": "Potencialmente entregable",
+                                                        },
+                                                    },
+                                                    {
+                                                        "name": "Definition of Done",
+                                                        "type": FeatureType.MANDATORY,
+                                                        "properties": {
+                                                            "descripcion": "Entendimiento compartido de lo que significa 'Done'",
+                                                            "ejemplos": [
+                                                                "Código escrito",
+                                                                "Tests pasando",
+                                                                "Code review completado",
+                                                                "Documentación actualizada",
+                                                                "Desplegado en ambiente de prueba",
+                                                            ],
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Kanban",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "horas": 8,
+                                        },
+                                        "children": [
+                                            # NIVEL 2: Componentes de Kanban
+                                            {
+                                                "name": "Principios Kanban",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "principios": [
+                                                        "Visualizar el flujo de trabajo",
+                                                        "Limitar el WIP (Work In Progress)",
+                                                        "Gestionar el flujo",
+                                                        "Hacer políticas explícitas",
+                                                        "Implementar ciclos de feedback",
+                                                        "Mejorar colaborativamente",
                                                     ],
-                                                    "habilidades_clave": [
-                                                        "Visión",
+                                                },
+                                            },
+                                            {
+                                                "name": "Métricas Kanban",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "metricas": [
+                                                        "Lead Time",
+                                                        "Cycle Time",
+                                                        "Throughput",
+                                                        "WIP",
+                                                        "Diagrama de flujo acumulado",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "XP (Extreme Programming)",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "horas": 8,
+                                        },
+                                        "children": [
+                                            # NIVEL 2: Prácticas XP
+                                            {
+                                                "name": "Prácticas Técnicas XP",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "practicas": [
+                                                        "TDD (Test Driven Development)",
+                                                        "Pair Programming",
+                                                        "Refactoring continuo",
+                                                        "Continuous Integration",
+                                                        "Código colectivo",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Valores y Principios XP",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "valores": [
                                                         "Comunicación",
-                                                        "Decisión",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "Scrum Master",
-                                                "type": FeatureType.MANDATORY,
-                                                "properties": {
-                                                    "responsabilidades": [
-                                                        "Facilitar eventos Scrum",
-                                                        "Eliminar impedimentos",
-                                                        "Coaching al equipo",
-                                                        "Promover Scrum",
-                                                    ],
-                                                    "tipo_liderazgo": "Servant Leadership",
-                                                },
-                                            },
-                                            {
-                                                "name": "Development Team",
-                                                "type": FeatureType.MANDATORY,
-                                                "properties": {
-                                                    "caracteristicas": [
-                                                        "Auto-organizado",
-                                                        "Multifuncional",
-                                                        "Sin sub-equipos",
-                                                    ],
-                                                    "tamaño_ideal": "3-9 personas",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                    {
-                                        "name": "Eventos Scrum",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "descripcion": "Eventos time-boxed de Scrum",
-                                        },
-                                        "children": [
-                                            # NIVEL 3: Detalles de cada evento
-                                            {
-                                                "name": "Sprint",
-                                                "type": FeatureType.MANDATORY,
-                                                "properties": {
-                                                    "duracion": "1-4 semanas",
-                                                    "objetivo": "Crear incremento potencialmente entregable",
-                                                },
-                                            },
-                                            {
-                                                "name": "Sprint Planning",
-                                                "type": FeatureType.MANDATORY,
-                                                "properties": {
-                                                    "duracion_max": "8 horas para sprint de 1 mes",
-                                                    "preguntas_clave": [
-                                                        "¿Qué se puede entregar en este Sprint?",
-                                                        "¿Cómo se logrará el trabajo?",
-                                                    ],
-                                                    "salida": "Sprint Goal y Sprint Backlog",
-                                                },
-                                            },
-                                            {
-                                                "name": "Daily Scrum",
-                                                "type": FeatureType.MANDATORY,
-                                                "properties": {
-                                                    "duracion_max": "15 minutos",
-                                                    "preguntas": [
-                                                        "¿Qué hice ayer?",
-                                                        "¿Qué haré hoy?",
-                                                        "¿Hay impedimentos?",
-                                                    ],
-                                                    "participantes": "Development Team",
-                                                },
-                                            },
-                                            {
-                                                "name": "Sprint Review",
-                                                "type": FeatureType.MANDATORY,
-                                                "properties": {
-                                                    "duracion_max": "4 horas para sprint de 1 mes",
-                                                    "actividades": [
-                                                        "Demo del incremento",
-                                                        "Revisión del Product Backlog",
-                                                        "Discusión colaborativa",
-                                                    ],
-                                                },
-                                            },
-                                            {
-                                                "name": "Sprint Retrospective",
-                                                "type": FeatureType.MANDATORY,
-                                                "properties": {
-                                                    "duracion_max": "3 horas para sprint de 1 mes",
-                                                    "enfoque": [
-                                                        "¿Qué salió bien?",
-                                                        "¿Qué puede mejorar?",
-                                                        "Plan de mejora",
-                                                    ],
-                                                    "salida": "Mejoras para el próximo Sprint",
-                                                },
-                                            },
-                                        ],
-                                    },
-                                    {
-                                        "name": "Artefactos Scrum",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "descripcion": "Artefactos que representan trabajo o valor",
-                                        },
-                                        "children": [
-                                            # NIVEL 3: Detalles de cada artefacto
-                                            {
-                                                "name": "Product Backlog",
-                                                "type": FeatureType.MANDATORY,
-                                                "properties": {
-                                                    "responsable": "Product Owner",
-                                                    "contenido": "Lista ordenada de todo lo necesario en el producto",
-                                                    "atributos": [
-                                                        "Descripción",
-                                                        "Orden",
-                                                        "Estimación",
-                                                        "Valor",
-                                                    ],
-                                                    "evolucion": "Nunca está completo",
-                                                },
-                                            },
-                                            {
-                                                "name": "Sprint Backlog",
-                                                "type": FeatureType.MANDATORY,
-                                                "properties": {
-                                                    "responsable": "Development Team",
-                                                    "contenido": [
-                                                        "Items del Product Backlog para el Sprint",
-                                                        "Plan para entregar el incremento",
-                                                    ],
-                                                    "visibilidad": "Altamente visible",
-                                                },
-                                            },
-                                            {
-                                                "name": "Increment",
-                                                "type": FeatureType.MANDATORY,
-                                                "properties": {
-                                                    "definicion": "Suma de todos los items completados + incrementos previos",
-                                                    "condicion": "Debe cumplir Definition of Done",
-                                                    "estado": "Potencialmente entregable",
-                                                },
-                                            },
-                                            {
-                                                "name": "Definition of Done",
-                                                "type": FeatureType.MANDATORY,
-                                                "properties": {
-                                                    "descripcion": "Entendimiento compartido de lo que significa 'Done'",
-                                                    "ejemplos": [
-                                                        "Código escrito",
-                                                        "Tests pasando",
-                                                        "Code review completado",
-                                                        "Documentación actualizada",
-                                                        "Desplegado en ambiente de prueba",
+                                                        "Simplicidad",
+                                                        "Feedback",
+                                                        "Coraje",
+                                                        "Respeto",
                                                     ],
                                                 },
                                             },
                                         ],
                                     },
                                 ],
-                            },
-                            {
-                                "name": "Kanban",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Componentes de Kanban
-                                    {
-                                        "name": "Principios Kanban",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "principios": [
-                                                "Visualizar el flujo de trabajo",
-                                                "Limitar el WIP (Work In Progress)",
-                                                "Gestionar el flujo",
-                                                "Hacer políticas explícitas",
-                                                "Implementar ciclos de feedback",
-                                                "Mejorar colaborativamente",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Métricas Kanban",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "metricas": [
-                                                "Lead Time",
-                                                "Cycle Time",
-                                                "Throughput",
-                                                "WIP",
-                                                "Diagrama de flujo acumulado",
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
-                            {
-                                "name": "XP (Extreme Programming)",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Prácticas XP
-                                    {
-                                        "name": "Prácticas Técnicas XP",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "practicas": [
-                                                "TDD (Test Driven Development)",
-                                                "Pair Programming",
-                                                "Refactoring continuo",
-                                                "Continuous Integration",
-                                                "Código colectivo",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Valores y Principios XP",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "valores": [
-                                                "Comunicación",
-                                                "Simplicidad",
-                                                "Feedback",
-                                                "Coraje",
-                                                "Respeto",
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
+                            }
                         ],
                     },
                     {
                         "name": "Herramientas de Gestión",
-                        "type": FeatureType.OR_GROUP,
+                        "type": FeatureType.MANDATORY,
                         "properties": {
                             "description": "Aprender al menos una herramienta de gestión de proyectos",
                             "creditos": 0.5,
                             "horas": 8,
                             "minimo_selecciones": 1,
                         },
-                        "children": [
+                        "groups": [
                             {
-                                "name": "Jira",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "tipo": "Gestión ágil",
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Módulos de Jira
+                                "type": "OR",
+                                "min": 1,
+                                "max": 10,
+                                "features": [
                                     {
-                                        "name": "Jira Software",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "caracteristicas": [
-                                                "Tableros Scrum",
-                                                "Tableros Kanban",
-                                                "Backlog management",
-                                                "Sprints",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Reportes Jira",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "reportes": [
-                                                "Burndown chart",
-                                                "Velocity chart",
-                                                "Cumulative flow diagram",
-                                                "Custom dashboards",
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
-                            {
-                                "name": "Microsoft Project",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "tipo": "Gestión tradicional",
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Funcionalidades MS Project
-                                    {
-                                        "name": "Planificación en MS Project",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "funciones": [
-                                                "Diagramas de Gantt",
-                                                "Gestión de recursos",
-                                                "Camino crítico",
-                                                "Líneas base",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Seguimiento y Control",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "funciones": [
-                                                "Earned Value Management",
-                                                "Análisis de variaciones",
-                                                "Reportes de estado",
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
-                            {
-                                "name": "Trello",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "tipo": "Gestión visual simple",
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Características Trello
-                                    {
-                                        "name": "Tableros y Organización",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "elementos": [
-                                                "Tableros",
-                                                "Listas",
-                                                "Tarjetas",
-                                                "Labels",
-                                                "Due dates",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Automatización Trello",
+                                        "name": "Jira",
                                         "type": FeatureType.OPTIONAL,
                                         "properties": {
-                                            "caracteristicas": [
-                                                "Butler automation",
-                                                "Power-Ups",
-                                                "Integraciones",
-                                            ],
+                                            "tipo": "Gestión ágil",
+                                            "horas": 8,
                                         },
+                                        "children": [
+                                            # NIVEL 2: Módulos de Jira
+                                            {
+                                                "name": "Jira Software",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "caracteristicas": [
+                                                        "Tableros Scrum",
+                                                        "Tableros Kanban",
+                                                        "Backlog management",
+                                                        "Sprints",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Reportes Jira",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "reportes": [
+                                                        "Burndown chart",
+                                                        "Velocity chart",
+                                                        "Cumulative flow diagram",
+                                                        "Custom dashboards",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Microsoft Project",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "tipo": "Gestión tradicional",
+                                            "horas": 8,
+                                        },
+                                        "children": [
+                                            # NIVEL 2: Funcionalidades MS Project
+                                            {
+                                                "name": "Planificación en MS Project",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "funciones": [
+                                                        "Diagramas de Gantt",
+                                                        "Gestión de recursos",
+                                                        "Camino crítico",
+                                                        "Líneas base",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Seguimiento y Control",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "funciones": [
+                                                        "Earned Value Management",
+                                                        "Análisis de variaciones",
+                                                        "Reportes de estado",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Trello",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "tipo": "Gestión visual simple",
+                                            "horas": 8,
+                                        },
+                                        "children": [
+                                            # NIVEL 2: Características Trello
+                                            {
+                                                "name": "Tableros y Organización",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "elementos": [
+                                                        "Tableros",
+                                                        "Listas",
+                                                        "Tarjetas",
+                                                        "Labels",
+                                                        "Due dates",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Automatización Trello",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "caracteristicas": [
+                                                        "Butler automation",
+                                                        "Power-Ups",
+                                                        "Integraciones",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Asana",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "tipo": "Gestión colaborativa",
+                                            "horas": 8,
+                                        },
+                                        "children": [
+                                            # NIVEL 2: Funciones Asana
+                                            {
+                                                "name": "Gestión de Tareas",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "funciones": [
+                                                        "Proyectos",
+                                                        "Tareas y subtareas",
+                                                        "Dependencias",
+                                                        "Hitos",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Vistas y Reportes",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "vistas": [
+                                                        "Lista",
+                                                        "Tablero",
+                                                        "Cronograma",
+                                                        "Calendario",
+                                                        "Portfolios",
+                                                    ],
+                                                },
+                                            },
+                                        ],
                                     },
                                 ],
-                            },
-                            {
-                                "name": "Asana",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "tipo": "Gestión colaborativa",
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Funciones Asana
-                                    {
-                                        "name": "Gestión de Tareas",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "funciones": [
-                                                "Proyectos",
-                                                "Tareas y subtareas",
-                                                "Dependencias",
-                                                "Hitos",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Vistas y Reportes",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "vistas": [
-                                                "Lista",
-                                                "Tablero",
-                                                "Cronograma",
-                                                "Calendario",
-                                                "Portfolios",
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
+                            }
                         ],
                     },
                     {
@@ -3277,8 +3404,11 @@ asignatura_gpi_model = {
     },
 }
 
+
+# ==========================================================================
 # Modelo 6: Asignatura Sistemas de Bases de Datos
-asignatura_bases_datos_model = {
+# ==========================================================================
+subject_data_base_model = {
     "name": "Sistemas de Bases de Datos",
     "description": "Asignatura completa sobre diseño, implementación y administración de bases de datos relacionales y NoSQL (1 semestre, 6 créditos)",
     "domain_name": "Ingeniería Informática",
@@ -3468,149 +3598,156 @@ asignatura_bases_datos_model = {
                     },
                     {
                         "name": "Sistemas Gestores de BD (SGBD)",
-                        "type": FeatureType.OR_GROUP,
+                        "type": FeatureType.MANDATORY,
                         "properties": {
                             "description": "Elegir al menos un SGBD para profundizar",
                             "creditos": 0.5,
                             "horas": 8,
                             "minimo_selecciones": 1,
                         },
-                        "children": [
+                        "groups": [
                             {
-                                "name": "PostgreSQL",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "tipo": "Relacional open-source",
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Características de PostgreSQL
+                                "type": "OR",
+                                "min": 1,
+                                "max": 10,
+                                "features": [
                                     {
-                                        "name": "Instalación y Configuración",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "temas": [
-                                                "Instalación en diferentes OS",
-                                                "Configuración postgresql.conf",
-                                                "pg_hba.conf para autenticación",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Características Avanzadas",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "temas": [
-                                                "Tipos de datos avanzados (JSON, Array)",
-                                                "Extensiones (PostGIS, pg_trgm)",
-                                                "Full-text search",
-                                                "Funciones y procedimientos (PL/pgSQL)",
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
-                            {
-                                "name": "MySQL/MariaDB",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "tipo": "Relacional open-source",
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Características de MySQL
-                                    {
-                                        "name": "Motores de Almacenamiento",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "tipos": [
-                                                "InnoDB (transaccional)",
-                                                "MyISAM (no transaccional)",
-                                                "Memory",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Replicación y Alta Disponibilidad",
+                                        "name": "PostgreSQL",
                                         "type": FeatureType.OPTIONAL,
                                         "properties": {
-                                            "temas": [
-                                                "Master-Slave replication",
-                                                "Group Replication",
-                                                "Galera Cluster (MariaDB)",
-                                            ],
+                                            "tipo": "Relacional open-source",
+                                            "horas": 8,
                                         },
+                                        "children": [
+                                            # NIVEL 2: Características de PostgreSQL
+                                            {
+                                                "name": "Instalación y Configuración",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "temas": [
+                                                        "Instalación en diferentes OS",
+                                                        "Configuración postgresql.conf",
+                                                        "pg_hba.conf para autenticación",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Características Avanzadas",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "temas": [
+                                                        "Tipos de datos avanzados (JSON, Array)",
+                                                        "Extensiones (PostGIS, pg_trgm)",
+                                                        "Full-text search",
+                                                        "Funciones y procedimientos (PL/pgSQL)",
+                                                    ],
+                                                },
+                                            },
+                                        ],
                                     },
-                                ],
-                            },
-                            {
-                                "name": "Oracle Database",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "tipo": "Relacional empresarial",
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Características de Oracle
                                     {
-                                        "name": "PL/SQL",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "temas": [
-                                                "Procedimientos almacenados",
-                                                "Funciones",
-                                                "Packages",
-                                                "Triggers",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Características Empresariales",
+                                        "name": "MySQL/MariaDB",
                                         "type": FeatureType.OPTIONAL,
                                         "properties": {
-                                            "temas": [
-                                                "RAC (Real Application Clusters)",
-                                                "Data Guard",
-                                                "Particionamiento avanzado",
-                                            ],
+                                            "tipo": "Relacional open-source",
+                                            "horas": 8,
                                         },
+                                        "children": [
+                                            # NIVEL 2: Características de MySQL
+                                            {
+                                                "name": "Motores de Almacenamiento",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "tipos": [
+                                                        "InnoDB (transaccional)",
+                                                        "MyISAM (no transaccional)",
+                                                        "Memory",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Replicación y Alta Disponibilidad",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "temas": [
+                                                        "Master-Slave replication",
+                                                        "Group Replication",
+                                                        "Galera Cluster (MariaDB)",
+                                                    ],
+                                                },
+                                            },
+                                        ],
                                     },
-                                ],
-                            },
-                            {
-                                "name": "Microsoft SQL Server",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "tipo": "Relacional empresarial",
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Características de SQL Server
                                     {
-                                        "name": "T-SQL",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "temas": [
-                                                "Stored Procedures",
-                                                "Functions",
-                                                "Common Table Expressions (CTE)",
-                                                "Window Functions",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Integración y BI",
+                                        "name": "Oracle Database",
                                         "type": FeatureType.OPTIONAL,
                                         "properties": {
-                                            "herramientas": [
-                                                "SQL Server Integration Services (SSIS)",
-                                                "SQL Server Reporting Services (SSRS)",
-                                                "SQL Server Analysis Services (SSAS)",
-                                            ],
+                                            "tipo": "Relacional empresarial",
+                                            "horas": 8,
                                         },
+                                        "children": [
+                                            # NIVEL 2: Características de Oracle
+                                            {
+                                                "name": "PL/SQL",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "temas": [
+                                                        "Procedimientos almacenados",
+                                                        "Funciones",
+                                                        "Packages",
+                                                        "Triggers",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Características Empresariales",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "temas": [
+                                                        "RAC (Real Application Clusters)",
+                                                        "Data Guard",
+                                                        "Particionamiento avanzado",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Microsoft SQL Server",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "tipo": "Relacional empresarial",
+                                            "horas": 8,
+                                        },
+                                        "children": [
+                                            # NIVEL 2: Características de SQL Server
+                                            {
+                                                "name": "T-SQL",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "temas": [
+                                                        "Stored Procedures",
+                                                        "Functions",
+                                                        "Common Table Expressions (CTE)",
+                                                        "Window Functions",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Integración y BI",
+                                                "type": FeatureType.OPTIONAL,
+                                                "properties": {
+                                                    "herramientas": [
+                                                        "SQL Server Integration Services (SSIS)",
+                                                        "SQL Server Reporting Services (SSRS)",
+                                                        "SQL Server Analysis Services (SSAS)",
+                                                    ],
+                                                },
+                                            },
+                                        ],
                                     },
                                 ],
-                            },
+                            }
                         ],
                     },
                     {
@@ -3672,156 +3809,163 @@ asignatura_bases_datos_model = {
                     },
                     {
                         "name": "Bases de Datos NoSQL",
-                        "type": FeatureType.OR_GROUP,
+                        "type": FeatureType.MANDATORY,
                         "properties": {
                             "description": "Elegir al menos un tipo de BD NoSQL",
                             "creditos": 0.5,
                             "horas": 8,
                             "minimo_selecciones": 1,
                         },
-                        "children": [
+                        "groups": [
                             {
-                                "name": "Bases de Datos Documentales",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "ejemplo": "MongoDB, CouchDB",
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: MongoDB específico
+                                "type": "OR",
+                                "min": 1,
+                                "max": 10,
+                                "features": [
                                     {
-                                        "name": "Operaciones CRUD en MongoDB",
-                                        "type": FeatureType.MANDATORY,
+                                        "name": "Bases de Datos Documentales",
+                                        "type": FeatureType.OPTIONAL,
                                         "properties": {
-                                            "operaciones": [
-                                                "insertOne/insertMany",
-                                                "find con query operators",
-                                                "updateOne/updateMany",
-                                                "deleteOne/deleteMany",
-                                            ],
+                                            "ejemplo": "MongoDB, CouchDB",
+                                            "horas": 8,
                                         },
+                                        "children": [
+                                            # NIVEL 2: MongoDB específico
+                                            {
+                                                "name": "Operaciones CRUD en MongoDB",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "operaciones": [
+                                                        "insertOne/insertMany",
+                                                        "find con query operators",
+                                                        "updateOne/updateMany",
+                                                        "deleteOne/deleteMany",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Agregaciones y Pipeline",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "stages": [
+                                                        "$match",
+                                                        "$group",
+                                                        "$project",
+                                                        "$sort",
+                                                        "$lookup (joins)",
+                                                    ],
+                                                },
+                                            },
+                                        ],
                                     },
                                     {
-                                        "name": "Agregaciones y Pipeline",
-                                        "type": FeatureType.MANDATORY,
+                                        "name": "Bases de Datos Clave-Valor",
+                                        "type": FeatureType.OPTIONAL,
                                         "properties": {
-                                            "stages": [
-                                                "$match",
-                                                "$group",
-                                                "$project",
-                                                "$sort",
-                                                "$lookup (joins)",
-                                            ],
+                                            "ejemplo": "Redis, DynamoDB",
+                                            "horas": 8,
                                         },
+                                        "children": [
+                                            # NIVEL 2: Redis específico
+                                            {
+                                                "name": "Estructuras de Datos Redis",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "tipos": [
+                                                        "Strings",
+                                                        "Hashes",
+                                                        "Lists",
+                                                        "Sets",
+                                                        "Sorted Sets",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Casos de Uso Redis",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "usos": [
+                                                        "Caché de sesiones",
+                                                        "Rate limiting",
+                                                        "Pub/Sub messaging",
+                                                        "Leaderboards",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Bases de Datos en Grafo",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "ejemplo": "Neo4j, ArangoDB",
+                                            "horas": 8,
+                                        },
+                                        "children": [
+                                            # NIVEL 2: Neo4j específico
+                                            {
+                                                "name": "Modelo de Grafo",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "elementos": [
+                                                        "Nodos (Nodes)",
+                                                        "Relaciones (Relationships)",
+                                                        "Propiedades",
+                                                        "Labels",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "Cypher Query Language",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "comandos": [
+                                                        "CREATE nodes y relationships",
+                                                        "MATCH patterns",
+                                                        "WHERE filters",
+                                                        "RETURN results",
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "name": "Bases de Datos Columnares",
+                                        "type": FeatureType.OPTIONAL,
+                                        "properties": {
+                                            "ejemplo": "Cassandra, HBase",
+                                            "horas": 8,
+                                        },
+                                        "children": [
+                                            # NIVEL 2: Cassandra específico
+                                            {
+                                                "name": "Modelo de Datos Cassandra",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "conceptos": [
+                                                        "Keyspace",
+                                                        "Column Family/Table",
+                                                        "Partition Key",
+                                                        "Clustering Key",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                "name": "CQL - Cassandra Query Language",
+                                                "type": FeatureType.MANDATORY,
+                                                "properties": {
+                                                    "comandos": [
+                                                        "CREATE KEYSPACE",
+                                                        "CREATE TABLE",
+                                                        "INSERT/SELECT",
+                                                        "Consistency Levels",
+                                                    ],
+                                                },
+                                            },
+                                        ],
                                     },
                                 ],
-                            },
-                            {
-                                "name": "Bases de Datos Clave-Valor",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "ejemplo": "Redis, DynamoDB",
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Redis específico
-                                    {
-                                        "name": "Estructuras de Datos Redis",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "tipos": [
-                                                "Strings",
-                                                "Hashes",
-                                                "Lists",
-                                                "Sets",
-                                                "Sorted Sets",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Casos de Uso Redis",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "usos": [
-                                                "Caché de sesiones",
-                                                "Rate limiting",
-                                                "Pub/Sub messaging",
-                                                "Leaderboards",
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
-                            {
-                                "name": "Bases de Datos en Grafo",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "ejemplo": "Neo4j, ArangoDB",
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Neo4j específico
-                                    {
-                                        "name": "Modelo de Grafo",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "elementos": [
-                                                "Nodos (Nodes)",
-                                                "Relaciones (Relationships)",
-                                                "Propiedades",
-                                                "Labels",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "Cypher Query Language",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "comandos": [
-                                                "CREATE nodes y relationships",
-                                                "MATCH patterns",
-                                                "WHERE filters",
-                                                "RETURN results",
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
-                            {
-                                "name": "Bases de Datos Columnares",
-                                "type": FeatureType.OPTIONAL,
-                                "properties": {
-                                    "ejemplo": "Cassandra, HBase",
-                                    "horas": 8,
-                                },
-                                "children": [
-                                    # NIVEL 2: Cassandra específico
-                                    {
-                                        "name": "Modelo de Datos Cassandra",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "conceptos": [
-                                                "Keyspace",
-                                                "Column Family/Table",
-                                                "Partition Key",
-                                                "Clustering Key",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        "name": "CQL - Cassandra Query Language",
-                                        "type": FeatureType.MANDATORY,
-                                        "properties": {
-                                            "comandos": [
-                                                "CREATE KEYSPACE",
-                                                "CREATE TABLE",
-                                                "INSERT/SELECT",
-                                                "Consistency Levels",
-                                            ],
-                                        },
-                                    },
-                                ],
-                            },
+                            }
                         ],
                     },
                     {
@@ -4072,13 +4216,12 @@ asignatura_bases_datos_model = {
     },
 }
 
-"""
 
 # ==========================================================================
 # MODELO 7: Asignatura Estructura de Datos I
 # Prueba: Profundidad, Grupos anidados, Propiedades ricas
 # ==========================================================================
-estructura_datos_model = {
+subject_data_structure_model = {
     "name": "Estructura de Datos I",
     "domain_name": "Ingeniería Informática",
     "description": "Asignatura fundamental sobre estructuras de datos lineales y no lineales básicas.",
@@ -4095,7 +4238,7 @@ estructura_datos_model = {
                     "creditos": 6,
                     "semestre": 2,
                     "horas_totales": 96,
-                    "nivel": "pregrado"
+                    "nivel": "pregrado",
                 },
                 "children": [
                     # 1. FUNDAMENTOS
@@ -4106,7 +4249,7 @@ estructura_datos_model = {
                         "resource_title": "Estructuras de Datos - Material de Estudio",
                         "properties": {
                             "temas": ["Big-O", "Tiempo y Espacio", "Recursión"]
-                        }
+                        },
                     },
                     # 2. ESTRUCTURAS LINEALES
                     {
@@ -4115,20 +4258,23 @@ estructura_datos_model = {
                         "tags": ["fundamentos"],
                         "children": [
                             {
-                                "name": "Arreglos", 
-                                "type": "MANDATORY", 
+                                "name": "Arreglos",
+                                "type": "MANDATORY",
                                 "tags": ["teórico"],
-                                "properties": {"complejidad_acceso": "O(1)"}
+                                "properties": {"complejidad_acceso": "O(1)"},
                             },
                             {
-                                "name": "Listas Enlazadas Simples", 
+                                "name": "Listas Enlazadas Simples",
                                 "type": "MANDATORY",
                                 "tags": ["práctico"],
-                                "properties": {"complejidad_acceso": "O(n)"}
+                                "properties": {"complejidad_acceso": "O(n)"},
                             },
-                            {"name": "Listas Doblemente Enlazadas", "type": "MANDATORY"},
-                            {"name": "Listas Circulares", "type": "OPTIONAL"}
-                        ]
+                            {
+                                "name": "Listas Doblemente Enlazadas",
+                                "type": "MANDATORY",
+                            },
+                            {"name": "Listas Circulares", "type": "OPTIONAL"},
+                        ],
                     },
                     # 3. PILAS (Con Grupo XOR interno para implementación)
                     {
@@ -4140,22 +4286,23 @@ estructura_datos_model = {
                         ],
                         "groups": [
                             {
-                                "type": "XOR", # Implementación: Arreglos O Listas (FeatureType.ALTERNATIVE)
-                                "min": 1, "max": 1,
+                                "type": "XOR",  # Implementación: Arreglos O Listas (FeatureType.OPTIONAL)
+                                "min": 1,
+                                "max": 1,
                                 "features": [
                                     {
-                                        "name": "Implementación Pila con Arreglos", 
+                                        "name": "Implementación Pila con Arreglos",
                                         "type": "OPTIONAL",
-                                        "properties": {"tipo": "Estática"}
+                                        "properties": {"tipo": "Estática"},
                                     },
                                     {
-                                        "name": "Implementación Pila con Listas", 
+                                        "name": "Implementación Pila con Listas",
                                         "type": "OPTIONAL",
-                                        "properties": {"tipo": "Dinámica"}
-                                    }
-                                ]
+                                        "properties": {"tipo": "Dinámica"},
+                                    },
+                                ],
                             }
-                        ]
+                        ],
                     },
                     # 4. COLAS
                     {
@@ -4164,8 +4311,8 @@ estructura_datos_model = {
                         "children": [
                             {"name": "Cola Simple (FIFO)", "type": "MANDATORY"},
                             {"name": "Cola de Prioridad", "type": "MANDATORY"},
-                            {"name": "Deque (Double-Ended)", "type": "OPTIONAL"}
-                        ]
+                            {"name": "Deque (Double-Ended)", "type": "OPTIONAL"},
+                        ],
                     },
                     # 5. ÁRBOLES
                     {
@@ -4177,12 +4324,12 @@ estructura_datos_model = {
                             {"name": "Conceptos de Árboles", "type": "MANDATORY"},
                             {"name": "Recorridos (Pre/In/Post)", "type": "MANDATORY"},
                             {
-                                "name": "Árbol Binario de Búsqueda (BST)", 
+                                "name": "Árbol Binario de Búsqueda (BST)",
                                 "type": "MANDATORY",
-                                "tags": ["base_datos"] # Relacionado a índices
+                                "tags": ["base_datos"],  # Relacionado a índices
                             },
-                            {"name": "Aplicaciones de Árboles", "type": "OPTIONAL"}
-                        ]
+                            {"name": "Aplicaciones de Árboles", "type": "OPTIONAL"},
+                        ],
                     },
                     # 6. ORDENAMIENTO
                     {
@@ -4190,10 +4337,18 @@ estructura_datos_model = {
                         "type": "MANDATORY",
                         "tags": ["avanzado"],
                         "children": [
-                            {"name": "Algoritmos Cuadráticos", "type": "MANDATORY", "properties": {"complejidad": "O(n^2)"}},
-                            {"name": "Algoritmos Eficientes (Merge/Quick)", "type": "MANDATORY", "properties": {"complejidad": "O(n log n)"}},
-                            {"name": "Análisis Comparativo", "type": "MANDATORY"}
-                        ]
+                            {
+                                "name": "Algoritmos Cuadráticos",
+                                "type": "MANDATORY",
+                                "properties": {"complejidad": "O(n^2)"},
+                            },
+                            {
+                                "name": "Algoritmos Eficientes (Merge/Quick)",
+                                "type": "MANDATORY",
+                                "properties": {"complejidad": "O(n log n)"},
+                            },
+                            {"name": "Análisis Comparativo", "type": "MANDATORY"},
+                        ],
                     },
                     # 7. BÚSQUEDA
                     {
@@ -4202,8 +4357,8 @@ estructura_datos_model = {
                         "children": [
                             {"name": "Búsqueda Lineal", "type": "MANDATORY"},
                             {"name": "Búsqueda Binaria", "type": "MANDATORY"},
-                            {"name": "Búsqueda en Hash/BST", "type": "MANDATORY"}
-                        ]
+                            {"name": "Búsqueda en Hash/BST", "type": "MANDATORY"},
+                        ],
                     },
                     # 8. LENGUAJE (Transformado de XOR_GROUP a Feature con Group)
                     {
@@ -4214,26 +4369,27 @@ estructura_datos_model = {
                         "groups": [
                             {
                                 "type": "XOR",
-                                "min": 1, "max": 1,
+                                "min": 1,
+                                "max": 1,
                                 "features": [
                                     {
-                                        "name": "Lenguaje C/C++", 
+                                        "name": "Lenguaje C/C++",
                                         "type": "OPTIONAL",
-                                        "tags": ["avanzado"]
+                                        "tags": ["avanzado"],
                                     },
                                     {
-                                        "name": "Lenguaje Java", 
+                                        "name": "Lenguaje Java",
                                         "type": "OPTIONAL",
-                                        "resource_title": "Programación Orientada a Objetos - Conceptos Fundamentales"
+                                        "resource_title": "Programación Orientada a Objetos - Conceptos Fundamentales",
                                     },
                                     {
-                                        "name": "Lenguaje Python", 
+                                        "name": "Lenguaje Python",
                                         "type": "OPTIONAL",
-                                        "resource_title": "Programación Orientada a Objetos - Conceptos Fundamentales"
-                                    }
-                                ]
+                                        "resource_title": "Programación Orientada a Objetos - Conceptos Fundamentales",
+                                    },
+                                ],
                             }
-                        ]
+                        ],
                     },
                     # 9. TÉCNICAS (Transformado de OR_GROUP a Feature con Group)
                     {
@@ -4243,80 +4399,86 @@ estructura_datos_model = {
                         "groups": [
                             {
                                 "type": "OR",
-                                "min": 1, "max": 3,
+                                "min": 1,
+                                "max": 3,
                                 "features": [
                                     {"name": "Recursión Avanzada", "type": "OPTIONAL"},
-                                    {"name": "Programación Genérica", "type": "OPTIONAL"},
-                                    {"name": "Manejo de Memoria", "type": "OPTIONAL"}
-                                ]
+                                    {
+                                        "name": "Programación Genérica",
+                                        "type": "OPTIONAL",
+                                    },
+                                    {"name": "Manejo de Memoria", "type": "OPTIONAL"},
+                                ],
                             }
-                        ]
+                        ],
                     },
                     # 10. PROYECTO
                     {
                         "name": "Proyecto Final",
                         "type": "MANDATORY",
                         "tags": ["proyecto", "práctico", "obligatorio"],
-                        "properties": {"peso": "20%"}
-                    }
-                ]
+                        "properties": {"peso": "20%"},
+                    },
+                ],
             }
         ],
         "feature_relations": [
             # Dependencias de Conocimiento
             {
-                "source": "Estructuras Lineales Básicas", 
-                "target": "Fundamentos y Análisis de Algoritmos", 
-                "type": "requires"
-            },
-            {
-                "source": "Algoritmos de Ordenamiento", 
-                "target": "Fundamentos y Análisis de Algoritmos", 
-                "type": "requires"
-            },
-            {
-                "source": "Algoritmos de Búsqueda", 
-                "target": "Árboles Binarios", 
+                "source": "Estructuras Lineales Básicas",
+                "target": "Fundamentos y Análisis de Algoritmos",
                 "type": "requires",
-                "description": "Necesario para búsqueda en BST"
+            },
+            {
+                "source": "Algoritmos de Ordenamiento",
+                "target": "Fundamentos y Análisis de Algoritmos",
+                "type": "requires",
+            },
+            {
+                "source": "Algoritmos de Búsqueda",
+                "target": "Árboles Binarios",
+                "type": "requires",
+                "description": "Necesario para búsqueda en BST",
             },
             # Dependencias Técnicas
             {
-                "source": "Recursión Avanzada", 
-                "target": "Árboles Binarios", 
+                "source": "Recursión Avanzada",
+                "target": "Árboles Binarios",
                 "type": "requires",
-                "description": "Los árboles son recursivos por naturaleza"
+                "description": "Los árboles son recursivos por naturaleza",
             },
             {
-                "source": "Manejo de Memoria", 
-                "target": "Lenguaje C/C++", 
+                "source": "Manejo de Memoria",
+                "target": "Lenguaje C/C++",
                 "type": "requires",
-                "description": "Solo C/C++ permite manejo manual de memoria en este curso"
+                "description": "Solo C/C++ permite manejo manual de memoria en este curso",
             },
             # Dependencias del Proyecto
             {
-                "source": "Proyecto Final", 
-                "target": "Árboles Binarios", 
-                "type": "requires"
+                "source": "Proyecto Final",
+                "target": "Árboles Binarios",
+                "type": "requires",
             },
             {
-                "source": "Proyecto Final", 
-                "target": "Lenguaje de Implementación", 
-                "type": "requires"
-            }
+                "source": "Proyecto Final",
+                "target": "Lenguaje de Implementación",
+                "type": "requires",
+            },
         ],
         "constraints": [
             {
                 "expr": "Manejo de Memoria IMPLIES Lenguaje C/C++",
-                "description": "Restricción técnica del temario"
+                "description": "Restricción técnica del temario",
             },
             {
                 "expr": "Lenguaje Python IMPLIES NOT Manejo de Memoria",
-                "description": "Python gestiona la memoria automáticamente"
-            }
-        ]
-    }
+                "description": "Python gestiona la memoria automáticamente",
+            },
+        ],
+    },
 }
+
+
 
 # ==========================================================================
 # MODELO 8: Malla Curricular de Ingeniería Informática (Complejo)
@@ -4342,10 +4504,22 @@ computer_engineering_curriculum_2024 = {
                         "type": "MANDATORY",
                         "tags": ["ciencias básicas"],
                         "children": [
-                            {"name": "Cálculo I", "type": "MANDATORY", "properties": {"creditos": 6}},
-                            {"name": "Álgebra Lineal", "type": "MANDATORY", "properties": {"creditos": 5}},
-                            {"name": "Física Mecánica", "type": "MANDATORY", "properties": {"creditos": 5}},
-                        ]
+                            {
+                                "name": "Cálculo I",
+                                "type": "MANDATORY",
+                                "properties": {"creditos": 6},
+                            },
+                            {
+                                "name": "Álgebra Lineal",
+                                "type": "MANDATORY",
+                                "properties": {"creditos": 5},
+                            },
+                            {
+                                "name": "Física Mecánica",
+                                "type": "MANDATORY",
+                                "properties": {"creditos": 5},
+                            },
+                        ],
                     },
                     {
                         "name": "Fundamentos de Computación",
@@ -4353,17 +4527,33 @@ computer_engineering_curriculum_2024 = {
                         "tags": ["fundamentos"],
                         "children": [
                             # Asignatura vinculada conceptualmente al recurso de Video POO
-                            {"name": "Programación Orientada a Objetos", "type": "MANDATORY", "properties": {"lenguaje": "Java/Python"}, "resource_title": "Programación Orientada a Objetos - Conceptos Fundamentales", "tags": ["teórico", "práctico", "obligatorio"]},
+                            {
+                                "name": "Programación Orientada a Objetos",
+                                "type": "MANDATORY",
+                                "properties": {"lenguaje": "Java/Python"},
+                                "resource_title": "Programación Orientada a Objetos - Conceptos Fundamentales",
+                                "tags": ["teórico", "práctico", "obligatorio"],
+                            },
                             # Asignatura vinculada al recurso PDF Estructuras de Datos
-                            {"name": "Estructuras de Datos", "type": "MANDATORY", "properties": {"dificultad": "Alta"}, "tags": ["avanzado", "teórico"], "resource_title": "Estructuras de Datos - Material de Estudio"},
-                            {"name": "Bases de Datos", "type": "MANDATORY", "properties": {"motor": "PostgreSQL"}}
-                        ]
-                    }
+                            {
+                                "name": "Estructuras de Datos",
+                                "type": "MANDATORY",
+                                "properties": {"dificultad": "Alta"},
+                                "tags": ["avanzado", "teórico"],
+                                "resource_title": "Estructuras de Datos - Material de Estudio",
+                            },
+                            {
+                                "name": "Bases de Datos",
+                                "type": "MANDATORY",
+                                "properties": {"motor": "PostgreSQL"},
+                            },
+                        ],
+                    },
                 ],
                 # 2. ESPECIALIZACIONES (Grupos XOR - Elige solo uno)
                 "groups": [
                     {
-                        "type": "XOR", # FeatureGroupType.XOR
+                        "type": "XOR",  # FeatureGroupType.XOR
                         "min": 1,
                         "max": 1,
                         "features": [
@@ -4372,10 +4562,13 @@ computer_engineering_curriculum_2024 = {
                                 "name": "Mención Desarrollo de Software",
                                 "type": "OPTIONAL",
                                 "children": [
-                                    {"name": "Arquitectura de Software", "type": "MANDATORY"},
+                                    {
+                                        "name": "Arquitectura de Software",
+                                        "type": "MANDATORY",
+                                    },
                                     {"name": "QA y Testing", "type": "MANDATORY"},
-                                    {"name": "Desarrollo Mobile", "type": "OPTIONAL"}
-                                ]
+                                    {"name": "Desarrollo Mobile", "type": "OPTIONAL"},
+                                ],
                             },
                             # OPCIÓN B: Mención Ciencia de Datos
                             {
@@ -4384,12 +4577,15 @@ computer_engineering_curriculum_2024 = {
                                 "children": [
                                     {"name": "Machine Learning", "type": "MANDATORY"},
                                     {"name": "Big Data", "type": "MANDATORY"},
-                                    {"name": "Visualización de Datos", "type": "OPTIONAL"}
-                                ]
-                            }
-                        ]
+                                    {
+                                        "name": "Visualización de Datos",
+                                        "type": "OPTIONAL",
+                                    },
+                                ],
+                            },
+                        ],
                     }
-                ]
+                ],
             }
         ],
         # 3. PRERREQUISITOS (Relaciones Cross-Tree)
@@ -4399,32 +4595,32 @@ computer_engineering_curriculum_2024 = {
                 "source": "Estructuras de Datos",
                 "target": "Programación Orientada a Objetos",
                 "type": "requires",
-                "description": "Prerrequisito académico"
+                "description": "Prerrequisito académico",
             },
             # Para tomar Machine Learning (Mención B), necesitas Álgebra Lineal (Tronco común)
             {
                 "source": "Machine Learning",
                 "target": "Álgebra Lineal",
                 "type": "requires",
-                "description": "Base matemática necesaria"
+                "description": "Base matemática necesaria",
             },
             # Exclusión Mutua: Si tomas "Desarrollo Mobile", no puedes tomar "Visualización de Datos" (regla de horario)
             {
                 "source": "Desarrollo Mobile",
                 "target": "Visualización de Datos",
                 "type": "excludes",
-                "description": "Tope de horario en electivos"
-            }
+                "description": "Tope de horario en electivos",
+            },
         ],
         # 4. REGLAS COMPLEJAS (Constraints)
         "constraints": [
             {
                 "expr": "QA y Testing IMPLIES Bases de Datos",
-                "description": "El curso de QA requiere conocimientos previos de persistencia"
+                "description": "El curso de QA requiere conocimientos previos de persistencia",
             }
-        ]
-    }
-    }
+        ],
+    },
+}
 
 
 # ==========================================================================
@@ -4453,35 +4649,35 @@ bootcamp_fullstack_model = {
                         "children": [
                             {
                                 # === NIVEL 3 ===
-                                "name": "Python Básico", 
+                                "name": "Python Básico",
                                 "type": "MANDATORY",
                                 "tags": ["fundamentos"],
                                 "children": [
                                     # === NIVEL 4 ===
                                     {
-                                        "name": "Sintaxis y Estructuras", 
+                                        "name": "Sintaxis y Estructuras",
                                         "type": "MANDATORY",
-                                        "resource_title": "Programación Orientada a Objetos - Conceptos Fundamentales"
+                                        "resource_title": "Programación Orientada a Objetos - Conceptos Fundamentales",
                                     }
-                                ]
+                                ],
                             },
                             {
                                 # === NIVEL 3 ===
-                                "name": "Git y GitHub", 
+                                "name": "Git y GitHub",
                                 "type": "MANDATORY",
                                 "tags": ["práctico"],
                                 "children": [
                                     # === NIVEL 4 ===
                                     {"name": "Git Flow Strategy", "type": "OPTIONAL"}
-                                ]
-                            }
-                        ]
+                                ],
+                            },
+                        ],
                     }
                 ],
                 "groups": [
                     {
                         # Grupo OR: Elige los módulos principales (Nivel 2)
-                        "type": "OR", 
+                        "type": "OR",
                         "min": 1,
                         "max": 3,
                         "features": [
@@ -4489,7 +4685,7 @@ bootcamp_fullstack_model = {
                             # RAMA BACKEND
                             # ====================================================
                             {
-                                "name": "Módulo Backend (FastAPI)", 
+                                "name": "Módulo Backend (FastAPI)",
                                 "type": "OPTIONAL",
                                 "tags": ["backend", "avanzado"],
                                 "resource_title": "FastAPI: Guía Definitiva de Autenticación",
@@ -4501,39 +4697,46 @@ bootcamp_fullstack_model = {
                                         "tags": ["seguridad"],
                                         "children": [
                                             # === NIVEL 4 ===
-                                            {"name": "Implementación JWT", "type": "MANDATORY"},
-                                            {"name": "OAuth2 Social Login", "type": "OPTIONAL"}
-                                        ]
+                                            {
+                                                "name": "Implementación JWT",
+                                                "type": "MANDATORY",
+                                            },
+                                            {
+                                                "name": "OAuth2 Social Login",
+                                                "type": "OPTIONAL",
+                                            },
+                                        ],
                                     }
                                 ],
                                 "groups": [
                                     {
                                         # Grupo XOR Nivel 3: Elige motor de BD
                                         "type": "XOR",
-                                        "min": 1, "max": 1,
+                                        "min": 1,
+                                        "max": 1,
                                         "features": [
                                             {
                                                 # === NIVEL 4 ===
-                                                "name": "Persistencia SQL (PostgreSQL)", 
+                                                "name": "Persistencia SQL (PostgreSQL)",
                                                 "type": "OPTIONAL",
                                                 "tags": ["base_datos"],
-                                                "resource_title": "PostgreSQL vs MongoDB: Cuándo usar cuál"
+                                                "resource_title": "PostgreSQL vs MongoDB: Cuándo usar cuál",
                                             },
                                             {
                                                 # === NIVEL 4 ===
-                                                "name": "Persistencia NoSQL (MongoDB)", 
+                                                "name": "Persistencia NoSQL (MongoDB)",
                                                 "type": "OPTIONAL",
-                                                "tags": ["base_datos"]
-                                            }
-                                        ]
+                                                "tags": ["base_datos"],
+                                            },
+                                        ],
                                     }
-                                ]
+                                ],
                             },
                             # ====================================================
                             # RAMA FRONTEND
                             # ====================================================
                             {
-                                "name": "Módulo Frontend (React)", 
+                                "name": "Módulo Frontend (React)",
                                 "type": "OPTIONAL",
                                 "tags": ["frontend"],
                                 "children": [
@@ -4541,27 +4744,36 @@ bootcamp_fullstack_model = {
                                         # === NIVEL 3 ===
                                         "name": "Componentes UI",
                                         "type": "MANDATORY",
-                                        "resource_title": "React Hooks y Context API"
+                                        "resource_title": "React Hooks y Context API",
                                     }
                                 ],
                                 "groups": [
                                     {
                                         # Grupo XOR Nivel 3: Gestión de Estado
                                         "type": "XOR",
-                                        "min": 1, "max": 1,
+                                        "min": 1,
+                                        "max": 1,
                                         "features": [
                                             # === NIVEL 4 ===
-                                            {"name": "Redux Toolkit", "type": "OPTIONAL", "tags": ["avanzado"]},
-                                            {"name": "Context API", "type": "OPTIONAL", "tags": ["fundamentos"]}
-                                        ]
+                                            {
+                                                "name": "Redux Toolkit",
+                                                "type": "OPTIONAL",
+                                                "tags": ["avanzado"],
+                                            },
+                                            {
+                                                "name": "Context API",
+                                                "type": "OPTIONAL",
+                                                "tags": ["fundamentos"],
+                                            },
+                                        ],
                                     }
-                                ]
+                                ],
                             },
                             # ====================================================
                             # RAMA DEVOPS
                             # ====================================================
                             {
-                                "name": "Módulo DevOps", 
+                                "name": "Módulo DevOps",
                                 "type": "OPTIONAL",
                                 "tags": ["devops", "cloud"],
                                 "children": [
@@ -4572,15 +4784,21 @@ bootcamp_fullstack_model = {
                                         "resource_title": "Docker para Desarrolladores",
                                         "children": [
                                             # === NIVEL 4 ===
-                                            {"name": "Docker Compose", "type": "MANDATORY"},
-                                            {"name": "Optimización Dockerfiles", "type": "OPTIONAL"}
-                                        ]
+                                            {
+                                                "name": "Docker Compose",
+                                                "type": "MANDATORY",
+                                            },
+                                            {
+                                                "name": "Optimización Dockerfiles",
+                                                "type": "OPTIONAL",
+                                            },
+                                        ],
                                     }
-                                ]
-                            }
-                        ]
+                                ],
+                            },
+                        ],
                     }
-                ]
+                ],
             }
         ],
         # RELACIONES TRANSVERSALES (CROSS-TREE)
@@ -4590,48 +4808,48 @@ bootcamp_fullstack_model = {
                 "source": "Módulo Backend (FastAPI)",
                 "target": "Python Básico",
                 "type": "requires",
-                "description": "Se requiere conocimiento del lenguaje base"
+                "description": "Se requiere conocimiento del lenguaje base",
             },
             # 2. Prerrequisito: Para ver Docker (Nivel 3) necesitas saber Git (Nivel 3)
             {
                 "source": "Containerization",
                 "target": "Git y GitHub",
                 "type": "requires",
-                "description": "Necesario para clonar repositorios en contenedores"
+                "description": "Necesario para clonar repositorios en contenedores",
             },
             # 3. Exclusión: Si usas NoSQL, no deberías usar un curso de SQL Avanzado (simulado)
             {
                 "source": "Persistencia NoSQL (MongoDB)",
                 "target": "Persistencia SQL (PostgreSQL)",
                 "type": "excludes",
-                "description": "Solo se permite un motor de base de datos en este proyecto"
-            }
+                "description": "Solo se permite un motor de base de datos en este proyecto",
+            },
         ],
         # REGLAS LÓGICAS (CONSTRAINTS)
         "constraints": [
             # Si eliges Redux (Nivel 4), DEBES elegir OAuth2 (Nivel 4 de otra rama) - Caso de uso complejo
             {
                 "expr": "Redux Toolkit IMPLIES OAuth2 Social Login",
-                "description": "Redux se utiliza en el módulo avanzado que requiere autenticación social"
+                "description": "Redux se utiliza en el módulo avanzado que requiere autenticación social",
             },
             # Regla de negocio: Si haces DevOps, debes usar PostgreSQL (por estabilidad)
             {
                 "expr": "Módulo DevOps IMPLIES Persistencia SQL (PostgreSQL)",
-                "description": "La infraestructura de Docker preparada solo soporta PostgreSQL actualmente"
-            }
-        ]
-    }
+                "description": "La infraestructura de Docker preparada solo soporta PostgreSQL actualmente",
+            },
+        ],
+    },
 }
 
 # Lista de todos los modelos
 feature_models_data = [
-    # ingenieria_informatica_model,
-    # curso_fullstack_model,
-    # maestria_ciencia_datos_model,
-    # curso_desarrollo_movil_model,
-    # asignatura_gpi_model,
-    # asignatura_bases_datos_model,
-    # asignatura_estructura_datos_model,
+    computer_engineering_degree_model,
+    fullstack_web_development_course_model,
+    master_degree_in_data_science_model,
+    mobile_development_course_model,
+    subject_gpi_model,
+    subject_data_base_model,
+    subject_data_structure_model,
     computer_engineering_curriculum_2024,
-    bootcamp_fullstack_model
+    bootcamp_fullstack_model,
 ]
