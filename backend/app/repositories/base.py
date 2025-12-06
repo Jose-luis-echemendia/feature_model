@@ -96,6 +96,15 @@ class BaseFeatureRelationRepository:
             )
 
 
+class BaseFeatureGroupRepository:
+    """Clase base con lógica compartida para repositorios de grupos de features."""
+
+    def validate_parent_feature_exists(self, parent_feature):
+        """Valida que la feature padre existe."""
+        if not parent_feature:
+            raise ValueError("Parent feature not found.")
+
+
 class BaseFeatureModelVersionRepository:
     """Clase base con lógica compartida para repositorios de versiones de feature models."""
 

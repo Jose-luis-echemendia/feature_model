@@ -4,6 +4,7 @@ from .a_sync import (
     IFeatureModelRepositoryAsync,
     IFeatureRepositoryAsync,
     IFeatureRelationRepositoryAsync,
+    IFeatureGroupRepositoryAsync,
     IFeatureModelVersionRepositoryAsync,
 )
 from .sync import (
@@ -12,5 +13,6 @@ from .sync import (
     IFeatureModelRepositorySync,
     IFeatureRepositorySync,
     IFeatureRelationRepositorySync,
+    IFeatureGroupRepositorySync,
     IFeatureModelVersionRepositorySync,
 )
