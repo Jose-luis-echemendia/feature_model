@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from datetime import datetime
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -8,9 +8,13 @@ from app.models import (
     FeatureGroup,
     FeatureGroupCreate,
     User,
+    Feature,
 )
 from app.interfaces import IFeatureGroupRepositoryAsync, IFeatureRepositoryAsync
 from app.repositories.base import BaseFeatureGroupRepository
+
+if TYPE_CHECKING:
+    from app.interfaces.a_sync import IFeatureModelVersionRepositoryAsync
 
 
 class FeatureGroupRepositoryAsync(
@@ -26,6 +30,7 @@ class FeatureGroupRepositoryAsync(
         data: FeatureGroupCreate,
         user: User,
         feature_repo: IFeatureRepositoryAsync,
+        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
     ) -> FeatureGroup:
         """
         Crea un nuevo grupo de características usando la estrategia "copy-on-write".
@@ -35,23 +40,26 @@ class FeatureGroupRepositoryAsync(
         """
 
         def _create_group_sync(sync_session):
-            from app.crud.feature_model_version import create_new_version_from_existing
+            # Importar repositorio sync dentro de la función sync
+            from app.repositories.sync import FeatureModelVersionRepositorySync
+
+            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
 
             # 1. Validar que la feature padre existe (usando get síncrono dentro del contexto)
-            from app.crud.feature import get_feature
-
-            parent_feature = get_feature(
-                session=sync_session, feature_id=data.parent_feature_id
+            stmt = select(Feature).where(
+                Feature.id == data.parent_feature_id, Feature.is_active == True
             )
+            parent_feature = sync_session.exec(stmt).first()
             self.validate_parent_feature_exists(parent_feature)
 
             # 2. Crear una nueva versión clonando la de origen (la de la feature padre)
             source_version = parent_feature.feature_model_version
-            new_version, old_to_new_id_map = create_new_version_from_existing(
-                session=sync_session,
-                source_version=source_version,
-                user=user,
-                return_id_map=True,
+            new_version, old_to_new_id_map = (
+                sync_version_repo.create_new_version_from_existing(
+                    source_version=source_version,
+                    user=user,
+                    return_id_map=True,
+                )
             )
 
             # 3. Obtener el nuevo ID de la feature padre en la versión clonada
@@ -85,7 +93,12 @@ class FeatureGroupRepositoryAsync(
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def delete(self, db_group: FeatureGroup, user: User) -> None:
+    async def delete(
+        self,
+        db_group: FeatureGroup,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+    ) -> None:
         """
         Elimina un grupo de características usando la estrategia "copy-on-write".
         Crea una nueva versión del modelo sin el grupo especificado.
@@ -94,15 +107,19 @@ class FeatureGroupRepositoryAsync(
         """
 
         def _delete_group_sync(sync_session):
-            from app.crud.feature_model_version import create_new_version_from_existing
+            # Importar repositorio sync dentro de la función sync
+            from app.repositories.sync import FeatureModelVersionRepositorySync
+
+            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
 
             # 1. Crear una nueva versión a partir de la versión actual del grupo
             source_version = db_group.feature_model_version
-            new_version, old_to_new_id_map = create_new_version_from_existing(
-                session=sync_session,
-                source_version=source_version,
-                user=user,
-                return_id_map=True,
+            new_version, old_to_new_id_map = (
+                sync_version_repo.create_new_version_from_existing(
+                    source_version=source_version,
+                    user=user,
+                    return_id_map=True,
+                )
             )
 
             # 2. Encontrar el grupo correspondiente en la nueva versión para eliminarlo.

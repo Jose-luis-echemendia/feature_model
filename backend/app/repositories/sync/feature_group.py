@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from datetime import datetime
 from sqlmodel import Session, select
 
@@ -10,6 +10,9 @@ from app.models import (
 )
 from app.interfaces import IFeatureGroupRepositorySync, IFeatureRepositorySync
 from app.repositories.base import BaseFeatureGroupRepository
+
+if TYPE_CHECKING:
+    from app.interfaces.sync import IFeatureModelVersionRepositorySync
 
 
 class FeatureGroupRepositorySync(
@@ -25,24 +28,24 @@ class FeatureGroupRepositorySync(
         data: FeatureGroupCreate,
         user: User,
         feature_repo: IFeatureRepositorySync,
+        feature_model_version_repo: "IFeatureModelVersionRepositorySync",
     ) -> FeatureGroup:
         """
         Crea un nuevo grupo de características usando la estrategia "copy-on-write".
         Crea una nueva versión del modelo y añade el grupo en esa versión.
         """
-        from app.crud.feature_model_version import create_new_version_from_existing
-
         # 1. Validar que la feature padre existe
         parent_feature = feature_repo.get(feature_id=data.parent_feature_id)
         self.validate_parent_feature_exists(parent_feature)
 
         # 2. Crear una nueva versión clonando la de origen (la de la feature padre)
         source_version = parent_feature.feature_model_version
-        new_version, old_to_new_id_map = create_new_version_from_existing(
-            session=self.session,
-            source_version=source_version,
-            user=user,
-            return_id_map=True,
+        new_version, old_to_new_id_map = (
+            feature_model_version_repo.create_new_version_from_existing(
+                source_version=source_version,
+                user=user,
+                return_id_map=True,
+            )
         )
 
         # 3. Obtener el nuevo ID de la feature padre en la versión clonada
@@ -70,20 +73,24 @@ class FeatureGroupRepositorySync(
         """Obtener un grupo de características por su ID."""
         return self.session.get(FeatureGroup, group_id)
 
-    def delete(self, db_group: FeatureGroup, user: User) -> None:
+    def delete(
+        self,
+        db_group: FeatureGroup,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositorySync",
+    ) -> None:
         """
         Elimina un grupo de características usando la estrategia "copy-on-write".
         Crea una nueva versión del modelo sin el grupo especificado.
         """
-        from app.crud.feature_model_version import create_new_version_from_existing
-
         # 1. Crear una nueva versión a partir de la versión actual del grupo
         source_version = db_group.feature_model_version
-        new_version, old_to_new_id_map = create_new_version_from_existing(
-            session=self.session,
-            source_version=source_version,
-            user=user,
-            return_id_map=True,
+        new_version, old_to_new_id_map = (
+            feature_model_version_repo.create_new_version_from_existing(
+                source_version=source_version,
+                user=user,
+                return_id_map=True,
+            )
         )
 
         # 2. Encontrar el grupo correspondiente en la nueva versión para eliminarlo.

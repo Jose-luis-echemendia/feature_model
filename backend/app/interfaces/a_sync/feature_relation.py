@@ -8,6 +8,9 @@ from app.models import (
 
 if TYPE_CHECKING:
     from app.interfaces.a_sync.feature import IFeatureRepositoryAsync
+    from app.interfaces.a_sync.feature_model_version import (
+        IFeatureModelVersionRepositoryAsync,
+    )
 
 
 class IFeatureRelationRepositoryAsync(Protocol):
@@ -18,7 +21,13 @@ class IFeatureRelationRepositoryAsync(Protocol):
         data: FeatureRelationCreate,
         user: User,
         feature_repo: "IFeatureRepositoryAsync",
+        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
     ) -> FeatureRelation: ...
     async def get(self, relation_id: UUID) -> Optional[FeatureRelation]: ...
-    async def delete(self, db_relation: FeatureRelation, user: User) -> None: ...
+    async def delete(
+        self,
+        db_relation: FeatureRelation,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+    ) -> None: ...
     async def exists(self, relation_id: UUID) -> bool: ...

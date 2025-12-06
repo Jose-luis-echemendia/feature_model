@@ -8,6 +8,9 @@ from app.models import (
 
 if TYPE_CHECKING:
     from app.interfaces.sync.feature import IFeatureRepositorySync
+    from app.interfaces.sync.feature_model_version import (
+        IFeatureModelVersionRepositorySync,
+    )
 
 
 class IFeatureGroupRepositorySync(Protocol):
@@ -18,7 +21,13 @@ class IFeatureGroupRepositorySync(Protocol):
         data: FeatureGroupCreate,
         user: User,
         feature_repo: "IFeatureRepositorySync",
+        feature_model_version_repo: "IFeatureModelVersionRepositorySync",
     ) -> FeatureGroup: ...
     def get(self, group_id: UUID) -> Optional[FeatureGroup]: ...
-    def delete(self, db_group: FeatureGroup, user: User) -> None: ...
+    def delete(
+        self,
+        db_group: FeatureGroup,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositorySync",
+    ) -> None: ...
     def exists(self, group_id: UUID) -> bool: ...

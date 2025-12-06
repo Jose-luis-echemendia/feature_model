@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from datetime import datetime
 from sqlmodel import select, Session, func
 
@@ -13,6 +13,12 @@ from app.models import (
 from app.interfaces import IFeatureRepositorySync
 from app.repositories.base import BaseFeatureRepository
 
+if TYPE_CHECKING:
+    from app.interfaces.sync import (
+        IFeatureModelVersionRepositorySync,
+        IFeatureGroupRepositorySync,
+    )
+
 
 class FeatureRepositorySync(BaseFeatureRepository, IFeatureRepositorySync):
     """Implementación síncrona del repositorio de features."""
@@ -20,29 +26,30 @@ class FeatureRepositorySync(BaseFeatureRepository, IFeatureRepositorySync):
     def __init__(self, session: Session):
         self.session = session
 
-    def create(self, data: FeatureCreate, user: User) -> Feature:
+    def create(
+        self,
+        data: FeatureCreate,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositorySync",
+    ) -> Feature:
         """
         Crea una nueva feature usando la estrategia "copy-on-write".
         Crea una nueva versión del modelo y añade la nueva feature en esa versión.
         """
-        from app.crud.feature_model_version import (
-            get_feature_model_version,
-            create_new_version_from_existing,
-        )
-
         # 1. Obtener la versión de origen
-        source_version = get_feature_model_version(
-            session=self.session, version_id=data.feature_model_version_id
+        source_version = feature_model_version_repo.get(
+            version_id=data.feature_model_version_id
         )
         if not source_version:
             raise ValueError("Source Feature Model Version not found.")
 
         # 2. Crear una nueva versión clonando la de origen
-        new_version, old_to_new_id_map = create_new_version_from_existing(
-            session=self.session,
-            source_version=source_version,
-            user=user,
-            return_id_map=True,
+        new_version, old_to_new_id_map = (
+            feature_model_version_repo.create_new_version_from_existing(
+                source_version=source_version,
+                user=user,
+                return_id_map=True,
+            )
         )
 
         # 3. Preparar los datos de la nueva feature
@@ -92,14 +99,18 @@ class FeatureRepositorySync(BaseFeatureRepository, IFeatureRepositorySync):
         )
         return self.build_feature_tree(features_list)
 
-    def update(self, db_feature: Feature, data: FeatureUpdate, user: User) -> Feature:
+    def update(
+        self,
+        db_feature: Feature,
+        data: FeatureUpdate,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositorySync",
+        feature_group_repo: "IFeatureGroupRepositorySync",
+    ) -> Feature:
         """
         Actualiza una feature usando la estrategia "copy-on-write".
         Crea una nueva versión del modelo y aplica el cambio en esa nueva versión.
         """
-        from app.crud.feature_model_version import create_new_version_from_existing
-        from app.crud.feature_group import get_feature_group
-
         # Validar parent_id no sea el mismo feature
         if data.parent_id:
             self.validate_parent_not_self(db_feature.id, data.parent_id)
@@ -110,8 +121,7 @@ class FeatureRepositorySync(BaseFeatureRepository, IFeatureRepositorySync):
             new_version,
             old_to_new_feature_id_map,
             old_to_new_group_id_map,
-        ) = create_new_version_from_existing(
-            session=self.session,
+        ) = feature_model_version_repo.create_new_version_from_existing(
             source_version=source_version,
             user=user,
             return_id_map=True,
@@ -139,9 +149,7 @@ class FeatureRepositorySync(BaseFeatureRepository, IFeatureRepositorySync):
 
         # 3.2. Re-mapear group_id si se está cambiando
         if "group_id" in update_data and update_data["group_id"]:
-            old_group = get_feature_group(
-                session=self.session, group_id=update_data["group_id"]
-            )
+            old_group = feature_group_repo.get(group_id=update_data["group_id"])
             if not old_group or old_group.feature_model_version_id != source_version.id:
                 raise ValueError(
                     "Group not found or does not belong to the same model version."
@@ -160,16 +168,19 @@ class FeatureRepositorySync(BaseFeatureRepository, IFeatureRepositorySync):
 
         return new_feature_to_update
 
-    def delete(self, db_feature: Feature, user: User) -> None:
+    def delete(
+        self,
+        db_feature: Feature,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositorySync",
+    ) -> None:
         """
         Elimina una feature usando la estrategia "copy-on-write".
         Crea una nueva versión del modelo sin la feature especificada.
         """
-        from app.crud.feature_model_version import create_new_version_from_existing
-
         source_version = db_feature.feature_model_version
-        new_version = create_new_version_from_existing(
-            session=self.session, source_version=source_version, user=user
+        new_version = feature_model_version_repo.create_new_version_from_existing(
+            source_version=source_version, user=user
         )
 
         # Encontrar y eliminar la feature correspondiente en la nueva versión

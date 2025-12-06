@@ -12,7 +12,10 @@ from app.interfaces import IFeatureRelationRepositorySync
 from app.repositories.base import BaseFeatureRelationRepository
 
 if TYPE_CHECKING:
-    from app.interfaces import IFeatureRepositorySync
+    from app.interfaces import (
+        IFeatureRepositorySync,
+        IFeatureModelVersionRepositorySync,
+    )
 
 
 class FeatureRelationRepositorySync(
@@ -28,13 +31,12 @@ class FeatureRelationRepositorySync(
         data: FeatureRelationCreate,
         user: User,
         feature_repo: "IFeatureRepositorySync",
+        feature_model_version_repo: "IFeatureModelVersionRepositorySync",
     ) -> FeatureRelation:
         """
         Crea una nueva relación usando la estrategia "copy-on-write".
         Crea una nueva versión del modelo y añade la relación en esa versión.
         """
-        from app.crud.feature_model_version import create_new_version_from_existing
-
         # 1. Validar que las features de origen y destino existen
         source_feature = feature_repo.get(feature_id=data.source_feature_id)
         target_feature = feature_repo.get(feature_id=data.target_feature_id)
@@ -46,11 +48,12 @@ class FeatureRelationRepositorySync(
 
         # 3. Crear una nueva versión clonando la de origen
         source_version = source_feature.feature_model_version
-        new_version, old_to_new_id_map = create_new_version_from_existing(
-            session=self.session,
-            source_version=source_version,
-            user=user,
-            return_id_map=True,
+        new_version, old_to_new_id_map = (
+            feature_model_version_repo.create_new_version_from_existing(
+                source_version=source_version,
+                user=user,
+                return_id_map=True,
+            )
         )
 
         # 4. Crear la nueva relación en la nueva versión, usando los IDs re-mapeados
@@ -72,20 +75,24 @@ class FeatureRelationRepositorySync(
         """Obtener una relación por su ID."""
         return self.session.get(FeatureRelation, relation_id)
 
-    def delete(self, db_relation: FeatureRelation, user: User) -> None:
+    def delete(
+        self,
+        db_relation: FeatureRelation,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositorySync",
+    ) -> None:
         """
         Elimina una relación usando la estrategia "copy-on-write".
         Crea una nueva versión del modelo sin la relación especificada.
         """
-        from app.crud.feature_model_version import create_new_version_from_existing
-
         # 1. Crear una nueva versión a partir de la versión actual de la relación
         source_version = db_relation.feature_model_version
-        new_version, old_to_new_id_map = create_new_version_from_existing(
-            session=self.session,
-            source_version=source_version,
-            user=user,
-            return_id_map=True,
+        new_version, old_to_new_id_map = (
+            feature_model_version_repo.create_new_version_from_existing(
+                source_version=source_version,
+                user=user,
+                return_id_map=True,
+            )
         )
 
         # 2. Encontrar y eliminar la relación correspondiente en la nueva versión

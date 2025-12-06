@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from datetime import datetime
 from sqlmodel import Session, select
 
@@ -11,6 +11,9 @@ from app.models import (
 from app.interfaces import IConstraintRepositorySync
 from app.repositories.base import BaseConstraintRepository
 
+if TYPE_CHECKING:
+    from app.interfaces.sync import IFeatureModelVersionRepositorySync
+
 
 class ConstraintRepositorySync(BaseConstraintRepository, IConstraintRepositorySync):
     """Implementación síncrona del repositorio de constraints."""
@@ -18,25 +21,24 @@ class ConstraintRepositorySync(BaseConstraintRepository, IConstraintRepositorySy
     def __init__(self, session: Session):
         self.session = session
 
-    def create(self, data: ConstraintCreate, user: User) -> Constraint:
+    def create(
+        self,
+        data: ConstraintCreate,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositorySync",
+    ) -> Constraint:
         """
         Crea una nueva constraint usando la estrategia "copy-on-write".
         Crea una nueva versión del modelo y añade la constraint en esa versión.
         """
-        from app.crud.feature_model_version import (
-            create_new_version_from_existing,
-            get_feature_model_version,
-        )
-
         # 1. Obtener la versión de origen
-        source_version = get_feature_model_version(
-            session=self.session, version_id=data.feature_model_version_id
+        source_version = feature_model_version_repo.get(
+            version_id=data.feature_model_version_id
         )
         self.validate_feature_model_version_exists(source_version)
 
         # 2. Crear una nueva versión clonando la de origen
-        new_version, _, _ = create_new_version_from_existing(
-            session=self.session,
+        new_version, _, _ = feature_model_version_repo.create_new_version_from_existing(
             source_version=source_version,
             user=user,
             return_id_map=True,
@@ -60,17 +62,19 @@ class ConstraintRepositorySync(BaseConstraintRepository, IConstraintRepositorySy
         """Obtener una constraint por su ID."""
         return self.session.get(Constraint, constraint_id)
 
-    def delete(self, db_constraint: Constraint, user: User) -> None:
+    def delete(
+        self,
+        db_constraint: Constraint,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositorySync",
+    ) -> None:
         """
         Elimina una constraint usando la estrategia "copy-on-write".
         Crea una nueva versión del modelo sin la constraint especificada.
         """
-        from app.crud.feature_model_version import create_new_version_from_existing
-
         # 1. Crear una nueva versión a partir de la versión actual de la constraint
         source_version = db_constraint.feature_model_version
-        new_version, _, _ = create_new_version_from_existing(
-            session=self.session,
+        new_version, _, _ = feature_model_version_repo.create_new_version_from_existing(
             source_version=source_version,
             user=user,
             return_id_map=True,

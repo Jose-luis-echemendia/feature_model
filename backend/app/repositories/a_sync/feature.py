@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from datetime import datetime
 from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -14,6 +14,12 @@ from app.models import (
 from app.interfaces import IFeatureRepositoryAsync
 from app.repositories.base import BaseFeatureRepository
 
+if TYPE_CHECKING:
+    from app.interfaces.a_sync import (
+        IFeatureModelVersionRepositoryAsync,
+        IFeatureGroupRepositoryAsync,
+    )
+
 
 class FeatureRepositoryAsync(BaseFeatureRepository, IFeatureRepositoryAsync):
     """Implementación asíncrona del repositorio de features."""
@@ -21,32 +27,40 @@ class FeatureRepositoryAsync(BaseFeatureRepository, IFeatureRepositoryAsync):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create(self, data: FeatureCreate, user: User) -> Feature:
+    async def create(
+        self,
+        data: FeatureCreate,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+    ) -> Feature:
         """
         Crea una nueva feature usando la estrategia "copy-on-write".
         Crea una nueva versión del modelo y añade la nueva feature en esa versión.
 
         Nota: Utiliza funciones sync del CRUD ya que no existe versión async de create_new_version_from_existing.
         """
-        from app.crud.feature_model_version import (
-            get_feature_model_version,
-            create_new_version_from_existing,
-        )
 
         def _create_feature_sync(sync_session):
+            # Importar repositorio sync dentro de la función sync
+            from app.repositories.sync import FeatureModelVersionRepositorySync
+
+            # Crear instancia del repositorio sync
+            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+
             # 1. Obtener la versión de origen
-            source_version = get_feature_model_version(
-                session=sync_session, version_id=data.feature_model_version_id
+            source_version = sync_version_repo.get(
+                version_id=data.feature_model_version_id
             )
             if not source_version:
                 raise ValueError("Source Feature Model Version not found.")
 
             # 2. Crear una nueva versión clonando la de origen
-            new_version, old_to_new_id_map = create_new_version_from_existing(
-                session=sync_session,
-                source_version=source_version,
-                user=user,
-                return_id_map=True,
+            new_version, old_to_new_id_map = (
+                sync_version_repo.create_new_version_from_existing(
+                    source_version=source_version,
+                    user=user,
+                    return_id_map=True,
+                )
             )
 
             # 3. Preparar los datos de la nueva feature
@@ -103,7 +117,12 @@ class FeatureRepositoryAsync(BaseFeatureRepository, IFeatureRepositoryAsync):
         return self.build_feature_tree(features_list)
 
     async def update(
-        self, db_feature: Feature, data: FeatureUpdate, user: User
+        self,
+        db_feature: Feature,
+        data: FeatureUpdate,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+        feature_group_repo: "IFeatureGroupRepositoryAsync",
     ) -> Feature:
         """
         Actualiza una feature usando la estrategia "copy-on-write".
@@ -111,22 +130,28 @@ class FeatureRepositoryAsync(BaseFeatureRepository, IFeatureRepositoryAsync):
 
         Nota: Utiliza funciones sync del CRUD ya que no existe versión async de create_new_version_from_existing.
         """
-        from app.crud.feature_model_version import create_new_version_from_existing
-        from app.crud.feature_group import get_feature_group
-
         # Validar parent_id no sea el mismo feature
         if data.parent_id:
             self.validate_parent_not_self(db_feature.id, data.parent_id)
 
         def _update_feature_sync(sync_session):
+            # Importar repositorios sync dentro de la función sync
+            from app.repositories.sync import (
+                FeatureModelVersionRepositorySync,
+                FeatureGroupRepositorySync,
+            )
+
+            # Crear instancias de repositorios sync
+            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+            sync_group_repo = FeatureGroupRepositorySync(sync_session)
+
             # 1. Crear una nueva versión a partir de la versión actual de la feature
             source_version = db_feature.feature_model_version
             (
                 new_version,
                 old_to_new_feature_id_map,
                 old_to_new_group_id_map,
-            ) = create_new_version_from_existing(
-                session=sync_session,
+            ) = sync_version_repo.create_new_version_from_existing(
                 source_version=source_version,
                 user=user,
                 return_id_map=True,
@@ -162,9 +187,7 @@ class FeatureRepositoryAsync(BaseFeatureRepository, IFeatureRepositoryAsync):
 
             # 3.2. Re-mapear group_id si se está cambiando
             if "group_id" in update_data and update_data["group_id"]:
-                old_group = get_feature_group(
-                    session=sync_session, group_id=update_data["group_id"]
-                )
+                old_group = sync_group_repo.get(group_id=update_data["group_id"])
                 if (
                     not old_group
                     or old_group.feature_model_version_id != source_version.id
@@ -190,19 +213,28 @@ class FeatureRepositoryAsync(BaseFeatureRepository, IFeatureRepositoryAsync):
         result = await self.session.run_sync(_update_feature_sync)
         return result
 
-    async def delete(self, db_feature: Feature, user: User) -> None:
+    async def delete(
+        self,
+        db_feature: Feature,
+        user: User,
+        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+    ) -> None:
         """
         Elimina una feature usando la estrategia "copy-on-write".
         Crea una nueva versión del modelo sin la feature especificada.
 
         Nota: Utiliza funciones sync del CRUD ya que no existe versión async de create_new_version_from_existing.
         """
-        from app.crud.feature_model_version import create_new_version_from_existing
 
         def _delete_feature_sync(sync_session):
+            # Importar repositorio sync dentro de la función sync
+            from app.repositories.sync import FeatureModelVersionRepositorySync
+
+            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+
             source_version = db_feature.feature_model_version
-            new_version = create_new_version_from_existing(
-                session=sync_session, source_version=source_version, user=user
+            new_version = sync_version_repo.create_new_version_from_existing(
+                source_version=source_version, user=user
             )
 
             # Encontrar y eliminar la feature correspondiente en la nueva versión
