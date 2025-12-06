@@ -3,7 +3,12 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi_cache.decorator import cache
 
-from app.api.deps import AsyncDomainRepoDep, get_verified_user, get_admin_user
+from app.api.deps import (
+    AsyncDomainRepoDep,
+    get_verified_user,
+    get_admin_user,
+    AsyncCurrentUser,
+)
 from app.models.common import Message
 from app.models.domain import (
     DomainPublic,
@@ -11,6 +16,7 @@ from app.models.domain import (
     DomainCreate,
     DomainUpdate,
 )
+from app.enums import UserRole
 
 router = APIRouter(prefix="/domains", tags=["domains"])
 
@@ -27,6 +33,7 @@ router = APIRouter(prefix="/domains", tags=["domains"])
 )
 @cache(expire=300)  # Cache por 5 minutos
 async def read_domains(
+    current_user: AsyncCurrentUser,
     domain_repo: AsyncDomainRepoDep,
     skip: int = 0,
     limit: int = 100,
@@ -35,15 +42,25 @@ async def read_domains(
     Read domains (solo accesible para administradores).
 
     Args:
+        current_user: Usuario autenticado actual
         domain_repo: Repositorio de dominios
         skip: Número de registros a saltar
         limit: Número máximo de registros a retornar
 
     Returns:
         DomainListResponse: Lista de dominios con conteo total
+
+    Note:
+        - Admins y Developers pueden ver todos los dominios (activos e inactivos)
+        - Otros roles solo ven dominios activos (is_active = True)
     """
-    domains = await domain_repo.get_all(skip=skip, limit=limit)
-    count = await domain_repo.count()
+    # Determinar si se deben incluir dominios inactivos
+    include_inactive = current_user.role in [UserRole.ADMIN, UserRole.DEVELOPER]
+
+    domains = await domain_repo.get_all(
+        skip=skip, limit=limit, include_inactive=include_inactive
+    )
+    count = await domain_repo.count(include_inactive=include_inactive)
 
     return DomainListResponse.create(
         data=domains,
@@ -209,12 +226,13 @@ async def delete_domain(
 # ---------------------------------------------------------------------------
 @router.get(
     "/search/",
-    dependencies=[Depends(get_admin_user)],
+    dependencies=[Depends(get_verified_user)],
     response_model=DomainListResponse,
 )
 @cache(expire=300)  # Cache por 5 minutos
 async def search_domains(
     *,
+    current_user: AsyncCurrentUser,
     domain_repo: AsyncDomainRepoDep,
     search_term: str,
     skip: int = 0,
@@ -226,6 +244,7 @@ async def search_domains(
     Only accessible to administrators.
 
     Args:
+        current_user: Usuario autenticado actual
         domain_repo: Repositorio de dominios
         search_term: Term to search for
         skip: Pagination offset
@@ -233,9 +252,20 @@ async def search_domains(
 
     Returns:
         DomainListResponse: Search results
+
+    Note:
+        - Admins y Developers pueden ver todos los dominios (activos e inactivos)
+        - Otros roles solo ven dominios activos (is_active = True)
     """
-    domains = await domain_repo.search(search_term, skip=skip, limit=limit)
-    count = await domain_repo.count_search(search_term)
+    # Determinar si se deben incluir dominios inactivos
+    include_inactive = current_user.role in [UserRole.ADMIN, UserRole.DEVELOPER]
+
+    domains = await domain_repo.search(
+        search_term, skip=skip, limit=limit, include_inactive=include_inactive
+    )
+    count = await domain_repo.count_search(
+        search_term, include_inactive=include_inactive
+    )
 
     return DomainListResponse.create(
         data=domains,

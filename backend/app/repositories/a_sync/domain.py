@@ -36,9 +36,17 @@ class DomainRepositoryAsync(BaseDomainRepository, IDomainRepositoryAsync):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_all(self, skip: int = 0, limit: int = 100) -> list[Domain]:
+    async def get_all(
+        self, skip: int = 0, limit: int = 100, include_inactive: bool = False
+    ) -> list[Domain]:
         """Obtener lista de dominios con paginación."""
-        stmt = select(Domain).offset(skip).limit(limit)
+        stmt = select(Domain)
+
+        # Si no se incluyen inactivos, filtrar solo los activos
+        if not include_inactive:
+            stmt = stmt.where(Domain.is_active == True)
+
+        stmt = stmt.offset(skip).limit(limit)
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
@@ -79,29 +87,41 @@ class DomainRepositoryAsync(BaseDomainRepository, IDomainRepositoryAsync):
         result = await self.session.get(Domain, domain_id)
         return result is not None
 
-    async def count(self) -> int:
+    async def count(self, include_inactive: bool = False) -> int:
         """Obtener el número total de dominios."""
         stmt = select(func.count()).select_from(Domain)
+
+        # Si no se incluyen inactivos, filtrar solo los activos
+        if not include_inactive:
+            stmt = stmt.where(Domain.is_active == True)
+
         result = await self.session.execute(stmt)
         return result.scalar_one()
 
     async def search(
-        self, search_term: str, skip: int = 0, limit: int = 100
+        self,
+        search_term: str,
+        skip: int = 0,
+        limit: int = 100,
+        include_inactive: bool = False,
     ) -> list[Domain]:
         """Buscar dominios por nombre o descripción."""
-        stmt = (
-            select(Domain)
-            .where(
-                (Domain.name.ilike(f"%{search_term}%"))
-                | (Domain.description.ilike(f"%{search_term}%"))
-            )
-            .offset(skip)
-            .limit(limit)
+        stmt = select(Domain).where(
+            (Domain.name.ilike(f"%{search_term}%"))
+            | (Domain.description.ilike(f"%{search_term}%"))
         )
+
+        # Si no se incluyen inactivos, filtrar solo los activos
+        if not include_inactive:
+            stmt = stmt.where(Domain.is_active == True)
+
+        stmt = stmt.offset(skip).limit(limit)
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def count_search(self, search_term: str) -> int:
+    async def count_search(
+        self, search_term: str, include_inactive: bool = False
+    ) -> int:
         """Contar resultados de búsqueda por nombre o descripción."""
         stmt = (
             select(func.count())
@@ -111,6 +131,11 @@ class DomainRepositoryAsync(BaseDomainRepository, IDomainRepositoryAsync):
                 | (Domain.description.ilike(f"%{search_term}%"))
             )
         )
+
+        # Si no se incluyen inactivos, filtrar solo los activos
+        if not include_inactive:
+            stmt = stmt.where(Domain.is_active == True)
+
         result = await self.session.execute(stmt)
         return result.scalar_one()
 
