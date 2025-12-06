@@ -3,10 +3,12 @@ from .a_sync import (
     IDomainRepositoryAsync,
     IFeatureModelRepositoryAsync,
     IFeatureRepositoryAsync,
+    IFeatureRelationRepositoryAsync,
 )
 from .sync import (
     IUserRepositorySync,
     IDomainRepositorySync,
     IFeatureModelRepositorySync,
     IFeatureRepositorySync,
+    IFeatureRelationRepositorySync,
 )

@@ -52,7 +52,7 @@ class BaseFeatureRepository:
     """Clase base con lógica compartida para repositorios de features."""
 
     def validate_parent_not_self(self, feature_id, parent_id):
-        """Valida que una feature no pueda ser su propio padre."""
+        """Valida que una feature not pueda ser su propio padre."""
         if parent_id and feature_id == parent_id:
             raise ValueError("A feature cannot be its own parent.")
 
@@ -75,3 +75,22 @@ class BaseFeatureRepository:
                 root_features.append(feature_public)
 
         return root_features
+
+
+class BaseFeatureRelationRepository:
+    """Clase base con lógica compartida para repositorios de relaciones entre features."""
+
+    def validate_features_exist(self, source_feature, target_feature):
+        """Valida que las features de origen y destino existen."""
+        if not source_feature or not target_feature:
+            raise ValueError("Source or target feature not found.")
+
+    def validate_same_version(self, source_feature, target_feature):
+        """Valida que ambas features pertenecen a la misma versión del modelo."""
+        if (
+            source_feature.feature_model_version_id
+            != target_feature.feature_model_version_id
+        ):
+            raise ValueError(
+                "Source and target features must belong to the same model version."
+            )
