@@ -5,4 +5,5 @@ from .feature import IFeatureRepositorySync
 from .feature_relation import IFeatureRelationRepositorySync
 from .feature_group import IFeatureGroupRepositorySync
 from .constraint import IConstraintRepositorySync
+from .configuration import IConfigurationRepositorySync
 from .feature_model_version import IFeatureModelVersionRepositorySync

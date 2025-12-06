@@ -5,4 +5,5 @@ from .feature import IFeatureRepositoryAsync
 from .feature_relation import IFeatureRelationRepositoryAsync
 from .feature_group import IFeatureGroupRepositoryAsync
 from .constraint import IConstraintRepositoryAsync
+from .configuration import IConfigurationRepositoryAsync
 from .feature_model_version import IFeatureModelVersionRepositoryAsync

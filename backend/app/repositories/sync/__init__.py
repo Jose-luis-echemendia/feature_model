@@ -5,4 +5,5 @@ from .feature import FeatureRepositorySync
 from .feature_relation import FeatureRelationRepositorySync
 from .feature_group import FeatureGroupRepositorySync
 from .constraint import ConstraintRepositorySync
+from .configuration import ConfigurationRepositorySync
 from .feature_model_version import FeatureModelVersionRepositorySync

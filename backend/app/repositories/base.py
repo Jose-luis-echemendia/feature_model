@@ -114,6 +114,12 @@ class BaseConstraintRepository:
             raise ValueError("Source Feature Model Version not found.")
 
 
+class BaseConfigurationRepository:
+    """Clase base con lógica compartida para repositorios de configuraciones."""
+
+    pass  # Por ahora no hay lógica compartida específica, pero la estructura está lista
+
+
 class BaseFeatureModelVersionRepository:
     """Clase base con lógica compartida para repositorios de versiones de feature models."""
 
