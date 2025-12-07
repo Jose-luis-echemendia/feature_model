@@ -81,6 +81,16 @@ from app.repositories import (
     FeatureModelRepositoryAsync,
     FeatureRepositorySync,
     FeatureRepositoryAsync,
+    FeatureRelationRepositorySync,
+    FeatureRelationRepositoryAsync,
+    FeatureGroupRepositorySync,
+    FeatureGroupRepositoryAsync,
+    ConstraintRepositorySync,
+    ConstraintRepositoryAsync,
+    ConfigurationRepositorySync,
+    ConfigurationRepositoryAsync,
+    FeatureModelVersionRepositorySync,
+    FeatureModelVersionRepositoryAsync,
 )
 
 
@@ -116,18 +126,95 @@ async def aget_feature_repo(session: AsyncSessionDep):
     return FeatureRepositoryAsync(session)
 
 
+def get_feature_relation_repo(session: SessionDep):
+    return FeatureRelationRepositorySync(session)
+
+
+async def aget_feature_relation_repo(session: AsyncSessionDep):
+    return FeatureRelationRepositoryAsync(session)
+
+
+def get_feature_group_repo(session: SessionDep):
+    return FeatureGroupRepositorySync(session)
+
+
+async def aget_feature_group_repo(session: AsyncSessionDep):
+    return FeatureGroupRepositoryAsync(session)
+
+
+def get_constraint_repo(session: SessionDep):
+    return ConstraintRepositorySync(session)
+
+
+async def aget_constraint_repo(session: AsyncSessionDep):
+    return ConstraintRepositoryAsync(session)
+
+
+def get_configuration_repo(session: SessionDep):
+    return ConfigurationRepositorySync(session)
+
+
+async def aget_configuration_repo(session: AsyncSessionDep):
+    return ConfigurationRepositoryAsync(session)
+
+
+def get_feature_model_version_repo(session: SessionDep):
+    return FeatureModelVersionRepositorySync(session)
+
+
+async def aget_feature_model_version_repo(session: AsyncSessionDep):
+    return FeatureModelVersionRepositoryAsync(session)
+
+
+# usuarios
 UserRepoDep = Annotated[UserRepositorySync, Depends(get_user_repo)]
 AsyncUserRepoDep = Annotated[UserRepositoryAsync, Depends(aget_user_repo)]
+# dominios
 DomainRepoDep = Annotated[DomainRepositorySync, Depends(get_domain_repo)]
 AsyncDomainRepoDep = Annotated[DomainRepositoryAsync, Depends(aget_domain_repo)]
+# feature models
 FeatureModelRepoDep = Annotated[
     FeatureModelRepositorySync, Depends(get_feature_model_repo)
 ]
 AsyncFeatureModelRepoDep = Annotated[
     FeatureModelRepositoryAsync, Depends(aget_feature_model_repo)
 ]
+# feature
 FeatureRepoDep = Annotated[FeatureRepositorySync, Depends(get_feature_repo)]
 AsyncFeatureRepoDep = Annotated[FeatureRepositoryAsync, Depends(aget_feature_repo)]
+# feature relation
+FeatureRelationRepoDep = Annotated[
+    FeatureRelationRepositorySync, Depends(get_feature_relation_repo)
+]
+AsyncFeatureRelationRepoDep = Annotated[
+    FeatureRelationRepositoryAsync, Depends(aget_feature_relation_repo)
+]
+# feature group
+FeatureGroupRepoDep = Annotated[
+    FeatureGroupRepositorySync, Depends(get_feature_group_repo)
+]
+AsyncFeatureGroupRepoDep = Annotated[
+    FeatureGroupRepositoryAsync, Depends(aget_feature_group_repo)
+]
+# constraint
+ConstraintRepoDep = Annotated[ConstraintRepositorySync, Depends(get_constraint_repo)]
+AsyncConstraintRepoDep = Annotated[
+    ConstraintRepositoryAsync, Depends(aget_constraint_repo)
+]
+# configuration
+ConfigurationRepoDep = Annotated[
+    ConfigurationRepositorySync, Depends(get_configuration_repo)
+]
+AsyncConfigurationRepoDep = Annotated[
+    ConfigurationRepositoryAsync, Depends(aget_configuration_repo)
+]
+# feature model version
+FeatureModelVersionRepoDep = Annotated[
+    FeatureModelVersionRepositorySync, Depends(get_feature_model_version_repo)
+]
+AsyncFeatureModelVersionRepoDep = Annotated[
+    FeatureModelVersionRepositoryAsync, Depends(aget_feature_model_version_repo)
+]
 
 
 # ========================================================================
