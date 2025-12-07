@@ -15,6 +15,7 @@ from app.models.domain import (
     DomainListResponse,
     DomainCreate,
     DomainUpdate,
+    DomainPublicWithFeatureModels
 )
 from app.enums import UserRole
 
@@ -281,14 +282,14 @@ async def search_domains(
 @router.get(
     "/{domain_id}/with-feature-models/",
     dependencies=[Depends(get_admin_user)],
-    response_model=DomainPublic,
+    response_model=DomainPublicWithFeatureModels,
 )
 @cache(expire=300)  # Cache por 5 minutos
 async def read_domain_with_feature_models(
     *,
     domain_id: uuid.UUID,
     domain_repo: AsyncDomainRepoDep,
-) -> DomainPublic:
+) -> DomainPublicWithFeatureModels:
     """
     Get a domain with its associated feature models.
 

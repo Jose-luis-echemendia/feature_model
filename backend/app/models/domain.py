@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 #        --- Propiedades compartidas (Modelo Base) para Domain ---
 # ========================================================================
 
+
 class DomainBase(SQLModel):
 
     # ------------------ FIELDs ----------------------------------------
@@ -39,7 +40,7 @@ class Domain(BaseTable, DomainBase, table=True):
 
     __tablename__ = "domains"
 
-    # ------------------ RELATIONSHIP ----------------------------------------    
+    # ------------------ RELATIONSHIP ----------------------------------------
 
     # Relación uno-a-muchos: Un dominio tiene muchos modelos de características
     feature_models: list["FeatureModel"] = Relationship(back_populates="domain")
@@ -78,3 +79,19 @@ class DomainListResponse(PaginatedResponse[DomainPublic]):
 # Modelo público con relaciones anidadas
 class DomainPublicWithFeatureModels(DomainPublic):
     feature_models: list["FeatureModelPublic"] = []
+
+
+# Actualizar referencias de tipos después de la definición de la clase
+# Esto permite que Pydantic resuelva la forward reference a FeatureModelPublic
+def _rebuild_models():
+    """Reconstruye los modelos con forward references una vez que todos están definidos."""
+    try:
+        from .feature_model import FeatureModelPublic  # noqa: F401
+
+        DomainPublicWithFeatureModels.model_rebuild()
+    except ImportError:
+        # Si aún no está disponible, se reconstruirá cuando se importe feature_model
+        pass
+
+
+_rebuild_models()

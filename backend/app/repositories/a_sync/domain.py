@@ -2,6 +2,7 @@ from uuid import UUID
 from typing import Optional
 from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models import Domain, DomainCreate, DomainUpdate, DomainPublicWithFeatureModels
 from app.interfaces import IDomainRepositoryAsync
@@ -75,11 +76,17 @@ class DomainRepositoryAsync(BaseDomainRepository, IDomainRepositoryAsync):
         self, domain_id: UUID
     ) -> DomainPublicWithFeatureModels | None:
         """Obtener un dominio con sus modelos de características relacionados."""
-        domain = await self.session.get(Domain, domain_id)
+        stmt = (
+            select(Domain)
+            .options(selectinload(Domain.feature_models))
+            .where(Domain.id == domain_id)
+        )
+        result = await self.session.execute(stmt)
+        domain = result.scalar_one_or_none()
+
         if not domain:
             return None
 
-        # SQLModel carga las relaciones automáticamente cuando se acceden
         return DomainPublicWithFeatureModels.model_validate(domain)
 
     async def exists(self, domain_id: UUID) -> bool:
