@@ -15,11 +15,19 @@ from app.models.domain import (
     DomainListResponse,
     DomainCreate,
     DomainUpdate,
-    DomainPublicWithFeatureModels
+    DomainPublicWithFeatureModels,
 )
 from app.enums import UserRole
 
-router = APIRouter(prefix="/domains", tags=["domains"])
+router = APIRouter(
+    prefix="/domains",
+    tags=["Domains"],
+    responses={
+        404: {"description": "Domain not found"},
+        403: {"description": "Not enough permissions (Admin only)"},
+        400: {"description": "Validation error or domain has dependencies"},
+    },
+)
 
 
 # ======================================================================================
@@ -193,19 +201,43 @@ async def delete_domain(
     domain_repo: AsyncDomainRepoDep,
 ) -> Message:
     """
-    Delete a domain.
+    Permanently delete a domain.
 
-    Only administrators can delete domains.
+    This endpoint performs a hard delete of a domain from the database.
+    **Important:** Deletion is only allowed if the domain has NO associated
+    feature models. If you want to preserve the domain but mark it as unused,
+    use the deactivate endpoint instead.
+
+    Permissions Required:
+        - ADMIN: Only administrators can delete domains
+
+    Validation Rules:
+        - The domain must have no associated feature models
+        - All feature models must be deleted before the domain can be deleted
 
     Args:
-        domain_id: Domain ID to delete
-        domain_repo: Repositorio de dominios
+        domain_id: UUID of the domain to delete
+        domain_repo: Domain repository dependency
 
     Returns:
-        Message: Success message
+        Message: Success confirmation message
 
     Raises:
-        HTTPException: If domain not found
+        HTTPException 403: If user is not an administrator
+        HTTPException 404: If domain doesn't exist
+        HTTPException 400: If domain has associated feature models
+
+    Warning:
+        This operation is irreversible. Consider using deactivate instead
+        if you want to preserve the domain for future reference.
+
+    Example:
+        DELETE /domains/123e4567-e89b-12d3-a456-426614174000/
+
+    Response Example:
+        {
+            "message": "Domain deleted successfully"
+        }
     """
     domain = await domain_repo.get(domain_id)
     if not domain:
@@ -327,17 +359,32 @@ async def activate_domain(
     domain_repo: AsyncDomainRepoDep,
 ) -> DomainPublic:
     """
-    Activar un dominio (solo accesible para administradores).
+    Activate a domain.
+
+    This endpoint sets the `is_active` flag to `true`, making the domain
+    active and visible to all users. All feature models within this domain
+    will become accessible again.
+
+    Permissions Required:
+        - ADMIN: Only administrators can activate domains
 
     Args:
-        domain_id: ID del dominio a activar
-        domain_repo: Repositorio de dominios
+        domain_id: UUID of the domain to activate
+        domain_repo: Domain repository dependency
 
     Returns:
-        DomainPublic: Dominio activado
+        DomainPublic: Activated domain with is_active=true
 
     Raises:
-        HTTPException: Si el dominio no existe
+        HTTPException 403: If user is not an administrator
+        HTTPException 404: If domain doesn't exist
+
+    Note:
+        Activating a domain makes it visible to all users and allows
+        creation of new feature models within this domain.
+
+    Example:
+        PATCH /domains/123e4567-e89b-12d3-a456-426614174000/activate/
     """
     domain = await domain_repo.get(domain_id)
     if not domain:
@@ -362,17 +409,38 @@ async def deactivate_domain(
     domain_repo: AsyncDomainRepoDep,
 ) -> DomainPublic:
     """
-    Desactivar un dominio (solo accesible para administradores).
+    Deactivate a domain.
+
+    This endpoint sets the `is_active` flag to `false`, making the domain
+    inactive. Deactivated domains are hidden from regular users but preserved
+    in the database. This is a soft-delete operation that allows reactivation.
+
+    Permissions Required:
+        - ADMIN: Only administrators can deactivate domains
 
     Args:
-        domain_id: ID del dominio a desactivar
-        domain_repo: Repositorio de dominios
+        domain_id: UUID of the domain to deactivate
+        domain_repo: Domain repository dependency
 
     Returns:
-        DomainPublic: Dominio desactivado
+        DomainPublic: Deactivated domain with is_active=false
 
     Raises:
-        HTTPException: Si el dominio no existe
+        HTTPException 403: If user is not an administrator
+        HTTPException 404: If domain doesn't exist
+
+    Note:
+        - Deactivated domains are only visible to ADMIN and DEVELOPER roles
+        - Feature models within the domain remain accessible
+        - The domain can be reactivated using the activate endpoint
+        - This operation does not delete any associated feature models
+
+    Warning:
+        Deactivating a domain may affect active feature models and their
+        associated workflows. Consider the impact before deactivating.
+
+    Example:
+        PATCH /domains/123e4567-e89b-12d3-a456-426614174000/deactivate/
     """
     domain = await domain_repo.get(domain_id)
     if not domain:

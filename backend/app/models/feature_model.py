@@ -79,6 +79,7 @@ class FeatureModelCreate(FeatureModelBase):
 class FeatureModelUpdate(FeatureModelBase):
     name: Optional[str] = None
     description: Optional[str] = None
+    is_active: Optional[bool] = None
 
 
 # ========================================================================
@@ -87,11 +88,29 @@ class FeatureModelUpdate(FeatureModelBase):
 
 
 class FeatureModelPublic(FeatureModelBase):
+    """Schema completo para detalle de un feature model individual."""
+
     id: uuid.UUID
     owner_id: uuid.UUID
     domain_id: uuid.UUID
+    domain_name: str
     created_at: datetime
+    updated_at: Optional[datetime]
+    is_active: bool
 
 
-class FeatureModelListResponse(PaginatedResponse[FeatureModelPublic]):
+class FeatureModelListItem(SQLModel):
+    """Schema optimizado para listado de feature models (sin descripción)."""
+
+    id: uuid.UUID
+    name: str
+    owner_id: uuid.UUID
+    domain_id: uuid.UUID
+    domain_name: str
+    created_at: datetime
+    updated_at: Optional[datetime]
+    is_active: bool
+
+
+class FeatureModelListResponse(PaginatedResponse[FeatureModelListItem]):
     pass
