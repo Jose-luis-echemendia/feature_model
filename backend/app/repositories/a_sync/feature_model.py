@@ -30,10 +30,12 @@ class FeatureModelRepositoryAsync(
         return obj
 
     async def get(self, feature_model_id: UUID) -> FeatureModel | None:
-        """Obtener un feature model por ID con su dominio."""
+        """Obtener un feature model por ID con su dominio y versiones."""
         stmt = (
             select(FeatureModel)
-            .options(selectinload(FeatureModel.domain))
+            .options(
+                selectinload(FeatureModel.domain), selectinload(FeatureModel.versions)
+            )
             .where(FeatureModel.id == feature_model_id)
         )
         result = await self.session.execute(stmt)
@@ -48,10 +50,12 @@ class FeatureModelRepositoryAsync(
         return result.scalar_one_or_none()
 
     async def get_all(self, skip: int = 0, limit: int = 100) -> list[FeatureModel]:
-        """Obtener lista de todos los feature models con paginación y su dominio."""
+        """Obtener lista de todos los feature models con paginación, su dominio y versiones."""
         stmt = (
             select(FeatureModel)
-            .options(selectinload(FeatureModel.domain))
+            .options(
+                selectinload(FeatureModel.domain), selectinload(FeatureModel.versions)
+            )
             .offset(skip)
             .limit(limit)
         )
@@ -61,10 +65,12 @@ class FeatureModelRepositoryAsync(
     async def get_by_domain(
         self, domain_id: UUID, skip: int = 0, limit: int = 100
     ) -> list[FeatureModel]:
-        """Obtener lista de feature models para un dominio específico con paginación y su dominio."""
+        """Obtener lista de feature models para un dominio específico con paginación, su dominio y versiones."""
         stmt = (
             select(FeatureModel)
-            .options(selectinload(FeatureModel.domain))
+            .options(
+                selectinload(FeatureModel.domain), selectinload(FeatureModel.versions)
+            )
             .where(FeatureModel.domain_id == domain_id)
             .offset(skip)
             .limit(limit)

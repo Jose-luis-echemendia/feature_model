@@ -87,6 +87,15 @@ class FeatureModelUpdate(FeatureModelBase):
 # ========================================================================
 
 
+class VersionInfo(SQLModel):
+    """Información básica de una versión."""
+
+    id: uuid.UUID
+    version_number: int
+    status: str
+    created_at: datetime
+
+
 class FeatureModelPublic(FeatureModelBase):
     """Schema completo para detalle de un feature model individual."""
 
@@ -97,6 +106,16 @@ class FeatureModelPublic(FeatureModelBase):
     created_at: datetime
     updated_at: Optional[datetime]
     is_active: bool
+    versions_count: int
+    versions: list[VersionInfo]
+
+
+class LatestVersionInfo(SQLModel):
+    """Información de la última versión para el listado."""
+
+    id: uuid.UUID
+    version_number: int
+    status: str
 
 
 class FeatureModelListItem(SQLModel):
@@ -110,6 +129,8 @@ class FeatureModelListItem(SQLModel):
     created_at: datetime
     updated_at: Optional[datetime]
     is_active: bool
+    versions_count: int
+    latest_version: Optional[LatestVersionInfo]
 
 
 class FeatureModelListResponse(PaginatedResponse[FeatureModelListItem]):
