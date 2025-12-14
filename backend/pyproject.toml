@@ -30,6 +30,7 @@ dependencies = [
     "gunicorn (>=23.0.0,<24.0.0)",
     "mkdocs (>=1.6.1,<2.0.0)",
     "mkdocs-material (>=9.7.0,<10.0.0)",
+    "sympy (>=1.14.0,<2.0.0)",
 ]
 
 [tool.uv]
