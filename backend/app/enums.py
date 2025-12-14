@@ -81,3 +81,40 @@ class ModelStatus(str, Enum):
     IN_REVIEW = "in_review"  # Listo para revisión, visible para los REVIEWERS.
     PUBLISHED = "published"  # Aprobado y visible para los CONFIGURATORS.
     ARCHIVED = "archived"  # Obsoleto, ya no se puede usar para nuevas configuraciones.
+
+
+class ExportFormat(str, Enum):
+    """
+    Formatos disponibles para exportar un Feature Model.
+    """
+
+    XML = "xml"  # FeatureIDE XML format
+    SPLOT_XML = "splot_xml"  # SPLOT XML format
+    TVL = "tvl"  # Textual Variability Language
+    DIMACS = "dimacs"  # DIMACS CNF format for SAT solvers
+    JSON = "json"  # Simple JSON format
+    UVL = "uvl"  # Universal Variability Language
+    DOT = "dot"  # Graphviz DOT format
+    MERMAID = "mermaid"  # Mermaid diagram format
+
+
+class AnalysisType(str, Enum):
+    """Tipos de análisis estructural disponibles."""
+
+    DEAD_FEATURES = "dead_features"
+    REDUNDANCIES = "redundancies"
+    IMPLICIT_RELATIONS = "implicit_relations"
+    TRANSITIVE_DEPENDENCIES = "transitive_dependencies"
+    STRONGLY_CONNECTED = "strongly_connected"
+    COMPLEXITY_METRICS = "complexity_metrics"
+    
+
+class GenerationStrategy(str, Enum):
+    """Estrategias de generación disponibles."""
+
+    GREEDY = "greedy"  # Selección golosa por prioridad
+    RANDOM = "random"  # Selección aleatoria válida
+    BEAM_SEARCH = "beam_search"  # Búsqueda en haz
+    GENETIC = "genetic"  # Algoritmos genéticos (futuro)
+    
+    

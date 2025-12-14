@@ -18,6 +18,14 @@ from app.models.domain import (
     DomainPublicWithFeatureModels,
 )
 from app.enums import UserRole
+from app.exceptions import (
+    DomainNotFoundException,
+    DomainAlreadyExistsException,
+    DomainHasDependenciesException,
+    DomainUpdateConflictException,
+    DomainAlreadyActiveException,
+    DomainAlreadyInactiveException,
+)
 
 router = APIRouter(
     prefix="/domains",
@@ -106,11 +114,11 @@ async def read_domain(
         DomainPublic: Domain data
 
     Raises:
-        HTTPException: If domain not found
+        DomainNotFoundException: If domain not found
     """
     domain = await domain_repo.get(domain_id)
     if not domain:
-        raise HTTPException(status_code=404, detail="Domain not found")
+        raise DomainNotFoundException(domain_id=str(domain_id))
     return DomainPublic.model_validate(domain)
 
 
@@ -136,13 +144,19 @@ async def create_domain(
         DomainPublic: Created domain
 
     Raises:
-        HTTPException: If domain with same name already exists
+        DomainAlreadyExistsException: If domain with same name already exists
     """
     try:
         domain = await domain_repo.create(domain_in)
         return DomainPublic.model_validate(domain)
 
     except ValueError as e:
+        # Si el error es por nombre duplicado, usar excepción personalizada
+        error_msg = str(e)
+        if "already exists" in error_msg.lower() or "duplicate" in error_msg.lower():
+            raise DomainAlreadyExistsException(
+                domain_name=domain_in.name, existing_domain_id=None
+            )
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -174,18 +188,27 @@ async def update_domain(
         DomainPublic: Updated domain
 
     Raises:
-        HTTPException: If domain not found or validation error
+        DomainNotFoundException: If domain not found
+        DomainUpdateConflictException: If update creates a conflict
     """
     # Primero verificar que el dominio existe
     db_domain = await domain_repo.get(domain_id)
     if not db_domain:
-        raise HTTPException(status_code=404, detail="Domain not found")
+        raise DomainNotFoundException(domain_id=str(domain_id))
 
     try:
         updated_domain = await domain_repo.update(db_domain, domain_in)
         return DomainPublic.model_validate(updated_domain)
 
     except ValueError as e:
+        # Si el error es por conflicto de nombre, usar excepción personalizada
+        error_msg = str(e)
+        if "already exists" in error_msg.lower() or "duplicate" in error_msg.lower():
+            raise DomainUpdateConflictException(
+                domain_id=str(domain_id),
+                conflicting_field="name",
+                conflicting_value=domain_in.name if domain_in.name else "unknown",
+            )
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -224,8 +247,8 @@ async def delete_domain(
 
     Raises:
         HTTPException 403: If user is not an administrator
-        HTTPException 404: If domain doesn't exist
-        HTTPException 400: If domain has associated feature models
+        DomainNotFoundException: If domain doesn't exist
+        DomainHasDependenciesException: If domain has associated feature models
 
     Warning:
         This operation is irreversible. Consider using deactivate instead
@@ -241,13 +264,16 @@ async def delete_domain(
     """
     domain = await domain_repo.get(domain_id)
     if not domain:
-        raise HTTPException(status_code=404, detail="Domain not found")
+        raise DomainNotFoundException(domain_id=str(domain_id))
 
     # Verificar si el dominio tiene feature models asociados
     if hasattr(domain, "feature_models") and domain.feature_models:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot delete domain with associated feature models. Delete the feature models first.",
+        dependency_count = len(domain.feature_models)
+        raise DomainHasDependenciesException(
+            domain_id=str(domain_id),
+            domain_name=domain.name,
+            dependency_count=dependency_count,
+            dependency_type="feature models",
         )
 
     await domain_repo.delete(domain)
@@ -335,11 +361,11 @@ async def read_domain_with_feature_models(
         DomainPublic: Domain with feature models
 
     Raises:
-        HTTPException: If domain not found
+        DomainNotFoundException: If domain not found
     """
     domain = await domain_repo.get_with_feature_models(domain_id)
     if not domain:
-        raise HTTPException(status_code=404, detail="Domain not found")
+        raise DomainNotFoundException(domain_id=str(domain_id))
     return domain
 
 
@@ -377,7 +403,8 @@ async def activate_domain(
 
     Raises:
         HTTPException 403: If user is not an administrator
-        HTTPException 404: If domain doesn't exist
+        DomainNotFoundException: If domain doesn't exist
+        DomainAlreadyActiveException: If domain is already active
 
     Note:
         Activating a domain makes it visible to all users and allows
@@ -388,7 +415,13 @@ async def activate_domain(
     """
     domain = await domain_repo.get(domain_id)
     if not domain:
-        raise HTTPException(status_code=404, detail="Domain not found")
+        raise DomainNotFoundException(domain_id=str(domain_id))
+
+    # Verificar si ya está activo
+    if domain.is_active:
+        raise DomainAlreadyActiveException(
+            domain_id=str(domain_id), domain_name=domain.name
+        )
 
     return await domain_repo.activate(domain)
 
@@ -427,7 +460,8 @@ async def deactivate_domain(
 
     Raises:
         HTTPException 403: If user is not an administrator
-        HTTPException 404: If domain doesn't exist
+        DomainNotFoundException: If domain doesn't exist
+        DomainAlreadyInactiveException: If domain is already inactive
 
     Note:
         - Deactivated domains are only visible to ADMIN and DEVELOPER roles
@@ -444,6 +478,12 @@ async def deactivate_domain(
     """
     domain = await domain_repo.get(domain_id)
     if not domain:
-        raise HTTPException(status_code=404, detail="Domain not found")
+        raise DomainNotFoundException(domain_id=str(domain_id))
+
+    # Verificar si ya está inactivo
+    if not domain.is_active:
+        raise DomainAlreadyInactiveException(
+            domain_id=str(domain_id), domain_name=domain.name
+        )
 
     return await domain_repo.deactivate(domain)
