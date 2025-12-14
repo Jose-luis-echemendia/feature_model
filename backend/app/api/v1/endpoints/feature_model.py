@@ -2,7 +2,7 @@ import uuid
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from fastapi_cache.decorator import cache
 
 from app.api.deps import (
@@ -11,6 +11,13 @@ from app.api.deps import (
     AsyncCurrentUser,
     get_verified_user,
 )
+from app.exceptions import (
+    FeatureModelNotFoundException,
+    NotFoundException,
+    ForbiddenException,
+    BusinessLogicException,
+    UnauthorizedException,
+)
 from app.models.common import Message
 from app.models.feature_model import (
     FeatureModelCreate,
@@ -18,6 +25,8 @@ from app.models.feature_model import (
     FeatureModelListItem,
     FeatureModelPublic,
     FeatureModelUpdate,
+    VersionInfo,
+    LatestVersionInfo,
 )
 
 router = APIRouter(
@@ -66,6 +75,11 @@ async def read_feature_models(
                 - created_at: Creation timestamp
                 - updated_at: Last update timestamp
                 - is_active: Active status
+                - versions_count: Total number of versions
+                - latest_version: Information about the latest version
+                    - id: Version UUID
+                    - version_number: Version number
+                    - status: Version status (DRAFT, IN_REVIEW, PUBLISHED)
             - count: Total number of matching records
             - page: Current page number
             - size: Number of items in current page
@@ -88,20 +102,38 @@ async def read_feature_models(
         models = await feature_model_repo.get_all(skip=skip, limit=limit)
         count = await feature_model_repo.count()
 
-    # Convertir a FeatureModelListItem con domain_name
-    list_items = [
-        FeatureModelListItem(
-            id=model.id,
-            name=model.name,
-            owner_id=model.owner_id,
-            domain_id=model.domain_id,
-            domain_name=model.domain.name,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
-            is_active=model.is_active,
+    # Convertir a FeatureModelListItem con domain_name y versiones
+    list_items = []
+    for model in models:
+        # Ordenar versiones por version_number descendente
+        sorted_versions = sorted(
+            model.versions, key=lambda v: v.version_number, reverse=True
         )
-        for model in models
-    ]
+
+        # Obtener la última versión si existe
+        latest_version = None
+        if sorted_versions:
+            latest = sorted_versions[0]
+            latest_version = LatestVersionInfo(
+                id=latest.id,
+                version_number=latest.version_number,
+                status=latest.status.value,
+            )
+
+        list_items.append(
+            FeatureModelListItem(
+                id=model.id,
+                name=model.name,
+                owner_id=model.owner_id,
+                domain_id=model.domain_id,
+                domain_name=model.domain.name,
+                created_at=model.created_at,
+                updated_at=model.updated_at,
+                is_active=model.is_active,
+                versions_count=len(model.versions),
+                latest_version=latest_version,
+            )
+        )
 
     return FeatureModelListResponse.create(
         data=list_items,
@@ -183,8 +215,20 @@ async def create_feature_model(
 
     try:
         model = await feature_model_repo.create(data=model_in, owner_id=current_user.id)
-        # Recargar con domain para obtener domain_name
+        # Recargar con domain y versiones
         model_with_domain = await feature_model_repo.get(model.id)
+
+        # Construir lista de versiones
+        versions = [
+            VersionInfo(
+                id=version.id,
+                version_number=version.version_number,
+                status=version.status.value,
+                created_at=version.created_at,
+            )
+            for version in model_with_domain.versions
+        ]
+
         return FeatureModelPublic(
             id=model_with_domain.id,
             name=model_with_domain.name,
@@ -195,6 +239,8 @@ async def create_feature_model(
             created_at=model_with_domain.created_at,
             updated_at=model_with_domain.updated_at,
             is_active=model_with_domain.is_active,
+            versions_count=len(model_with_domain.versions),
+            versions=versions,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -230,6 +276,12 @@ async def read_feature_model(
             - created_at: Creation timestamp
             - updated_at: Last update timestamp
             - is_active: Active status
+            - versions_count: Total number of versions
+            - versions: List of all versions with details
+                - id: Version UUID
+                - version_number: Version number
+                - status: Version status (DRAFT, IN_REVIEW, PUBLISHED)
+                - created_at: Version creation timestamp
 
     Raises:
         HTTPException 404: If feature model with given ID doesn't exist
@@ -241,7 +293,21 @@ async def read_feature_model(
     if not model:
         raise HTTPException(status_code=404, detail="Feature Model not found")
 
-    # Construir respuesta con domain_name
+    # Ordenar versiones por version_number ascendente
+    sorted_versions = sorted(model.versions, key=lambda v: v.version_number)
+
+    # Construir lista de versiones
+    versions = [
+        VersionInfo(
+            id=version.id,
+            version_number=version.version_number,
+            status=version.status.value,
+            created_at=version.created_at,
+        )
+        for version in sorted_versions
+    ]
+
+    # Construir respuesta con domain_name y versiones
     return FeatureModelPublic(
         id=model.id,
         name=model.name,
@@ -252,6 +318,8 @@ async def read_feature_model(
         created_at=model.created_at,
         updated_at=model.updated_at,
         is_active=model.is_active,
+        versions_count=len(model.versions),
+        versions=versions,
     )
 
 
@@ -322,8 +390,20 @@ async def update_feature_model(
         updated_model = await feature_model_repo.update(
             db_feature_model=db_model, data=model_in
         )
-        # Recargar con domain para obtener domain_name
+        # Recargar con domain y versiones
         model_with_domain = await feature_model_repo.get(updated_model.id)
+
+        # Construir lista de versiones
+        versions = [
+            VersionInfo(
+                id=version.id,
+                version_number=version.version_number,
+                status=version.status.value,
+                created_at=version.created_at,
+            )
+            for version in model_with_domain.versions
+        ]
+
         return FeatureModelPublic(
             id=model_with_domain.id,
             name=model_with_domain.name,
@@ -334,6 +414,8 @@ async def update_feature_model(
             created_at=model_with_domain.created_at,
             updated_at=model_with_domain.updated_at,
             is_active=model_with_domain.is_active,
+            versions_count=len(model_with_domain.versions),
+            versions=versions,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -395,8 +477,20 @@ async def activate_feature_model(
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     activated_model = await feature_model_repo.activate(db_model)
-    # Recargar con domain para obtener domain_name
+    # Recargar con domain y versiones
     model_with_domain = await feature_model_repo.get(activated_model.id)
+
+    # Construir lista de versiones
+    versions = [
+        VersionInfo(
+            id=version.id,
+            version_number=version.version_number,
+            status=version.status.value,
+            created_at=version.created_at,
+        )
+        for version in model_with_domain.versions
+    ]
+
     return FeatureModelPublic(
         id=model_with_domain.id,
         name=model_with_domain.name,
@@ -407,6 +501,8 @@ async def activate_feature_model(
         created_at=model_with_domain.created_at,
         updated_at=model_with_domain.updated_at,
         is_active=model_with_domain.is_active,
+        versions_count=len(model_with_domain.versions),
+        versions=versions,
     )
 
 
@@ -471,8 +567,20 @@ async def deactivate_feature_model(
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     deactivated_model = await feature_model_repo.deactivate(db_model)
-    # Recargar con domain para obtener domain_name
+    # Recargar con domain y versiones
     model_with_domain = await feature_model_repo.get(deactivated_model.id)
+
+    # Construir lista de versiones
+    versions = [
+        VersionInfo(
+            id=version.id,
+            version_number=version.version_number,
+            status=version.status.value,
+            created_at=version.created_at,
+        )
+        for version in model_with_domain.versions
+    ]
+
     return FeatureModelPublic(
         id=model_with_domain.id,
         name=model_with_domain.name,
@@ -483,6 +591,8 @@ async def deactivate_feature_model(
         created_at=model_with_domain.created_at,
         updated_at=model_with_domain.updated_at,
         is_active=model_with_domain.is_active,
+        versions_count=len(model_with_domain.versions),
+        versions=versions,
     )
 
 
