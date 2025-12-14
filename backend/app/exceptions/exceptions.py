@@ -110,3 +110,50 @@ async def generic_exception_handler(request: Request, exc: Exception):
     )
 
     return JSONResponse(status_code=500, content=response_content.model_dump())
+
+
+# ========================================================================
+# CUSTOM EXCEPTIONS
+# ========================================================================
+
+
+class NotFoundException(HTTPException):
+    """Excepción para recursos no encontrados (404)."""
+
+    def __init__(self, detail: str = "Resource not found"):
+        super().__init__(status_code=404, detail=detail)
+
+
+class BusinessLogicException(HTTPException):
+    """Excepción para errores de lógica de negocio (400)."""
+
+    def __init__(self, detail: str = "Business logic error"):
+        super().__init__(status_code=400, detail=detail)
+
+
+class UnprocessableEntityException(HTTPException):
+    """Excepción para entidades no procesables (422)."""
+
+    def __init__(self, detail: str = "Unprocessable entity"):
+        super().__init__(status_code=422, detail=detail)
+
+
+class ConflictException(HTTPException):
+    """Excepción para conflictos de recursos (409)."""
+
+    def __init__(self, detail: str = "Resource conflict"):
+        super().__init__(status_code=409, detail=detail)
+
+
+class ForbiddenException(HTTPException):
+    """Excepción para acceso prohibido (403)."""
+
+    def __init__(self, detail: str = "Access forbidden"):
+        super().__init__(status_code=403, detail=detail)
+
+
+class UnauthorizedException(HTTPException):
+    """Excepción para acceso no autorizado (401)."""
+
+    def __init__(self, detail: str = "Unauthorized access"):
+        super().__init__(status_code=401, detail=detail)
