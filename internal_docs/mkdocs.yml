@@ -56,8 +56,9 @@ nav:
       - Índice: backend_README.md
       - Comandos: backend_commands.md
       - Base de Datos: backend_db.md
-      - Arquitectura S3: backend_s3_architecture.md
+      - Arquitectura: backend_architecture.md
       - Documentación Técnica:
+          - Arquitectura S3: backend_s3_architecture.md
           - Cambios Educativos: backend_CAMBIOS_EDUCATIVOS.md
           - Login Endpoints Refactor: backend_LOGIN_ENDPOINTS_REFACTOR.md
           - Resumen Refactor Login: backend_LOGIN_REFACTOR_SUMMARY.md
