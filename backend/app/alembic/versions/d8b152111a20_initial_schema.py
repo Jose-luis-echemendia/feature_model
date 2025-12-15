@@ -41,6 +41,7 @@ def upgrade():
         sa.Column(
             "role",
             sa.Enum(
+                "DEVELOPER",
                 "ADMIN",
                 "MODEL_DESIGNER",
                 "MODEL_EDITOR",
@@ -126,6 +127,7 @@ def upgrade():
                 "QUIZ",
                 "EXTERNAL_LINK",
                 "TEXT_CONTENT",
+                "PACKAGE",
                 name="resourcetype",
             ),
             nullable=False,
