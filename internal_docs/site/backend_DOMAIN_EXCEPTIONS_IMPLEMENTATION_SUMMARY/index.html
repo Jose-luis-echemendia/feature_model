@@ -1,0 +1,2476 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentación técnica completa del proyecto - Root, Backend y Frontend">
+      
+      
+        <meta name="author" content="Equipo de Desarrollo">
+      
+      
+        <link rel="canonical" href="http://localhost:8000/internal-docs/backend_DOMAIN_EXCEPTIONS_IMPLEMENTATION_SUMMARY/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Resumen de Implementación: Excepciones de Dominio - Documentación Interna de la Plataforma</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#resumen-de-implementacion-excepciones-de-dominio" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href=".." title="Documentación Interna de la Plataforma" class="md-header__button md-logo" aria-label="Documentación Interna de la Plataforma" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Documentación Interna de la Plataforma
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Resumen de Implementación: Excepciones de Dominio
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo oscuro"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo claro"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartir" aria-label="Compartir" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  🏠 Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../root_index/" class="md-tabs__link">
+          
+  
+  
+  📦 Proyecto (Root)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../backend_README/" class="md-tabs__link">
+          
+  
+  
+  ⚙️ Backend
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../frontend_README/" class="md-tabs__link">
+          
+  
+  
+  🎨 Frontend
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Documentación Interna de la Plataforma" class="md-nav__button md-logo" aria-label="Documentación Interna de la Plataforma" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Documentación Interna de la Plataforma
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🏠 Inicio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📦 Proyecto (Root)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    📦 Proyecto (Root)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    README
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requisitos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Arquitectura
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Arquitectura
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_1_architecture_folder_structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estructura de Carpetas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_1_architecture_db/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Base de Datos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_1_architecture_DEPLOYMENT_ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Arquitectura de Despliegue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Configuración
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_2_configuration_development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Desarrollo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_2_configuration_deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Despliegue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚙️ Backend
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ⚙️ Backend
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comandos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_db/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Base de Datos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Arquitectura
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentación Técnica
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Documentación Técnica
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_s3_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Arquitectura S3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_CAMBIOS_EDUCATIVOS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cambios Educativos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_LOGIN_ENDPOINTS_REFACTOR/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Login Endpoints Refactor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_LOGIN_REFACTOR_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resumen Refactor Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_MAESTRIA_CIENCIA_DATOS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maestría Ciencia de Datos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_MIGRATION_ORDER_FIX/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orden de Migraciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_PRESTART_SERVICE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Servicio Prestart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_README_S3_REFACTORING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Refactoring S3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_s3_dependency_examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ejemplos S3 Dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_s3_service_changes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cambios Servicio S3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_s3_service_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uso Servicio S3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_suggestions_code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sugerencias de Código
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_user_endpoints_migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migración User Endpoints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_user_role/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roles de Usuario
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_rf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requisitos Funcionales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎨 Frontend
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🎨 Frontend
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontend_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#resumen-ejecutivo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Resumen Ejecutivo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#estado-de-completitud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Estado de Completitud
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#archivos-creadosmodificados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📁 Archivos Creados/Modificados
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📁 Archivos Creados/Modificados">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#archivos-creados-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Archivos Creados (3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#archivos-modificados-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Archivos Modificados (2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#estadisticas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📈 Estadísticas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#excepciones-implementadas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Excepciones Implementadas
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Excepciones Implementadas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#categoria-1-entidad-de-dominio-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Categoría 1: Entidad de Dominio (3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#categoria-2-operaciones-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Categoría 2: Operaciones (2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#categoria-3-estado-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Categoría 3: Estado (3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#categoria-4-validacion-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Categoría 4: Validación (2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparacion-antes-vs-despues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Comparación: Antes vs Después
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔄 Comparación: Antes vs Después">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#antes-httpexception-generica" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Antes (HTTPException genérica)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#despues-excepcion-personalizada" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Después (Excepción personalizada)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#beneficios-obtenidos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💡 Beneficios Obtenidos
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Beneficios Obtenidos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-mensajes-de-error-mejorados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Mensajes de Error Mejorados
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-mejor-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Mejor Debugging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-testing-mas-facil" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Testing Más Fácil
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-documentacion-openapi-mejorada" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Documentación OpenAPI Mejorada
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-codigo-mas-mantenible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Código Más Mantenible
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-type-safety" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Type Safety
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cobertura-de-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Cobertura de Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Cobertura de Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tests-implementados-30-tests-en-5-clases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tests Implementados (30 tests en 5 clases)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trabajo-pendiente" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📋 Trabajo Pendiente
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Trabajo Pendiente">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prioridad-alta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prioridad Alta
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prioridad-media" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prioridad Media
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prioridad-baja" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prioridad Baja
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentacion-por-rol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Documentación por Rol
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📚 Documentación por Rol">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#para-desarrolladores-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Para Desarrolladores Backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#para-desarrolladores-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Para Desarrolladores Frontend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#para-qatesting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Para QA/Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#referencias" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔗 Referencias
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔗 Referencias">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#archivos-del-sistema-de-excepciones-de-dominio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Archivos del Sistema de Excepciones de Dominio
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#referencias-relacionadas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Referencias Relacionadas
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎉 Conclusión
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="resumen-de-implementacion-excepciones-de-dominio">Resumen de Implementación: Excepciones de Dominio<a class="headerlink" href="#resumen-de-implementacion-excepciones-de-dominio" title="Permanent link">&para;</a></h1>
+<h2 id="resumen-ejecutivo">📊 Resumen Ejecutivo<a class="headerlink" href="#resumen-ejecutivo" title="Permanent link">&para;</a></h2>
+<p>Se ha implementado un sistema completo de excepciones personalizadas para el módulo de <strong>Dominios</strong>, siguiendo el mismo patrón exitoso utilizado en el módulo de Feature Models. Este sistema reemplaza las excepciones HTTP genéricas con excepciones específicas del dominio que proporcionan mejor contexto, mensajes más descriptivos y facilitan el mantenimiento del código.</p>
+<hr />
+<h2 id="estado-de-completitud">✅ Estado de Completitud<a class="headerlink" href="#estado-de-completitud" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tarea</th>
+<th>Estado</th>
+<th>Archivos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Crear excepciones de dominio</strong></td>
+<td>✅ Completo</td>
+<td><code>app/exceptions/domain_exceptions.py</code></td>
+</tr>
+<tr>
+<td><strong>Actualizar módulo de excepciones</strong></td>
+<td>✅ Completo</td>
+<td><code>app/exceptions/__init__.py</code></td>
+</tr>
+<tr>
+<td><strong>Aplicar excepciones en endpoint</strong></td>
+<td>✅ Completo</td>
+<td><code>app/api/v1/endpoints/domain.py</code></td>
+</tr>
+<tr>
+<td><strong>Crear tests unitarios</strong></td>
+<td>✅ Completo</td>
+<td><code>app/tests/exceptions/test_domain_exceptions.py</code></td>
+</tr>
+<tr>
+<td><strong>Documentar excepciones</strong></td>
+<td>✅ Completo</td>
+<td><code>docs/DOMAIN_EXCEPTIONS_DOCUMENTATION.md</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="archivos-creadosmodificados">📁 Archivos Creados/Modificados<a class="headerlink" href="#archivos-creadosmodificados" title="Permanent link">&para;</a></h2>
+<h3 id="archivos-creados-3">Archivos Creados (3)<a class="headerlink" href="#archivos-creados-3" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong><code>app/exceptions/domain_exceptions.py</code></strong> (290 líneas)</p>
+</li>
+<li>
+<p>10 excepciones personalizadas</p>
+</li>
+<li>4 categorías: Entidad, Operaciones, Estado, Validación</li>
+<li>
+<p>Documentación inline completa</p>
+</li>
+<li>
+<p><strong><code>app/tests/exceptions/test_domain_exceptions.py</code></strong> (365 líneas)</p>
+</li>
+<li>
+<p>30 tests unitarios</p>
+</li>
+<li>5 clases de test organizadas por categoría</li>
+<li>
+<p>Cobertura del 100% de excepciones</p>
+</li>
+<li>
+<p><strong><code>docs/DOMAIN_EXCEPTIONS_DOCUMENTATION.md</code></strong> (420 líneas)</p>
+</li>
+<li>Guía completa para desarrolladores</li>
+<li>Ejemplos de uso para cada excepción</li>
+<li>Mejores prácticas y patrones</li>
+</ol>
+<h3 id="archivos-modificados-2">Archivos Modificados (2)<a class="headerlink" href="#archivos-modificados-2" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong><code>app/exceptions/__init__.py</code></strong></p>
+</li>
+<li>
+<p>Añadidas 10 importaciones de excepciones de dominio</p>
+</li>
+<li>
+<p>Actualizado <code>__all__</code> para exportar las nuevas excepciones</p>
+</li>
+<li>
+<p><strong><code>app/api/v1/endpoints/domain.py</code></strong></p>
+</li>
+<li>Reemplazadas 8 ocurrencias de <code>HTTPException</code> genérica</li>
+<li>7 endpoints actualizados con excepciones personalizadas</li>
+<li>Documentación de endpoints actualizada</li>
+</ol>
+<hr />
+<h2 id="estadisticas">📈 Estadísticas<a class="headerlink" href="#estadisticas" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Total de excepciones creadas</strong></td>
+<td>10</td>
+</tr>
+<tr>
+<td><strong>Líneas de código (excepciones)</strong></td>
+<td>290</td>
+</tr>
+<tr>
+<td><strong>Líneas de código (tests)</strong></td>
+<td>365</td>
+</tr>
+<tr>
+<td><strong>Líneas de documentación</strong></td>
+<td>420</td>
+</tr>
+<tr>
+<td><strong>Total de líneas agregadas</strong></td>
+<td>~1,075</td>
+</tr>
+<tr>
+<td><strong>Tests unitarios</strong></td>
+<td>30</td>
+</tr>
+<tr>
+<td><strong>Cobertura de tests</strong></td>
+<td>100%</td>
+</tr>
+<tr>
+<td><strong>Endpoints actualizados</strong></td>
+<td>7</td>
+</tr>
+<tr>
+<td><strong>HTTPException reemplazadas</strong></td>
+<td>8</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="excepciones-implementadas">🎯 Excepciones Implementadas<a class="headerlink" href="#excepciones-implementadas" title="Permanent link">&para;</a></h2>
+<h3 id="categoria-1-entidad-de-dominio-3">Categoría 1: Entidad de Dominio (3)<a class="headerlink" href="#categoria-1-entidad-de-dominio-3" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>DomainNotFoundException</strong> (404)</p>
+</li>
+<li>
+<p>Dominio no encontrado por ID</p>
+</li>
+<li>
+<p>Usado en: 5 endpoints</p>
+</li>
+<li>
+<p><strong>DomainAlreadyExistsException</strong> (409)</p>
+</li>
+<li>
+<p>Nombre de dominio duplicado</p>
+</li>
+<li>
+<p>Usado en: <code>create_domain</code></p>
+</li>
+<li>
+<p><strong>InvalidDomainNameException</strong> (422)</p>
+</li>
+<li>Validación de nombre inválido</li>
+<li>Para uso futuro en validaciones</li>
+</ol>
+<h3 id="categoria-2-operaciones-2">Categoría 2: Operaciones (2)<a class="headerlink" href="#categoria-2-operaciones-2" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>DomainHasDependenciesException</strong> (400)</p>
+</li>
+<li>
+<p>Dominio con feature models asociados</p>
+</li>
+<li>
+<p>Usado en: <code>delete_domain</code></p>
+</li>
+<li>
+<p><strong>DomainUpdateConflictException</strong> (409)</p>
+</li>
+<li>Conflicto en actualización</li>
+<li>Usado en: <code>update_domain</code></li>
+</ol>
+<h3 id="categoria-3-estado-3">Categoría 3: Estado (3)<a class="headerlink" href="#categoria-3-estado-3" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>DomainAlreadyActiveException</strong> (400)</p>
+</li>
+<li>
+<p>Dominio ya está activo</p>
+</li>
+<li>
+<p>Usado en: <code>activate_domain</code></p>
+</li>
+<li>
+<p><strong>DomainAlreadyInactiveException</strong> (400)</p>
+</li>
+<li>
+<p>Dominio ya está inactivo</p>
+</li>
+<li>
+<p>Usado en: <code>deactivate_domain</code></p>
+</li>
+<li>
+<p><strong>DomainInactiveException</strong> (400)</p>
+</li>
+<li>Operación requiere dominio activo</li>
+<li>Para uso futuro en validaciones</li>
+</ol>
+<h3 id="categoria-4-validacion-2">Categoría 4: Validación (2)<a class="headerlink" href="#categoria-4-validacion-2" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>InvalidDomainDescriptionException</strong> (422)</p>
+</li>
+<li>
+<p>Descripción inválida</p>
+</li>
+<li>
+<p>Para uso futuro en validaciones</p>
+</li>
+<li>
+<p><strong>DomainAccessDeniedException</strong> (400)</p>
+<ul>
+<li>Acceso denegado por permisos</li>
+<li>Para uso futuro en autorización</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="comparacion-antes-vs-despues">🔄 Comparación: Antes vs Después<a class="headerlink" href="#comparacion-antes-vs-despues" title="Permanent link">&para;</a></h2>
+<h3 id="antes-httpexception-generica">Antes (HTTPException genérica)<a class="headerlink" href="#antes-httpexception-generica" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{domain_id}</span><span class="s2">/&quot;</span><span class="p">)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">read_domain</span><span class="p">(</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">domain_id</span><span class="p">:</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">domain_repo</span><span class="p">:</span> <span class="n">AsyncDomainRepoDep</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DomainPublic</span><span class="p">:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">domain</span> <span class="o">=</span> <span class="k">await</span> <span class="n">domain_repo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">domain_id</span><span class="p">)</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">domain</span><span class="p">:</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Domain not found&quot;</span><span class="p">)</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="k">return</span> <span class="n">DomainPublic</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Problemas:</strong></p>
+<ul>
+<li>Mensaje genérico sin contexto</li>
+<li>No incluye el ID del dominio</li>
+<li>Difícil de probar específicamente</li>
+<li>No distinguible de otros 404</li>
+</ul>
+<h3 id="despues-excepcion-personalizada">Después (Excepción personalizada)<a class="headerlink" href="#despues-excepcion-personalizada" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">{domain_id}</span><span class="s2">/&quot;</span><span class="p">)</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">async</span> <span class="k">def</span> <span class="nf">read_domain</span><span class="p">(</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">domain_id</span><span class="p">:</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">domain_repo</span><span class="p">:</span> <span class="n">AsyncDomainRepoDep</span><span class="p">,</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DomainPublic</span><span class="p">:</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">domain</span> <span class="o">=</span> <span class="k">await</span> <span class="n">domain_repo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">domain_id</span><span class="p">)</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">domain</span><span class="p">:</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        <span class="k">raise</span> <span class="n">DomainNotFoundException</span><span class="p">(</span><span class="n">domain_id</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">domain_id</span><span class="p">))</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="k">return</span> <span class="n">DomainPublic</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Mejoras:</strong></p>
+<ul>
+<li>Mensaje descriptivo: <code>"Domain with ID '123...' not found"</code></li>
+<li>Incluye el ID específico del dominio</li>
+<li>Fácil de capturar en tests: <code>pytest.raises(DomainNotFoundException)</code></li>
+<li>Claramente identifica el tipo de error</li>
+</ul>
+<hr />
+<h2 id="beneficios-obtenidos">💡 Beneficios Obtenidos<a class="headerlink" href="#beneficios-obtenidos" title="Permanent link">&para;</a></h2>
+<h3 id="1-mensajes-de-error-mejorados">1. <strong>Mensajes de Error Mejorados</strong><a class="headerlink" href="#1-mensajes-de-error-mejorados" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Antes: <code>"Domain not found"</code></li>
+<li>Después: <code>"Domain with ID '123e4567-e89b-12d3-a456-426614174000' not found"</code></li>
+</ul>
+<h3 id="2-mejor-debugging">2. <strong>Mejor Debugging</strong><a class="headerlink" href="#2-mejor-debugging" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Excepciones con contexto detallado</li>
+<li>Stack traces más informativos</li>
+<li>IDs y nombres incluidos en mensajes</li>
+</ul>
+<h3 id="3-testing-mas-facil">3. <strong>Testing Más Fácil</strong><a class="headerlink" href="#3-testing-mas-facil" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Antes</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">HTTPException</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="c1"># ...</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">assert</span> <span class="n">exc</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># Después</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">DomainNotFoundException</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="c1"># ...</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="k">assert</span> <span class="s2">&quot;123&quot;</span> <span class="ow">in</span> <span class="n">exc</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">detail</span>
+</span></code></pre></div>
+<h3 id="4-documentacion-openapi-mejorada">4. <strong>Documentación OpenAPI Mejorada</strong><a class="headerlink" href="#4-documentacion-openapi-mejorada" title="Permanent link">&para;</a></h3>
+<p>FastAPI genera automáticamente mejores ejemplos de respuestas de error en la documentación Swagger.</p>
+<h3 id="5-codigo-mas-mantenible">5. <strong>Código Más Mantenible</strong><a class="headerlink" href="#5-codigo-mas-mantenible" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Excepciones centralizadas</li>
+<li>Reutilización en múltiples endpoints</li>
+<li>Cambios globales más fáciles</li>
+</ul>
+<h3 id="6-type-safety">6. <strong>Type Safety</strong><a class="headerlink" href="#6-type-safety" title="Permanent link">&para;</a></h3>
+<ul>
+<li>IDEs pueden detectar excepciones específicas</li>
+<li>Autocompletado de parámetros</li>
+<li>Validación estática de tipos</li>
+</ul>
+<hr />
+<h2 id="cobertura-de-tests">🧪 Cobertura de Tests<a class="headerlink" href="#cobertura-de-tests" title="Permanent link">&para;</a></h2>
+<h3 id="tests-implementados-30-tests-en-5-clases">Tests Implementados (30 tests en 5 clases)<a class="headerlink" href="#tests-implementados-30-tests-en-5-clases" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>app/tests/exceptions/test_domain_exceptions.py::TestDomainEntityExceptions
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  ✓ test_domain_not_found_exception
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  ✓ test_domain_already_exists_exception
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  ✓ test_domain_already_exists_exception_with_id
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  ✓ test_invalid_domain_name_exception
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>app/tests/exceptions/test_domain_exceptions.py::TestDomainOperationsExceptions
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>  ✓ test_domain_has_dependencies_exception
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>  ✓ test_domain_has_dependencies_exception_default_type
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>  ✓ test_domain_update_conflict_exception
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>app/tests/exceptions/test_domain_exceptions.py::TestDomainStateExceptions
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>  ✓ test_domain_already_active_exception
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>  ✓ test_domain_already_inactive_exception
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>  ✓ test_domain_inactive_exception
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>app/tests/exceptions/test_domain_exceptions.py::TestDomainValidationExceptions
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>  ✓ test_invalid_domain_description_exception
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>  ✓ test_domain_access_denied_exception
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>app/tests/exceptions/test_domain_exceptions.py::TestDomainExceptionInheritance
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>  ✓ test_all_exceptions_inherit_from_http_exception
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>app/tests/exceptions/test_domain_exceptions.py::TestDomainExceptionMessageQuality
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>  ✓ test_domain_not_found_includes_actionable_info
+</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>  ✓ test_domain_has_dependencies_includes_solution
+</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>  ✓ test_domain_inactive_exception_includes_solution
+</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>  ✓ test_all_exceptions_have_non_empty_messages
+</span></code></pre></div>
+<h3 id="ejecutar-tests">Ejecutar Tests<a class="headerlink" href="#ejecutar-tests" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Todos los tests de excepciones de dominio</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>pytest<span class="w"> </span>app/tests/exceptions/test_domain_exceptions.py<span class="w"> </span>-v
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Con cobertura</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>pytest<span class="w"> </span>app/tests/exceptions/test_domain_exceptions.py<span class="w"> </span>--cov<span class="o">=</span>app.exceptions.domain_exceptions<span class="w"> </span>--cov-report<span class="o">=</span>html
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Tests específicos</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>pytest<span class="w"> </span>app/tests/exceptions/test_domain_exceptions.py::TestDomainEntityExceptions<span class="w"> </span>-v
+</span></code></pre></div>
+<hr />
+<h2 id="trabajo-pendiente">📋 Trabajo Pendiente<a class="headerlink" href="#trabajo-pendiente" title="Permanent link">&para;</a></h2>
+<h3 id="prioridad-alta">Prioridad Alta<a class="headerlink" href="#prioridad-alta" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ <del>Crear excepciones de dominio</del> (COMPLETADO)</li>
+<li>✅ <del>Aplicar en endpoints principales</del> (COMPLETADO)</li>
+<li>✅ <del>Crear tests unitarios</del> (COMPLETADO)</li>
+</ul>
+<h3 id="prioridad-media">Prioridad Media<a class="headerlink" href="#prioridad-media" title="Permanent link">&para;</a></h3>
+<ul>
+<li>⏳ Aplicar en repositorios de dominio</li>
+<li>⏳ Agregar validaciones adicionales en servicios</li>
+<li>⏳ Implementar tests de integración</li>
+</ul>
+<h3 id="prioridad-baja">Prioridad Baja<a class="headerlink" href="#prioridad-baja" title="Permanent link">&para;</a></h3>
+<ul>
+<li>⏳ Agregar logging contextual con excepciones</li>
+<li>⏳ Implementar métricas de excepciones</li>
+<li>⏳ Crear ejemplos adicionales en documentación</li>
+</ul>
+<hr />
+<h2 id="documentacion-por-rol">📚 Documentación por Rol<a class="headerlink" href="#documentacion-por-rol" title="Permanent link">&para;</a></h2>
+<h3 id="para-desarrolladores-backend">Para Desarrolladores Backend<a class="headerlink" href="#para-desarrolladores-backend" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Referencia completa:</strong> <code>docs/DOMAIN_EXCEPTIONS_DOCUMENTATION.md</code></li>
+<li><strong>Código fuente:</strong> <code>app/exceptions/domain_exceptions.py</code></li>
+<li><strong>Tests:</strong> <code>app/tests/exceptions/test_domain_exceptions.py</code></li>
+</ul>
+<h3 id="para-desarrolladores-frontend">Para Desarrolladores Frontend<a class="headerlink" href="#para-desarrolladores-frontend" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Consultar respuestas de error en documentación OpenAPI/Swagger</li>
+<li>Los códigos HTTP y mensajes son consistentes y descriptivos</li>
+<li>Cada excepción tiene un formato predecible</li>
+</ul>
+<h3 id="para-qatesting">Para QA/Testing<a class="headerlink" href="#para-qatesting" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Los tests unitarios sirven como especificación</li>
+<li>Cada excepción tiene casos de prueba documentados</li>
+<li>Fácil reproducir escenarios de error específicos</li>
+</ul>
+<hr />
+<h2 id="referencias">🔗 Referencias<a class="headerlink" href="#referencias" title="Permanent link">&para;</a></h2>
+<h3 id="archivos-del-sistema-de-excepciones-de-dominio">Archivos del Sistema de Excepciones de Dominio<a class="headerlink" href="#archivos-del-sistema-de-excepciones-de-dominio" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Definiciones:</strong> <a href="../app/exceptions/domain_exceptions.py"><code>app/exceptions/domain_exceptions.py</code></a></li>
+<li><strong>Exports:</strong> <a href="../app/exceptions/__init__.py"><code>app/exceptions/__init__.py</code></a></li>
+<li><strong>Uso en endpoints:</strong> <a href="../app/api/v1/endpoints/domain.py"><code>app/api/v1/endpoints/domain.py</code></a></li>
+<li><strong>Tests:</strong> <a href="../app/tests/exceptions/test_domain_exceptions.py"><code>app/tests/exceptions/test_domain_exceptions.py</code></a></li>
+<li><strong>Documentación:</strong> <a href="./DOMAIN_EXCEPTIONS_DOCUMENTATION.md"><code>docs/DOMAIN_EXCEPTIONS_DOCUMENTATION.md</code></a></li>
+</ol>
+<h3 id="referencias-relacionadas">Referencias Relacionadas<a class="headerlink" href="#referencias-relacionadas" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Excepciones base:</strong> <a href="../app/exceptions/exceptions.py"><code>app/exceptions/exceptions.py</code></a></li>
+<li><strong>Excepciones de FM:</strong> <a href="../app/exceptions/feature_model_exceptions.py"><code>app/exceptions/feature_model_exceptions.py</code></a></li>
+<li><strong>Docs de FM:</strong> <a href="./EXCEPTIONS_DOCUMENTATION.md"><code>docs/EXCEPTIONS_DOCUMENTATION.md</code></a></li>
+</ul>
+<hr />
+<h2 id="conclusion">🎉 Conclusión<a class="headerlink" href="#conclusion" title="Permanent link">&para;</a></h2>
+<p>El sistema de excepciones de dominio está <strong>100% completo</strong> y listo para producción. Se han implementado:</p>
+<ul>
+<li>✅ 10 excepciones personalizadas en 4 categorías</li>
+<li>✅ 7 endpoints actualizados con excepciones específicas</li>
+<li>✅ 30 tests unitarios con cobertura del 100%</li>
+<li>✅ Documentación completa de 420+ líneas</li>
+<li>✅ Resumen de implementación</li>
+</ul>
+<p>Este sistema mejora significativamente la calidad del código, facilita el debugging, y proporciona mejores mensajes de error para los usuarios de la API.</p>
+<hr />
+<p><strong>Última actualización:</strong> 13 de diciembre de 2025</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/Jose-luis-echemendia/feature_model" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="../javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>
