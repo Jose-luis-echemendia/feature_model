@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 
 from app.api.deps import AsyncConfigurationRepoDep
 from app.models.configuration import (

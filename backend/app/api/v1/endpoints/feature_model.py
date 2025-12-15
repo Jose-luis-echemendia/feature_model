@@ -2,7 +2,7 @@ import uuid
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi_cache.decorator import cache
 
 from app.api.deps import (

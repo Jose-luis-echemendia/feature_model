@@ -5,6 +5,9 @@ Este módulo centraliza todas las excepciones personalizadas de la aplicación,
 tanto las genéricas como las específicas del dominio de Feature Models.
 """
 
+from fastapi.exceptions import RequestValidationError
+from fastapi import HTTPException
+
 from .exceptions import (
     NotFoundException,
     BusinessLogicException,
@@ -78,6 +81,13 @@ from .domain_exceptions import (
 )
 
 __all__ = [
+    # FastAPI exceptions
+    "RequestValidationError",
+    "HTTPException",
+    # Exception handlers
+    "validation_exception_handler",
+    "http_exception_handler",
+    "generic_exception_handler",
     # Generic exceptions
     "NotFoundException",
     "BusinessLogicException",
