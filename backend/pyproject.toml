@@ -2,7 +2,7 @@
 name = "app"
 version = "0.1.0"
 description = ""
-requires-python = ">=3.10,<4.0"
+requires-python = ">=3.11,<4.0"
 dependencies = [
     "fastapi[standard]<1.0.0,>=0.114.2",
     "python-multipart<1.0.0,>=0.0.7",
@@ -31,6 +31,10 @@ dependencies = [
     "mkdocs (>=1.6.1,<2.0.0)",
     "mkdocs-material (>=9.7.0,<10.0.0)",
     "sympy (>=1.14.0,<2.0.0)",
+    "networkx (>=3.2,<4.0)",
+    "python-sat (>=0.1.8.dev13)",
+    "z3-solver (>=4.12.2.0)",
+    "deap (>=1.4.1)",
 ]
 
 [tool.uv]
