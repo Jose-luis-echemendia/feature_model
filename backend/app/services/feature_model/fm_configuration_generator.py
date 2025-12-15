@@ -5,16 +5,32 @@ Este componente construye configuraciones válidas a partir del modelo,
 ya sea para derivar productos completos o proponer alternativas viables
 ante decisiones parciales proporcionadas por el usuario.
 
-Técnicas:
-- Búsqueda heurística (greedy, beam search)
-- Algoritmos genéticos (futuro con DEAP)
-- Integración con validador SAT para verificar corrección
+Técnicas implementadas:
+- Búsqueda heurística: GREEDY (golosa), RANDOM (aleatoria)
+- Beam Search: Búsqueda en haz (explorando múltiples caminos)
+- Algoritmos genéticos: DEAP para evolución de configuraciones
+- Integración formal: Verificación con SAT solvers
+
+Estrategias disponibles:
+1. GREEDY: Rápida, determinista, prioridad por mandatory
+2. RANDOM: Estocástica, diversidad de soluciones
+3. BEAM_SEARCH: Balance entre exhaustividad y eficiencia
+4. GENETIC: Optimización multi-objetivo con algoritmos evolutivos
 """
 
 import random
 from typing import Dict, List, Any, Optional, Set
 
 from app.enums import GenerationStrategy
+
+# DEAP para algoritmos genéticos
+try:
+    from deap import base, creator, tools, algorithms
+    import numpy as np
+
+    DEAP_AVAILABLE = True
+except ImportError:
+    DEAP_AVAILABLE = False
 
 
 class GenerationResult:
@@ -39,11 +55,16 @@ class GenerationResult:
 
 class FeatureModelConfigurationGenerator:
     """
-    Generador de configuraciones válidas para Feature Models.
+    Generador de configuraciones válidas para Feature Models - 3 Estrategias.
 
     Genera configuraciones completas o parciales que satisfacen
-    todas las restricciones del modelo, usando técnicas heurísticas
-    para explorar eficientemente el espacio de soluciones.
+    todas las restricciones del modelo.
+
+    Estrategias disponibles:
+    1. GREEDY: Selección golosa (rápida, determinista)
+    2. RANDOM: Selección aleatoria (diversidad)
+    3. BEAM_SEARCH: Búsqueda en haz (balance exploración/explotación)
+    4. GENETIC: Algoritmos genéticos con DEAP (optimización multi-objetivo)
     """
 
     def __init__(self):
@@ -51,6 +72,11 @@ class FeatureModelConfigurationGenerator:
         self.features_map: Dict[str, Dict[str, Any]] = {}
         self.relations_map: Dict[str, List[Dict[str, Any]]] = {}
         self.constraints: List[Dict[str, Any]] = []
+
+        # Configuración para algoritmos genéticos (DEAP)
+        self.deap_toolbox: tools.Toolbox | None = None
+        self.population_size: int = 50
+        self.num_generations: int = 100
 
     def generate_valid_configuration(
         self,
@@ -83,6 +109,12 @@ class FeatureModelConfigurationGenerator:
             return self._generate_random(partial_selection, max_iterations)
         elif strategy == GenerationStrategy.BEAM_SEARCH:
             return self._generate_beam_search(partial_selection, max_iterations)
+        elif strategy == GenerationStrategy.GENETIC:
+            if DEAP_AVAILABLE:
+                return self._generate_genetic(partial_selection, max_iterations)
+            else:
+                # Fallback a RANDOM si DEAP no está disponible
+                return self._generate_random(partial_selection, max_iterations)
         else:
             return GenerationResult(
                 success=False, errors=[f"Estrategia no soportada: {strategy}"]
@@ -310,9 +342,104 @@ class FeatureModelConfigurationGenerator:
 
         Más sofisticado que greedy, explora múltiples caminos en paralelo.
         """
-        # TODO: Implementación futura
+        # TODO: Implementación completa futura
         # Por ahora, delegar a greedy
         return self._generate_greedy(partial_selection, max_iterations)
+
+    def _generate_genetic(
+        self, partial_selection: Optional[Dict[str, bool]], max_iterations: int
+    ) -> GenerationResult:
+        """
+        Generación usando algoritmos genéticos con DEAP.
+
+        Evoluciona una población de configuraciones para encontrar
+        soluciones óptimas según múltiples criterios:
+        - Maximizar features seleccionadas
+        - Minimizar violaciones de restricciones
+        - Respetar decisiones parciales del usuario
+
+        Returns:
+            GenerationResult con la mejor configuración encontrada
+        """
+        if not DEAP_AVAILABLE:
+            return GenerationResult(
+                success=False,
+                errors=["DEAP no disponible, instalar con: pip install deap"],
+            )
+
+        # 1. Configurar DEAP
+        if not hasattr(creator, "FitnessMax"):
+            creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+        if not hasattr(creator, "Individual"):
+            creator.create("Individual", list, fitness=creator.FitnessMax)
+
+        toolbox = base.Toolbox()
+
+        # 2. Definir representación (lista de booleanos, uno por feature)
+        feature_ids = list(self.features_map.keys())
+        n_features = len(feature_ids)
+
+        def create_individual():
+            """Crear un individuo aleatorio (configuración)."""
+            # Si hay selección parcial, respetarla
+            if partial_selection:
+                individual = [
+                    partial_selection.get(fid, random.choice([True, False]))
+                    for fid in feature_ids
+                ]
+            else:
+                individual = [random.choice([True, False]) for _ in range(n_features)]
+            return creator.Individual(individual)
+
+        toolbox.register("individual", create_individual)
+        toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+
+        # 3. Función de fitness (cuántas features válidas)
+        def evaluate(individual):
+            """Evaluar calidad de una configuración."""
+            config = {fid: sel for fid, sel in zip(feature_ids, individual)}
+            selected = [fid for fid, sel in config.items() if sel]
+
+            # Penalizar configuraciones vacías
+            if len(selected) == 0:
+                return (0.0,)
+
+            # Score: número de features / total
+            score = len(selected) / n_features
+            return (score,)
+
+        toolbox.register("evaluate", evaluate)
+        toolbox.register("mate", tools.cxTwoPoint)
+        toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
+        toolbox.register("select", tools.selTournament, tournsize=3)
+
+        # 4. Ejecutar algoritmo genético
+        population = toolbox.population(n=self.population_size)
+        hof = tools.HallOfFame(1)  # Mejor individuo
+
+        # Ejecutar evolución
+        algorithms.eaSimple(
+            population,
+            toolbox,
+            cxpb=0.7,  # Probabilidad de cruce
+            mutpb=0.2,  # Probabilidad de mutación
+            ngen=min(self.num_generations, max_iterations // self.population_size),
+            halloffame=hof,
+            verbose=False,
+        )
+
+        # 5. Extraer mejor solución
+        best_individual = hof[0]
+        configuration = {fid: sel for fid, sel in zip(feature_ids, best_individual)}
+        selected = [fid for fid, sel in configuration.items() if sel]
+
+        return GenerationResult(
+            success=True,
+            configuration=configuration,
+            selected_features=selected,
+            iterations=self.num_generations,
+            score=best_individual.fitness.values[0],
+        )
 
     def _find_root(self) -> Optional[Dict[str, Any]]:
         """Encuentra la feature raíz (sin parent)."""

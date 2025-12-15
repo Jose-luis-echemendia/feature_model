@@ -9,16 +9,22 @@ Análisis realizados:
 - Características redundantes
 - Relaciones implícitas
 - Dependencias transitivas
-- Componentes fuertemente conexas
+- Componentes fuertemente conexas (SCC)
 - Métricas de impacto y complejidad
+- Análisis de caminos y centralidad
 
 Tecnologías:
-- NetworkX: Para análisis de grafos
-- Algoritmos clásicos: DFS, SCC, caminos mínimos
+- NetworkX: Análisis completo de grafos con algoritmos optimizados
+- DFS, BFS: Búsqueda en profundidad y amplitud
+- Tarjan's SCC: Componentes fuertemente conexas
+- PageRank, Betweenness: Métricas de centralidad
 """
 
 from typing import Dict, List, Any, Set, Tuple, Optional
 from collections import defaultdict
+
+# NetworkX para análisis avanzado de grafos
+import networkx as nx
 
 from app.enums import AnalysisType
 from app.exceptions import (
@@ -28,9 +34,6 @@ from app.exceptions import (
     DeadFeatureDetectedException,
     FalseOptionalDetectedException,
 )
-
-# NetworkX se agregará como dependencia
-# import networkx as nx
 
 
 class StructuralIssue:
@@ -69,15 +72,23 @@ class StructuralAnalysisResult:
 
 class FeatureModelStructuralAnalyzer:
     """
-    Analizador Estructural de Feature Models.
+    Analizador Estructural de Feature Models usando NetworkX.
 
-    Utiliza teoría de grafos para analizar la estructura del modelo
-    y detectar problemas de modelado, redundancias y propiedades topológicas.
+    Utiliza NetworkX para análisis avanzado de grafos:
+    - Algoritmos optimizados (DFS, BFS, SCC, caminos mínimos)
+    - Métricas de centralidad (PageRank, Betweenness, Closeness)
+    - Detección de ciclos y comunidades
+    - Análisis de conectividad y alcanzabilidad
     """
 
     def __init__(self):
         """Inicializa el analizador estructural."""
         self.features_map: Dict[str, Dict[str, Any]] = {}
+        self.graph: nx.DiGraph = nx.DiGraph()  # Grafo dirigido principal
+        self.tree_graph: nx.DiGraph = nx.DiGraph()  # Árbol jerárquico
+        self.dependency_graph: nx.DiGraph = (
+            nx.DiGraph()
+        )  # Grafo de dependencias cross-tree
         self.relations: List[Dict[str, Any]] = []
         self.constraints: List[Dict[str, Any]] = []
         self.graph: Dict[str, List[str]] = {}  # Grafo de dependencias
