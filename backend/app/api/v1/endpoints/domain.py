@@ -1,18 +1,41 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_cache.decorator import cache
 
-from app import crud
-from app.api.deps import SessionDep, get_current_user, AdminUser
+from app.api.deps import (
+    AsyncDomainRepoDep,
+    get_verified_user,
+    get_admin_user,
+    AsyncCurrentUser,
+)
 from app.models.common import Message
 from app.models.domain import (
     DomainPublic,
     DomainListResponse,
     DomainCreate,
     DomainUpdate,
+    DomainPublicWithFeatureModels,
+)
+from app.enums import UserRole
+from app.exceptions import (
+    DomainNotFoundException,
+    DomainAlreadyExistsException,
+    DomainHasDependenciesException,
+    DomainUpdateConflictException,
+    DomainAlreadyActiveException,
+    DomainAlreadyInactiveException,
 )
 
-router = APIRouter(prefix="/domains", tags=["domains"])
+router = APIRouter(
+    prefix="/domains",
+    tags=["Domains"],
+    responses={
+        404: {"description": "Domain not found"},
+        403: {"description": "Not enough permissions (Admin only)"},
+        400: {"description": "Validation error or domain has dependencies"},
+    },
+)
 
 
 # ======================================================================================
@@ -22,62 +45,90 @@ router = APIRouter(prefix="/domains", tags=["domains"])
 
 @router.get(
     "/",
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_verified_user)],
     response_model=DomainListResponse,
 )
-def read_domains(
-    session: SessionDep, skip: int = 0, limit: int = 100
+@cache(expire=300)  # Cache por 5 minutos
+async def read_domains(
+    current_user: AsyncCurrentUser,
+    domain_repo: AsyncDomainRepoDep,
+    skip: int = 0,
+    limit: int = 100,
 ) -> DomainListResponse:
-    """read domains (accesible para todos los roles)
+    """
+    Read domains (solo accesible para administradores).
 
     Args:
-        session (SessionDep): _description_
-        skip (int, optional): _description_. Defaults to 0.
-        limit (int, optional): _description_. Defaults to 100.
+        current_user: Usuario autenticado actual
+        domain_repo: Repositorio de dominios
+        skip: Número de registros a saltar
+        limit: Número máximo de registros a retornar
 
     Returns:
-        DomainListResponse: _description_
+        DomainListResponse: Lista de dominios con conteo total
+
+    Note:
+        - Admins y Developers pueden ver todos los dominios (activos e inactivos)
+        - Otros roles solo ven dominios activos (is_active = True)
     """
+    # Determinar si se deben incluir dominios inactivos
+    include_inactive = current_user.role in [UserRole.ADMIN, UserRole.DEVELOPER]
 
-    domains = crud.get_domains(session=session, skip=skip, limit=limit)
-    count = crud.get_domains_count(session=session)
+    domains = await domain_repo.get_all(
+        skip=skip, limit=limit, include_inactive=include_inactive
+    )
+    count = await domain_repo.count(include_inactive=include_inactive)
 
-    return DomainListResponse(data=domains, count=count)
+    return DomainListResponse.create(
+        data=domains,
+        count=count,
+        skip=skip,
+        limit=limit,
+    )
 
 
 # ---------------------------------------------------------------------------
-# Endpoint para obtener un dominio por ID (accesible para varios roles)
+# Endpoint para obtener un dominio por ID (solo admin)
 # ---------------------------------------------------------------------------
-@router.get("/{domain_id}/", response_model=DomainPublic)
-def read_domain(*, domain_id: uuid.UUID, session: SessionDep) -> DomainPublic:
+@router.get(
+    "/{domain_id}/",
+    dependencies=[Depends(get_verified_user)],
+    response_model=DomainPublic,
+)
+@cache(expire=300)  # Cache por 5 minutos
+async def read_domain(
+    *,
+    domain_id: uuid.UUID,
+    domain_repo: AsyncDomainRepoDep,
+) -> DomainPublic:
     """
     Get a specific domain by ID.
 
-    Accessible to authenticated users with appropriate roles.
+    Only accessible to administrators.
 
     Args:
         domain_id: Domain ID
-        session: Database session
+        domain_repo: Repositorio de dominios
 
     Returns:
         DomainPublic: Domain data
 
     Raises:
-        HTTPException: If domain not found
+        DomainNotFoundException: If domain not found
     """
-    domain = crud.get_domain(session=session, domain_id=domain_id)
+    domain = await domain_repo.get(domain_id)
     if not domain:
-        raise HTTPException(status_code=404, detail="Domain not found")
+        raise DomainNotFoundException(domain_id=str(domain_id))
     return DomainPublic.model_validate(domain)
 
 
 # ---------------------------------------------------------------------------
 # Endpoint para crear un nuevo dominio (solo admin)
 # ---------------------------------------------------------------------------
-@router.post("/", dependencies=[Depends(AdminUser)], response_model=DomainPublic)
-def create_domain(
+@router.post("/", dependencies=[Depends(get_admin_user)], response_model=DomainPublic)
+async def create_domain(
     *,
-    session: SessionDep,
+    domain_repo: AsyncDomainRepoDep,
     domain_in: DomainCreate,
 ) -> DomainPublic:
     """
@@ -86,21 +137,26 @@ def create_domain(
     Only administrators can create new domains.
 
     Args:
-        session: Database session
+        domain_repo: Repositorio de dominios
         domain_in: Domain creation data
-        admin: Authenticated admin user
 
     Returns:
         DomainPublic: Created domain
 
     Raises:
-        HTTPException: If domain with same name already exists
+        DomainAlreadyExistsException: If domain with same name already exists
     """
     try:
-        domain = crud.create_domain(session=session, domain_create=domain_in)
+        domain = await domain_repo.create(domain_in)
         return DomainPublic.model_validate(domain)
 
     except ValueError as e:
+        # Si el error es por nombre duplicado, usar excepción personalizada
+        error_msg = str(e)
+        if "already exists" in error_msg.lower() or "duplicate" in error_msg.lower():
+            raise DomainAlreadyExistsException(
+                domain_name=domain_in.name, existing_domain_id=None
+            )
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -109,11 +165,13 @@ def create_domain(
 # ---------------------------------------------------------------------------
 
 
-@router.patch("/{domain_id}/", dependencies=[Depends(AdminUser)], response_model=DomainPublic)
-def update_domain(
+@router.patch(
+    "/{domain_id}/", dependencies=[Depends(get_admin_user)], response_model=DomainPublic
+)
+async def update_domain(
     *,
     domain_id: uuid.UUID,
-    session: SessionDep,
+    domain_repo: AsyncDomainRepoDep,
     domain_in: DomainUpdate,
 ) -> DomainPublic:
     """
@@ -123,28 +181,34 @@ def update_domain(
 
     Args:
         domain_id: Domain ID to update
-        session: Database session
+        domain_repo: Repositorio de dominios
         domain_in: Domain update data
-        admin: Authenticated admin user
 
     Returns:
         DomainPublic: Updated domain
 
     Raises:
-        HTTPException: If domain not found or validation error
+        DomainNotFoundException: If domain not found
+        DomainUpdateConflictException: If update creates a conflict
     """
     # Primero verificar que el dominio existe
-    db_domain = crud.get_domain(session=session, domain_id=domain_id)
+    db_domain = await domain_repo.get(domain_id)
     if not db_domain:
-        raise HTTPException(status_code=404, detail="Domain not found")
+        raise DomainNotFoundException(domain_id=str(domain_id))
 
     try:
-        updated_domain = crud.update_domain(
-            session=session, db_domain=db_domain, domain_in=domain_in
-        )
+        updated_domain = await domain_repo.update(db_domain, domain_in)
         return DomainPublic.model_validate(updated_domain)
 
     except ValueError as e:
+        # Si el error es por conflicto de nombre, usar excepción personalizada
+        error_msg = str(e)
+        if "already exists" in error_msg.lower() or "duplicate" in error_msg.lower():
+            raise DomainUpdateConflictException(
+                domain_id=str(domain_id),
+                conflicting_field="name",
+                conflicting_value=domain_in.name if domain_in.name else "unknown",
+            )
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -152,96 +216,274 @@ def update_domain(
 # Endpoint para eliminar un dominio (solo admin)
 # ---------------------------------------------------------------------------
 @router.delete(
-    "/{domain_id}/", dependencies=[Depends(AdminUser)], response_model=Message
+    "/{domain_id}/", dependencies=[Depends(get_admin_user)], response_model=Message
 )
-def delete_domain(
+async def delete_domain(
     *,
     domain_id: uuid.UUID,
-    session: SessionDep,
+    domain_repo: AsyncDomainRepoDep,
 ) -> Message:
     """
-    Delete a domain.
+    Permanently delete a domain.
 
-    Only administrators can delete domains.
+    This endpoint performs a hard delete of a domain from the database.
+    **Important:** Deletion is only allowed if the domain has NO associated
+    feature models. If you want to preserve the domain but mark it as unused,
+    use the deactivate endpoint instead.
+
+    Permissions Required:
+        - ADMIN: Only administrators can delete domains
+
+    Validation Rules:
+        - The domain must have no associated feature models
+        - All feature models must be deleted before the domain can be deleted
 
     Args:
-        domain_id: Domain ID to delete
-        session: Database session
-        admin: Authenticated admin user
+        domain_id: UUID of the domain to delete
+        domain_repo: Domain repository dependency
 
     Returns:
-        Message: Success message
+        Message: Success confirmation message
 
     Raises:
-        HTTPException: If domain not found
+        HTTPException 403: If user is not an administrator
+        DomainNotFoundException: If domain doesn't exist
+        DomainHasDependenciesException: If domain has associated feature models
+
+    Warning:
+        This operation is irreversible. Consider using deactivate instead
+        if you want to preserve the domain for future reference.
+
+    Example:
+        DELETE /domains/123e4567-e89b-12d3-a456-426614174000/
+
+    Response Example:
+        {
+            "message": "Domain deleted successfully"
+        }
     """
-    domain = crud.get_domain(session=session, domain_id=domain_id)
+    domain = await domain_repo.get(domain_id)
     if not domain:
-        raise HTTPException(status_code=404, detail="Domain not found")
+        raise DomainNotFoundException(domain_id=str(domain_id))
 
     # Verificar si el dominio tiene feature models asociados
     if hasattr(domain, "feature_models") and domain.feature_models:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot delete domain with associated feature models. Delete the feature models first.",
+        dependency_count = len(domain.feature_models)
+        raise DomainHasDependenciesException(
+            domain_id=str(domain_id),
+            domain_name=domain.name,
+            dependency_count=dependency_count,
+            dependency_type="feature models",
         )
 
-    crud.delete_domain(session=session, db_domain=domain)
+    await domain_repo.delete(domain)
     return Message(message="Domain deleted successfully")
 
 
 # ---------------------------------------------------------------------------
-# Endpoint para buscar dominios por nombre (accesible para varios roles)
+# Endpoint para buscar dominios por nombre (solo admin)
 # ---------------------------------------------------------------------------
-@router.get("/search/{search_term}/", response_model=DomainListResponse)
-def search_domains(
-    *, session: SessionDep, search_term: str, skip: int = 0, limit: int = 100
+@router.get(
+    "/search/",
+    dependencies=[Depends(get_verified_user)],
+    response_model=DomainListResponse,
+)
+@cache(expire=300)  # Cache por 5 minutos
+async def search_domains(
+    *,
+    current_user: AsyncCurrentUser,
+    domain_repo: AsyncDomainRepoDep,
+    search_term: str,
+    skip: int = 0,
+    limit: int = 100,
 ) -> DomainListResponse:
     """
     Search domains by name or description.
 
-    Accessible to authenticated users with appropriate roles.
+    Only accessible to administrators.
 
     Args:
-        session: Database session
+        current_user: Usuario autenticado actual
+        domain_repo: Repositorio de dominios
         search_term: Term to search for
         skip: Pagination offset
         limit: Pagination limit
 
     Returns:
         DomainListResponse: Search results
+
+    Note:
+        - Admins y Developers pueden ver todos los dominios (activos e inactivos)
+        - Otros roles solo ven dominios activos (is_active = True)
     """
-    domains = crud.search_domains(
-        session=session, search_term=search_term, skip=skip, limit=limit
+    # Determinar si se deben incluir dominios inactivos
+    include_inactive = current_user.role in [UserRole.ADMIN, UserRole.DEVELOPER]
+
+    domains = await domain_repo.search(
+        search_term, skip=skip, limit=limit, include_inactive=include_inactive
     )
-    count = len(domains)
+    count = await domain_repo.count_search(
+        search_term, include_inactive=include_inactive
+    )
 
-    return DomainListResponse(data=domains, count=count)
+    return DomainListResponse.create(
+        data=domains,
+        count=count,
+        skip=skip,
+        limit=limit,
+    )
 
 
 # ---------------------------------------------------------------------------
-# Endpoint para obtener dominio con sus feature models (accesible para varios roles)
+# Endpoint para obtener dominio con sus feature models (solo admin)
 # ---------------------------------------------------------------------------
-@router.get("/{domain_id}/with-feature-models/", response_model=DomainPublic)
-def read_domain_with_feature_models(
-    *, domain_id: uuid.UUID, session: SessionDep
-) -> DomainPublic:
+@router.get(
+    "/{domain_id}/with-feature-models/",
+    dependencies=[Depends(get_admin_user)],
+    response_model=DomainPublicWithFeatureModels,
+)
+@cache(expire=300)  # Cache por 5 minutos
+async def read_domain_with_feature_models(
+    *,
+    domain_id: uuid.UUID,
+    domain_repo: AsyncDomainRepoDep,
+) -> DomainPublicWithFeatureModels:
     """
     Get a domain with its associated feature models.
 
-    Accessible to authenticated users with appropriate roles.
+    Only accessible to administrators.
 
     Args:
         domain_id: Domain ID
-        session: Database session
+        domain_repo: Repositorio de dominios
 
     Returns:
         DomainPublic: Domain with feature models
 
     Raises:
-        HTTPException: If domain not found
+        DomainNotFoundException: If domain not found
     """
-    domain = crud.get_domain_with_feature_models(session=session, domain_id=domain_id)
+    domain = await domain_repo.get_with_feature_models(domain_id)
     if not domain:
-        raise HTTPException(status_code=404, detail="Domain not found")
+        raise DomainNotFoundException(domain_id=str(domain_id))
     return domain
+
+
+# ======================================================================================
+#       --- Endpoint para activar un dominio. ---
+# ======================================================================================
+
+
+@router.patch(
+    "/{domain_id}/activate/",
+    dependencies=[Depends(get_admin_user)],
+    response_model=DomainPublic,
+)
+async def activate_domain(
+    *,
+    domain_id: uuid.UUID,
+    domain_repo: AsyncDomainRepoDep,
+) -> DomainPublic:
+    """
+    Activate a domain.
+
+    This endpoint sets the `is_active` flag to `true`, making the domain
+    active and visible to all users. All feature models within this domain
+    will become accessible again.
+
+    Permissions Required:
+        - ADMIN: Only administrators can activate domains
+
+    Args:
+        domain_id: UUID of the domain to activate
+        domain_repo: Domain repository dependency
+
+    Returns:
+        DomainPublic: Activated domain with is_active=true
+
+    Raises:
+        HTTPException 403: If user is not an administrator
+        DomainNotFoundException: If domain doesn't exist
+        DomainAlreadyActiveException: If domain is already active
+
+    Note:
+        Activating a domain makes it visible to all users and allows
+        creation of new feature models within this domain.
+
+    Example:
+        PATCH /domains/123e4567-e89b-12d3-a456-426614174000/activate/
+    """
+    domain = await domain_repo.get(domain_id)
+    if not domain:
+        raise DomainNotFoundException(domain_id=str(domain_id))
+
+    # Verificar si ya está activo
+    if domain.is_active:
+        raise DomainAlreadyActiveException(
+            domain_id=str(domain_id), domain_name=domain.name
+        )
+
+    return await domain_repo.activate(domain)
+
+
+# ======================================================================================
+#       --- Endpoint para desactivar un dominio. ---
+# ======================================================================================
+
+
+@router.patch(
+    "/{domain_id}/deactivate/",
+    dependencies=[Depends(get_admin_user)],
+    response_model=DomainPublic,
+)
+async def deactivate_domain(
+    *,
+    domain_id: uuid.UUID,
+    domain_repo: AsyncDomainRepoDep,
+) -> DomainPublic:
+    """
+    Deactivate a domain.
+
+    This endpoint sets the `is_active` flag to `false`, making the domain
+    inactive. Deactivated domains are hidden from regular users but preserved
+    in the database. This is a soft-delete operation that allows reactivation.
+
+    Permissions Required:
+        - ADMIN: Only administrators can deactivate domains
+
+    Args:
+        domain_id: UUID of the domain to deactivate
+        domain_repo: Domain repository dependency
+
+    Returns:
+        DomainPublic: Deactivated domain with is_active=false
+
+    Raises:
+        HTTPException 403: If user is not an administrator
+        DomainNotFoundException: If domain doesn't exist
+        DomainAlreadyInactiveException: If domain is already inactive
+
+    Note:
+        - Deactivated domains are only visible to ADMIN and DEVELOPER roles
+        - Feature models within the domain remain accessible
+        - The domain can be reactivated using the activate endpoint
+        - This operation does not delete any associated feature models
+
+    Warning:
+        Deactivating a domain may affect active feature models and their
+        associated workflows. Consider the impact before deactivating.
+
+    Example:
+        PATCH /domains/123e4567-e89b-12d3-a456-426614174000/deactivate/
+    """
+    domain = await domain_repo.get(domain_id)
+    if not domain:
+        raise DomainNotFoundException(domain_id=str(domain_id))
+
+    # Verificar si ya está inactivo
+    if not domain.is_active:
+        raise DomainAlreadyInactiveException(
+            domain_id=str(domain_id), domain_name=domain.name
+        )
+
+    return await domain_repo.deactivate(domain)

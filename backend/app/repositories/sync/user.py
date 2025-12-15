@@ -22,9 +22,7 @@ class UserRepositorySync(BaseUserRepository, IUserRepositorySync):
 
         hashed_pw = self.prepare_password(data.password)
 
-        obj = User(
-            email=data.email, full_name=data.full_name, hashed_password=hashed_pw
-        )
+        obj = User(email=data.email, hashed_password=hashed_pw)
 
         self.session.add(obj)
         self.session.commit()
@@ -91,24 +89,32 @@ class UserRepositorySync(BaseUserRepository, IUserRepositorySync):
     def search(self, search_term: str, skip: int = 0, limit: int = 100) -> list[User]:
         stmt = (
             select(User)
-            .where(
-                (User.email.ilike(f"%{search_term}%"))
-                | (User.full_name.ilike(f"%{search_term}%"))
-            )
+            .where((User.email.ilike(f"%{search_term}%")))
             .offset(skip)
             .limit(limit)
         )
         return self.session.exec(stmt).all()
 
+    def count_search(self, search_term: str) -> int:
+        """Contar resultados de búsqueda por email."""
+        stmt = (
+            select(func.count())
+            .select_from(User)
+            .where((User.email.ilike(f"%{search_term}%")))
+        )
+        return self.session.exec(stmt).one()
+
     def deactivate(self, db_user: User) -> User:
-        db_user.is_active = False
+        """Desactivar un usuario."""
+        self._set_active_status(db_user, False)
         self.session.add(db_user)
         self.session.commit()
         self.session.refresh(db_user)
         return db_user
 
     def activate(self, db_user: User) -> User:
-        db_user.is_active = True
+        """Activar un usuario."""
+        self._set_active_status(db_user, True)
         self.session.add(db_user)
         self.session.commit()
         self.session.refresh(db_user)

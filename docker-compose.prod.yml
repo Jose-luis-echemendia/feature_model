@@ -32,6 +32,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      prestart:
+        condition: service_completed_successfully  
     command: bash scripts/prestart.sh
     env_file:
       - .env

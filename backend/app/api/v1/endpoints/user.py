@@ -1,13 +1,18 @@
 import uuid
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_cache.decorator import cache
 
 from app.api.deps import (
-    CurrentUser,
+    get_settings_service,
     get_current_active_superuser,
-    UserRepoDep,
+    get_admin_user,
+    CurrentUser,
     AsyncUserRepoDep,
+    AdminUser,
 )
+from app.services import SettingsService
 from app.core.config import settings
 from app.models.common import Message
 from app.enums import UserRole
@@ -20,9 +25,10 @@ from app.models.user import (
     UserUpdate,
     UserUpdateMe,
 )
-from app.utils import generate_new_account_email, send_email
+from app.utils import send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
+logger = logging.getLogger(__name__)
 
 
 #######################################
@@ -34,109 +40,127 @@ router = APIRouter(prefix="/users", tags=["users"])
 #           --- Endpoint para listar Usuarios ---
 # ===========================================================================
 
+
 @router.get(
     "/",
     response_model=UserListResponse,
+    dependencies=[Depends(get_admin_user)],
 )
-def read_users(
+@cache(expire=300)  # Cache por 5 minutos
+async def read_users(
     *,
-    repo: UserRepoDep,
+    user_repo: AsyncUserRepoDep,
     skip: int = 0,
     limit: int = 100,
 ) -> UserListResponse:
-    users = repo.get_all(skip=skip, limit=limit)
-    count = repo.count()
-    return UserListResponse(data=users, count=count)
+    """
+    Lista todos los usuarios (solo administradores y desarrolladores).
 
+    Requiere autenticación y rol de ADMIN o DEVELOPER.
+    """
 
-@router.get(
-    "/async",
-    response_model=UserListResponse,
-)
-async def read_users_async(
-    *,
-    repo: AsyncUserRepoDep,
-    skip: int = 0,
-    limit: int = 100,
-) -> UserListResponse:
-    users = await repo.get_all(skip=skip, limit=limit)
-    count = await repo.count()
-    return UserListResponse(data=users, count=count)
+    users = await user_repo.get_all(skip=skip, limit=limit)
+    count = await user_repo.count()
+
+    logger.info(f"✅ Usuarios obtenidos: {len(users)} de {count} total")
+
+    return UserListResponse.create(
+        count=count,
+        skip=skip,
+        limit=limit,
+        data=users,
+    )
 
 
 # ===========================================================================
 #           --- Endpoint para listar Usuarios por roles ---
 # ===========================================================================
 
-@router.get("/async/by-role/{role}", response_model=UserListResponse)
-async def read_users_by_role_async(
-    *,
-    repo: AsyncUserRepoDep,
-    role: UserRole,
-    skip: int = 0,
-    limit: int = 100,
-) -> UserListResponse:
-    users = await repo.search(role, skip=skip, limit=limit)
-    count = len(users)
-    return UserListResponse(data=users, count=count)
-
 
 @router.get("/by-role/{role}", response_model=UserListResponse)
-def read_users_by_role(
+@cache(expire=300)  # Cache por 5 minutos
+async def read_users_by_role(
     *,
-    repo: UserRepoDep,
+    user_repo: AsyncUserRepoDep,
     role: UserRole,
     skip: int = 0,
     limit: int = 100,
 ) -> UserListResponse:
-    users = repo.search(role, skip=skip, limit=limit)
-    count = len(users)  # o repo.count_by_role(role) si existe
-    return UserListResponse(data=users, count=count)
+    logger.info(
+        f"🔍 Buscando usuarios por rol: {role.value} - skip: {skip}, limit: {limit}"
+    )
 
+    users = await user_repo.search(role, skip=skip, limit=limit)
+    # Para búsqueda, necesitamos contar todos los resultados que coinciden
+    all_users = await user_repo.search(role, skip=0, limit=10000)
+    count = len(all_users)
+
+    logger.info(f"✅ Encontrados {count} usuarios con rol {role.value}")
+
+    return UserListResponse.create(
+        data=users,
+        count=count,
+        skip=skip,
+        limit=limit,
+    )
 
 
 # ===========================================================================
 #           --- Endpoint para crear Usuario ---
 # ===========================================================================
 
+
 @router.post("/", response_model=UserPublic)
-def create_user(
+async def create_user(
     *,
-    repo: UserRepoDep,
+    user_repo: AsyncUserRepoDep,
+    current_user: CurrentUser,
     user_in: UserCreate,
 ) -> UserPublic:
-    try:
-        user = repo.create(user_in)
+    """
+    Crea un nuevo usuario (diseñadores de modelos, editores de modelos, configuradores, espectadores, críticos, administradores o desarrollador).
 
-        # Lógica de email se mantiene igual
-        if settings.emails_enabled and user_in.email:
-            email_data = generate_new_account_email(
-                email_to=user_in.email,
-                username=user_in.email,
-                password=user_in.password,
+    **Permisos requeridos:**
+    - Administradores pueden crear: diseñadores de modelos, editores de modelos, configuradores, espectadores, críticos  y administradores
+    - Desarrolladores pueden crear: todos los roles, incluido desarrollador
+
+    **Validaciones**:
+    - Email único
+    - Contraseña fuerte (mínimo 8 caracteres)
+    - Rol válido
+    - Solo desarrolladores pueden crear otros desarrolladores
+    """
+    logger.info(
+        f"👤 Intento de creación de usuario - Email: {user_in.email}, Rol: {user_in.role.value} por {current_user.email}"
+    )
+
+    if user_in.role == UserRole.DEVELOPER:
+        # Solo desarrolladores pueden crear otros desarrolladores
+        if current_user.role != UserRole.DEVELOPER:
+            logger.warning(
+                f"❌ Usuario {current_user.email} (rol: {current_user.role.value}) intentó crear un DEVELOPER"
             )
-            send_email(
-                email_to=user_in.email,
-                subject=email_data.subject,
-                html_content=email_data.html_content,
+            raise HTTPException(
+                status_code=403,
+                detail="Solo usuarios con rol DEVELOPER pueden crear otros desarrolladores",
             )
+    elif not current_user.is_superuser:
+        # Si no es superuser (admin o developer), no puede crear usuarios
+        logger.warning(
+            f"❌ Usuario {current_user.email} sin permisos intentó crear usuario"
+        )
+        raise HTTPException(
+            status_code=403, detail="No tienes permisos suficientes para crear usuarios"
+        )
 
-        return user
-
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.post("/async", response_model=UserPublic)
-async def create_user_async(
-    *,
-    repo: AsyncUserRepoDep,
-    user_in: UserCreate,
-) -> UserPublic:
     try:
-        user = await repo.create(user_in)
+        user = await user_repo.create(user_in)
+        logger.info(
+            f"✅ Usuario creado exitosamente: {user.email} con rol {user.role.value}"
+        )
 
         if settings.emails_enabled and user_in.email:
+            logger.info(f"📧 Enviando email de bienvenida a: {user_in.email}")
             # usando thread pool si send_email es sync
             import anyio
 
@@ -150,6 +174,7 @@ async def create_user_async(
         return user
 
     except ValueError as e:
+        logger.error(f"❌ Error al crear usuario {user_in.email}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -157,36 +182,26 @@ async def create_user_async(
 #           --- Endpoint para actualizar el usuario propio ---
 # ===========================================================================
 
+
 @router.patch("/me/", response_model=UserPublic)
-def update_user_me(
-    *, repo: UserRepoDep, user_in: UserUpdateMe, current_user: CurrentUser
-) -> UserPublic:
-    """
-    Update own user.
-    """
-    try:
-        # Convertir UserUpdateMe a UserUpdate para usar el repositorio
-        user_update_data = UserUpdate(**user_in.model_dump(exclude_unset=True))
-        updated_user = repo.update(db_user=current_user, data=user_update_data)
-        return updated_user
-
-    except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
-
-
-@router.patch("/me/async", response_model=UserPublic)
-async def update_user_me_async(
-    *, repo: AsyncUserRepoDep, user_in: UserUpdateMe, current_user: CurrentUser
+async def update_user_me_(
+    *, user_repo: AsyncUserRepoDep, user_in: UserUpdateMe, current_user: CurrentUser
 ) -> UserPublic:
     """
     Update own user (async).
     """
+    logger.info(f"👤 Usuario {current_user.email} actualizando su propio perfil")
+
     try:
         user_update_data = UserUpdate(**user_in.model_dump(exclude_unset=True))
-        updated_user = await repo.update(db_user=current_user, data=user_update_data)
+        updated_user = await user_repo.update(
+            db_user=current_user, data=user_update_data
+        )
+        logger.info(f"✅ Perfil actualizado exitosamente para: {current_user.email}")
         return updated_user
 
     except ValueError as e:
+        logger.error(f"❌ Error al actualizar perfil de {current_user.email}: {str(e)}")
         raise HTTPException(status_code=409, detail=str(e))
 
 
@@ -196,40 +211,29 @@ async def update_user_me_async(
 
 
 @router.patch("/me/password/", response_model=Message)
-def update_password_me(
-    *, repo: UserRepoDep, body: UpdatePassword, current_user: CurrentUser
-) -> Message:
-    """
-    Update own password.
-    """
-    try:
-        repo.change_password(
-            db_user=current_user,
-            current_password=body.current_password,
-            new_password=body.new_password,
-        )
-        return Message(message="Password updated successfully")
-
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.patch("/me/password/async", response_model=Message)
-async def update_password_me_async(
-    *, repo: AsyncUserRepoDep, body: UpdatePassword, current_user: CurrentUser
+async def update_password_me(
+    *, user_repo: AsyncUserRepoDep, body: UpdatePassword, current_user: CurrentUser
 ) -> Message:
     """
     Update own password (async).
     """
+    logger.info(f"🔑 Usuario {current_user.email} cambiando su contraseña")
+
     try:
-        await repo.change_password(
+        await user_repo.change_password(
             db_user=current_user,
             current_password=body.current_password,
             new_password=body.new_password,
         )
+        logger.info(
+            f"✅ Contraseña actualizada exitosamente para: {current_user.email}"
+        )
         return Message(message="Password updated successfully")
 
     except ValueError as e:
+        logger.warning(
+            f"❌ Error al cambiar contraseña para {current_user.email}: {str(e)}"
+        )
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -239,10 +243,11 @@ async def update_password_me_async(
 
 
 @router.get("/me/", response_model=UserPublic)
-def read_user_me(*, current_user: CurrentUser) -> UserPublic:
+async def read_user_me(*, current_user: CurrentUser) -> UserPublic:
     """
     Get current user.
     """
+    logger.info(f"👤 Usuario {current_user.email} consultando su propio perfil")
     return current_user
 
 
@@ -252,32 +257,22 @@ def read_user_me(*, current_user: CurrentUser) -> UserPublic:
 
 
 @router.delete("/me/", response_model=Message)
-def delete_user_me(*, repo: UserRepoDep, current_user: CurrentUser) -> Message:
-    """
-    Delete own user.
-    """
-    if current_user.is_superuser:
-        raise HTTPException(
-            status_code=403, detail="Super users are not allowed to delete themselves"
-        )
-
-    repo.delete(db_user=current_user)
-    return Message(message="User deleted successfully")
-
-
-@router.delete("/me/async", response_model=Message)
-async def delete_user_me_async(
-    *, repo: AsyncUserRepoDep, current_user: CurrentUser
+async def delete_user_me(
+    *, user_repo: AsyncUserRepoDep, current_user: CurrentUser
 ) -> Message:
     """
     Delete own user (async).
     """
+    logger.info(f"🗑️ Usuario {current_user.email} solicitando eliminar su propia cuenta")
+
     if current_user.is_superuser:
+        logger.warning(f"❌ Superusuario {current_user.email} intentó auto-eliminarse")
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
 
-    await repo.delete(db_user=current_user)
+    await user_repo.delete(db_user=current_user)
+    logger.info(f"✅ Cuenta eliminada exitosamente: {current_user.email}")
     return Message(message="User deleted successfully")
 
 
@@ -287,44 +282,38 @@ async def delete_user_me_async(
 
 
 @router.post("/signup/", response_model=UserPublic)
-def register_user(*, repo: UserRepoDep, user_in: UserRegister) -> UserPublic:
-    """
-    Create new user without the need to be logged in.
-    """
-    try:
-        # Convertir UserRegister a UserCreate
-        user_create = UserCreate(
-            email=user_in.email,
-            password=user_in.password,
-            full_name=user_in.full_name,
-        )
-        user = repo.create(data=user_create)
-        return user
-
-    except ValueError as e:
-        raise HTTPException(
-            status_code=400,
-            detail=str(e),
-        )
-
-
-@router.post("/signup/async", response_model=UserPublic)
-async def register_user_async(
-    *, repo: AsyncUserRepoDep, user_in: UserRegister
+async def register_user(
+    *,
+    user_repo: AsyncUserRepoDep,
+    user_in: UserRegister,
+    settings_service: SettingsService = Depends(get_settings_service),
 ) -> UserPublic:
     """
     Create new user without the need to be logged in (async).
     """
+    logger.info(f"📝 Intento de registro de nuevo usuario: {user_in.email}")
+
+    allows_user_registration = await settings_service.aget(
+        "ALLOWS_USER_REGISTRATION", default=False
+    )
+
+    if not allows_user_registration:
+        logger.warning(
+            f"❌ Registro bloqueado - función deshabilitada para: {user_in.email}"
+        )
+        return {"message": "El registro de usuarios está deshabilitado."}
+
     try:
         user_create = UserCreate(
             email=user_in.email,
             password=user_in.password,
-            full_name=user_in.full_name,
         )
-        user = await repo.create(data=user_create)
+        user = await user_repo.create(data=user_create)
+        logger.info(f"✅ Usuario registrado exitosamente: {user.email}")
         return user
 
     except ValueError as e:
+        logger.error(f"❌ Error al registrar usuario {user_in.email}: {str(e)}")
         raise HTTPException(
             status_code=400,
             detail=str(e),
@@ -337,46 +326,40 @@ async def register_user_async(
 
 
 @router.get("/{user_id}/", response_model=UserPublic)
-def read_user_by_id(
-    *, user_id: uuid.UUID, repo: UserRepoDep, current_user: CurrentUser
-) -> UserPublic:
-    """
-    Get a specific user by id.
-    """
-    user = repo.get(user_id=user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    if user == current_user:
-        return user
-
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=403,
-            detail="The user doesn't have enough privileges",
-        )
-    return user
-
-
-@router.get("/{user_id}/async", response_model=UserPublic)
-async def read_user_by_id_async(
-    *, user_id: uuid.UUID, repo: AsyncUserRepoDep, current_user: CurrentUser
+@cache(expire=300)  # Cache por 5 minutos
+async def read_user_by_id(
+    *, user_id: uuid.UUID, user_repo: AsyncUserRepoDep, current_user: CurrentUser
 ) -> UserPublic:
     """
     Get a specific user by id (async).
     """
-    user = await repo.get(user_id=user_id)
+    logger.info(
+        f"🔍 Usuario {current_user.email} consultando información de user_id: {user_id}"
+    )
+
+    user = await user_repo.get(user_id=user_id)
     if not user:
+        logger.warning(f"❌ Usuario no encontrado - ID: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
 
     if user == current_user:
+        logger.info(
+            f"✅ Usuario consultando su propia información: {current_user.email}"
+        )
         return user
 
     if not current_user.is_superuser:
+        logger.warning(
+            f"❌ Usuario {current_user.email} sin permisos para ver información de {user.email}"
+        )
         raise HTTPException(
             status_code=403,
             detail="The user doesn't have enough privileges",
         )
+
+    logger.info(
+        f"✅ Información de usuario {user.email} entregada a superusuario {current_user.email}"
+    )
     return user
 
 
@@ -390,56 +373,32 @@ async def read_user_by_id_async(
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UserPublic,
 )
-def update_user(
+async def update_user(
     *,
-    repo: UserRepoDep,
-    user_id: uuid.UUID,
-    user_in: UserUpdate,
-) -> UserPublic:
-    """
-    Update a user.
-    """
-    db_user = repo.get(user_id=user_id)
-    if not db_user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this id does not exist in the system",
-        )
-
-    try:
-        updated_user = repo.update(db_user=db_user, data=user_in)
-        return updated_user
-
-    except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
-
-
-@router.patch(
-    "/{user_id}/async",
-    dependencies=[Depends(get_current_active_superuser)],
-    response_model=UserPublic,
-)
-async def update_user_async(
-    *,
-    repo: AsyncUserRepoDep,
+    user_repo: AsyncUserRepoDep,
     user_id: uuid.UUID,
     user_in: UserUpdate,
 ) -> UserPublic:
     """
     Update a user (async).
     """
-    db_user = await repo.get(user_id=user_id)
+    logger.info(f"👤 Superusuario actualizando usuario ID: {user_id}")
+
+    db_user = await user_repo.get(user_id=user_id)
     if not db_user:
+        logger.warning(f"❌ Usuario no encontrado para actualizar - ID: {user_id}")
         raise HTTPException(
             status_code=404,
             detail="The user with this id does not exist in the system",
         )
 
     try:
-        updated_user = await repo.update(db_user=db_user, data=user_in)
+        updated_user = await user_repo.update(db_user=db_user, data=user_in)
+        logger.info(f"✅ Usuario {db_user.email} actualizado exitosamente")
         return updated_user
 
     except ValueError as e:
+        logger.error(f"❌ Error al actualizar usuario {db_user.email}: {str(e)}")
         raise HTTPException(status_code=409, detail=str(e))
 
 
@@ -449,55 +408,38 @@ async def update_user_async(
 
 
 @router.put("/{user_id}/role/", response_model=UserPublic)
-def update_user_role(
+async def update_user_role(
     *,
     user_id: uuid.UUID,
     role: UserRole,
-    repo: UserRepoDep,
-    current_user: CurrentUser,
-) -> UserPublic:
-    """
-    Update a user's role.
-    """
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=403,
-            detail="The user doesn't have enough privileges",
-        )
-
-    user = repo.get(user_id=user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # Actualizar el rol usando el repositorio
-    user_update = UserUpdate(role=role)
-    updated_user = repo.update(db_user=user, data=user_update)
-    return updated_user
-
-
-@router.put("/{user_id}/role/async", response_model=UserPublic)
-async def update_user_role_async(
-    *,
-    user_id: uuid.UUID,
-    role: UserRole,
-    repo: AsyncUserRepoDep,
+    user_repo: AsyncUserRepoDep,
     current_user: CurrentUser,
 ) -> UserPublic:
     """
     Update a user's role (async).
     """
+    logger.info(
+        f"🔐 Usuario {current_user.email} intentando cambiar rol de user_id {user_id} a {role.value}"
+    )
+
     if not current_user.is_superuser:
+        logger.warning(
+            f"❌ Usuario {current_user.email} sin permisos para cambiar roles"
+        )
         raise HTTPException(
             status_code=403,
             detail="The user doesn't have enough privileges",
         )
 
-    user = await repo.get(user_id=user_id)
+    user = await user_repo.get(user_id=user_id)
     if not user:
+        logger.warning(f"❌ Usuario no encontrado para cambio de rol - ID: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
 
+    logger.info(f"🔄 Cambiando rol de {user.email} de {user.role.value} a {role.value}")
     user_update = UserUpdate(role=role)
-    updated_user = await repo.update(db_user=user, data=user_update)
+    updated_user = await user_repo.update(db_user=user, data=user_update)
+    logger.info(f"✅ Rol actualizado exitosamente para {user.email}")
     return updated_user
 
 
@@ -507,42 +449,30 @@ async def update_user_role_async(
 
 
 @router.delete("/{user_id}/", dependencies=[Depends(get_current_active_superuser)])
-def delete_user(
-    *, repo: UserRepoDep, current_user: CurrentUser, user_id: uuid.UUID
-) -> Message:
-    """
-    Delete a user.
-    """
-    user = repo.get(user_id=user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    if user == current_user:
-        raise HTTPException(
-            status_code=403, detail="Super users are not allowed to delete themselves"
-        )
-
-    repo.delete(db_user=user)
-    return Message(message="User deleted successfully")
-
-
-@router.delete("/{user_id}/async", dependencies=[Depends(get_current_active_superuser)])
-async def delete_user_async(
-    *, repo: AsyncUserRepoDep, current_user: CurrentUser, user_id: uuid.UUID
+async def delete_user(
+    *, user_repo: AsyncUserRepoDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> Message:
     """
     Delete a user (async).
     """
-    user = await repo.get(user_id=user_id)
+    logger.info(
+        f"🗑️ Superusuario {current_user.email} solicitando eliminar usuario ID: {user_id}"
+    )
+
+    user = await user_repo.get(user_id=user_id)
     if not user:
+        logger.warning(f"❌ Usuario no encontrado para eliminar - ID: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
 
     if user == current_user:
+        logger.warning(f"❌ Superusuario {current_user.email} intentó auto-eliminarse")
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
 
-    await repo.delete(db_user=user)
+    logger.info(f"🗑️ Eliminando usuario: {user.email}")
+    await user_repo.delete(db_user=user)
+    logger.info(f"✅ Usuario {user.email} eliminado exitosamente")
     return Message(message="User deleted successfully")
 
 
@@ -552,27 +482,30 @@ async def delete_user_async(
 
 
 @router.get("/search/{search_term}/", response_model=UserListResponse)
-def search_users(
-    *, repo: UserRepoDep, search_term: str, skip: int = 0, limit: int = 100
-) -> UserListResponse:
-    """
-    Search users by email or name.
-    """
-    users = repo.search(search_term=search_term, skip=skip, limit=limit)
-    count = len(users)
-    return UserListResponse(data=users, count=count)
-
-
-@router.get("/search/{search_term}/async", response_model=UserListResponse)
-async def search_users_async(
-    *, repo: AsyncUserRepoDep, search_term: str, skip: int = 0, limit: int = 100
+@cache(expire=300)  # Cache por 5 minutos
+async def search_users(
+    *, user_repo: AsyncUserRepoDep, search_term: str, skip: int = 0, limit: int = 100
 ) -> UserListResponse:
     """
     Search users by email or name (async).
     """
-    users = await repo.search(search_term=search_term, skip=skip, limit=limit)
-    count = len(users)
-    return UserListResponse(data=users, count=count)
+    logger.info(
+        f"🔍 Búsqueda de usuarios con término: '{search_term}' - skip: {skip}, limit: {limit}"
+    )
+
+    users = await user_repo.search(search_term=search_term, skip=skip, limit=limit)
+    count = await user_repo.count_search(search_term)
+
+    logger.info(
+        f"✅ Búsqueda completada: {len(users)} usuarios encontrados de {count} total"
+    )
+
+    return UserListResponse.create(
+        data=users,
+        count=count,
+        skip=skip,
+        limit=limit,
+    )
 
 
 # ===========================================================================
@@ -581,78 +514,58 @@ async def search_users_async(
 
 
 @router.patch("/{user_id}/activate/", response_model=UserPublic)
-def activate_user(
-    *, user_id: uuid.UUID, repo: UserRepoDep, current_user: CurrentUser
-) -> UserPublic:
-    """
-    Activate a user.
-    """
-    if not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail="Not enough privileges")
-
-    user = repo.get(user_id=user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    activated_user = repo.activate(db_user=user)
-    return activated_user
-
-
-@router.patch("/{user_id}/activate/async", response_model=UserPublic)
-async def activate_user_async(
-    *, user_id: uuid.UUID, repo: AsyncUserRepoDep, current_user: CurrentUser
+async def activate_user(
+    *, user_id: uuid.UUID, user_repo: AsyncUserRepoDep, current_user: CurrentUser
 ) -> UserPublic:
     """
     Activate a user (async).
     """
+    logger.info(f"🔓 Superusuario {current_user.email} activando usuario ID: {user_id}")
+
     if not current_user.is_superuser:
+        logger.warning(
+            f"❌ Usuario {current_user.email} sin permisos para activar usuarios"
+        )
         raise HTTPException(status_code=403, detail="Not enough privileges")
 
-    user = await repo.get(user_id=user_id)
+    user = await user_repo.get(user_id=user_id)
     if not user:
+        logger.warning(f"❌ Usuario no encontrado para activar - ID: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
 
-    activated_user = await repo.activate(db_user=user)
+    activated_user = await user_repo.activate(db_user=user)
+    logger.info(f"✅ Usuario {user.email} activado exitosamente")
     return activated_user
 
 
 @router.patch("/{user_id}/deactivate/", response_model=UserPublic)
-def deactivate_user(
-    *, user_id: uuid.UUID, repo: UserRepoDep, current_user: CurrentUser
-) -> UserPublic:
-    """
-    Deactivate a user.
-    """
-    if not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail="Not enough privileges")
-
-    user = repo.get(user_id=user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    if user == current_user:
-        raise HTTPException(status_code=403, detail="Cannot deactivate yourself")
-
-    deactivated_user = repo.deactivate(db_user=user)
-    return deactivated_user
-
-
-@router.patch("/{user_id}/deactivate/async", response_model=UserPublic)
-async def deactivate_user_async(
-    *, user_id: uuid.UUID, repo: AsyncUserRepoDep, current_user: CurrentUser
+async def deactivate_user(
+    *, user_id: uuid.UUID, user_repo: AsyncUserRepoDep, current_user: CurrentUser
 ) -> UserPublic:
     """
     Deactivate a user (async).
     """
+    logger.info(
+        f"🔒 Superusuario {current_user.email} desactivando usuario ID: {user_id}"
+    )
+
     if not current_user.is_superuser:
+        logger.warning(
+            f"❌ Usuario {current_user.email} sin permisos para desactivar usuarios"
+        )
         raise HTTPException(status_code=403, detail="Not enough privileges")
 
-    user = await repo.get(user_id=user_id)
+    user = await user_repo.get(user_id=user_id)
     if not user:
+        logger.warning(f"❌ Usuario no encontrado para desactivar - ID: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
 
     if user == current_user:
+        logger.warning(
+            f"❌ Superusuario {current_user.email} intentó auto-desactivarse"
+        )
         raise HTTPException(status_code=403, detail="Cannot deactivate yourself")
 
-    deactivated_user = await repo.deactivate(db_user=user)
+    deactivated_user = await user_repo.deactivate(db_user=user)
+    logger.info(f"✅ Usuario {user.email} desactivado exitosamente")
     return deactivated_user

@@ -22,9 +22,7 @@ class UserRepositoryAsync(BaseUserRepository, IUserRepositoryAsync):
 
         hashed_pw = self.prepare_password(data.password)
 
-        obj = User(
-            email=data.email, full_name=data.full_name, hashed_password=hashed_pw
-        )
+        obj = User(email=data.email, hashed_password=hashed_pw)
 
         self.session.add(obj)
         await self.session.commit()
@@ -103,25 +101,34 @@ class UserRepositoryAsync(BaseUserRepository, IUserRepositoryAsync):
     ) -> list[User]:
         stmt = (
             select(User)
-            .where(
-                (User.email.ilike(f"%{search_term}%"))
-                | (User.full_name.ilike(f"%{search_term}%"))
-            )
+            .where((User.email.ilike(f"%{search_term}%")))
             .offset(skip)
             .limit(limit)
         )
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
+    async def count_search(self, search_term: str) -> int:
+        """Contar resultados de búsqueda por email."""
+        stmt = (
+            select(func.count())
+            .select_from(User)
+            .where((User.email.ilike(f"%{search_term}%")))
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
     async def deactivate(self, db_user: User) -> User:
-        db_user.is_active = False
+        """Desactivar un usuario."""
+        self._set_active_status(db_user, False)
         self.session.add(db_user)
         await self.session.commit()
         await self.session.refresh(db_user)
         return db_user
 
     async def activate(self, db_user: User) -> User:
-        db_user.is_active = True
+        """Activar un usuario."""
+        self._set_active_status(db_user, True)
         self.session.add(db_user)
         await self.session.commit()
         await self.session.refresh(db_user)

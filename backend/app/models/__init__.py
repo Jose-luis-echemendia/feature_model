@@ -52,3 +52,4 @@ from .configuration import (
 )
 from .tag import Tag
 from .resource import Resource
+from .link_models import FeatureTagLink

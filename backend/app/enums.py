@@ -6,6 +6,7 @@ class UserRole(str, Enum):
     Enums para definir los roles del usuario
     """
 
+    DEVELOPER = "developer"
     ADMIN = "admin"
     MODEL_DESIGNER = "model_designer"
     MODEL_EDITOR = "model_editor"
@@ -20,10 +21,12 @@ class ResourceType(str, Enum):
     QUIZ = "quiz"
     EXTERNAL_LINK = "external_link"
     TEXT_CONTENT = "text_content"
+    PACKAGE = "package"  # Conjunto de archivos/recursos agrupados
 
 
 class ResourceStatus(str, Enum):
     """Estado del ciclo de vida de un recurso."""
+
     DRAFT = "draft"  # Borrador, no listo para producción
     IN_REVIEW = "in_review"  # Esperando aprobación
     PUBLISHED = "published"  # Activo y disponible para ser usado
@@ -32,11 +35,12 @@ class ResourceStatus(str, Enum):
 
 class LicenseType(str, Enum):
     """Tipo de licencia del recurso."""
+
     COPYRIGHT = "copyright"  # Todos los derechos reservados
     CREATIVE_COMMONS_BY = "cc_by"  # Creative Commons - Atribución
-    CREATIVE_COMMONS_BY_SA = "cc_by_sa" # CC - Atribución-CompartirIgual
-    PUBLIC_DOMAIN = "public_domain" # Dominio Público
-    INTERNAL_USE = "internal_use" # Solo para uso interno de la organización
+    CREATIVE_COMMONS_BY_SA = "cc_by_sa"  # CC - Atribución-CompartirIgual
+    PUBLIC_DOMAIN = "public_domain"  # Dominio Público
+    INTERNAL_USE = "internal_use"  # Solo para uso interno de la organización
 
 
 class FeatureType(str, Enum):
@@ -73,7 +77,44 @@ class FeatureRelationType(str, Enum):
 
 
 class ModelStatus(str, Enum):
-    DRAFT = "draft"          # En proceso de diseño, solo visible para su creador (y admins).
+    DRAFT = "draft"  # En proceso de diseño, solo visible para su creador (y admins).
     IN_REVIEW = "in_review"  # Listo para revisión, visible para los REVIEWERS.
     PUBLISHED = "published"  # Aprobado y visible para los CONFIGURATORS.
-    ARCHIVED = "archived"    # Obsoleto, ya no se puede usar para nuevas configuraciones.
+    ARCHIVED = "archived"  # Obsoleto, ya no se puede usar para nuevas configuraciones.
+
+
+class ExportFormat(str, Enum):
+    """
+    Formatos disponibles para exportar un Feature Model.
+    """
+
+    XML = "xml"  # FeatureIDE XML format
+    SPLOT_XML = "splot_xml"  # SPLOT XML format
+    TVL = "tvl"  # Textual Variability Language
+    DIMACS = "dimacs"  # DIMACS CNF format for SAT solvers
+    JSON = "json"  # Simple JSON format
+    UVL = "uvl"  # Universal Variability Language
+    DOT = "dot"  # Graphviz DOT format
+    MERMAID = "mermaid"  # Mermaid diagram format
+
+
+class AnalysisType(str, Enum):
+    """Tipos de análisis estructural disponibles."""
+
+    DEAD_FEATURES = "dead_features"
+    REDUNDANCIES = "redundancies"
+    IMPLICIT_RELATIONS = "implicit_relations"
+    TRANSITIVE_DEPENDENCIES = "transitive_dependencies"
+    STRONGLY_CONNECTED = "strongly_connected"
+    COMPLEXITY_METRICS = "complexity_metrics"
+    
+
+class GenerationStrategy(str, Enum):
+    """Estrategias de generación disponibles."""
+
+    GREEDY = "greedy"  # Selección golosa por prioridad
+    RANDOM = "random"  # Selección aleatoria válida
+    BEAM_SEARCH = "beam_search"  # Búsqueda en haz
+    GENETIC = "genetic"  # Algoritmos genéticos (futuro)
+    
+    

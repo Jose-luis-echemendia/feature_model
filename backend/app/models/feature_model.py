@@ -79,6 +79,7 @@ class FeatureModelCreate(FeatureModelBase):
 class FeatureModelUpdate(FeatureModelBase):
     name: Optional[str] = None
     description: Optional[str] = None
+    is_active: Optional[bool] = None
 
 
 # ========================================================================
@@ -86,12 +87,51 @@ class FeatureModelUpdate(FeatureModelBase):
 # ========================================================================
 
 
-class FeatureModelPublic(FeatureModelBase):
+class VersionInfo(SQLModel):
+    """Información básica de una versión."""
+
     id: uuid.UUID
-    owner_id: uuid.UUID
-    domain_id: uuid.UUID
+    version_number: int
+    status: str
     created_at: datetime
 
 
-class FeatureModelListResponse(PaginatedResponse[FeatureModelPublic]):
+class FeatureModelPublic(FeatureModelBase):
+    """Schema completo para detalle de un feature model individual."""
+
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    domain_id: uuid.UUID
+    domain_name: str
+    created_at: datetime
+    updated_at: Optional[datetime]
+    is_active: bool
+    versions_count: int
+    versions: list[VersionInfo]
+
+
+class LatestVersionInfo(SQLModel):
+    """Información de la última versión para el listado."""
+
+    id: uuid.UUID
+    version_number: int
+    status: str
+
+
+class FeatureModelListItem(SQLModel):
+    """Schema optimizado para listado de feature models (sin descripción)."""
+
+    id: uuid.UUID
+    name: str
+    owner_id: uuid.UUID
+    domain_id: uuid.UUID
+    domain_name: str
+    created_at: datetime
+    updated_at: Optional[datetime]
+    is_active: bool
+    versions_count: int
+    latest_version: Optional[LatestVersionInfo]
+
+
+class FeatureModelListResponse(PaginatedResponse[FeatureModelListItem]):
     pass

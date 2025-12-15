@@ -1,6 +1,6 @@
-# 📦 Sistema Centralizado de Seeding
+# 📦 Sistema Centralizado de Seeding - Datos Educativos
 
-Este módulo contiene todo el sistema de poblado de base de datos (database seeding) organizado de manera modular y mantenible.
+Este módulo contiene todo el sistema de poblado de base de datos (database seeding) organizado de manera modular y mantenible, con datos específicos para el sector educativo y la gestión curricular.
 
 ## 📁 Estructura
 
@@ -11,7 +11,7 @@ backend/app/seed/
 ├── seeders.py            # Funciones de seeding
 ├── data_settings.py      # Datos de configuración de la app
 ├── data_users.py         # Datos de usuarios (producción + desarrollo)
-├── data_models.py        # Datos de modelos, dominios, tags, recursos
+├── data_models.py        # Datos de planes de estudio, dominios académicos, recursos educativos
 └── README.md             # Este archivo
 ```
 
@@ -21,8 +21,9 @@ backend/app/seed/
 
 Solo crea datos esenciales:
 
-- ✅ Configuraciones de aplicación (`AppSettings`)
-- ✅ Usuarios de producción (sin contraseñas predeterminadas)
+- ✅ Configuraciones de aplicación educativa (`AppSettings`)
+- ✅ FIRST_SUPERUSER desde variables de entorno
+- ✅ Usuarios de producción (coordinadores, diseñadores curriculares)
 
 ```python
 from app.seed import seed_production
@@ -31,13 +32,13 @@ seed_production(session)
 
 ### Desarrollo
 
-Crea todos los datos de ejemplo:
+Crea todos los datos de ejemplo para el contexto educativo:
 
-- ✅ Usuarios de desarrollo con contraseñas conocidas
-- ✅ Dominios de ejemplo (E-Commerce, Healthcare, etc.)
-- ✅ Tags (performance, security, ui, etc.)
-- ✅ Recursos educativos (videos, PDFs, quizzes)
-- ✅ Feature Models de ejemplo
+- ✅ Usuarios de desarrollo con roles académicos
+- ✅ Dominios académicos (Ingeniería Informática, Ciencias Básicas, etc.)
+- ✅ Etiquetas pedagógicas (fundamentos, avanzado, práctico, etc.)
+- ✅ Recursos educativos (videos, PDFs, laboratorios)
+- ✅ Planes de estudio de ejemplo (Ingeniería, Cursos Full Stack)
 
 ```python
 from app.seed import seed_development
@@ -121,53 +122,130 @@ with Session(engine) as session:
 | `seed_resources(session, owner)`                          | Recursos educativos                    |
 | `seed_feature_models(session, owner, domains, resources)` | Modelos de características             |
 
-## 📊 Datos Incluidos
+## 📊 Datos Incluidos - Contexto Educativo
 
-### Usuarios de Desarrollo
+### 👥 Usuarios de Desarrollo
 
-| Email                      | Password      | Rol            | Superuser |
-| -------------------------- | ------------- | -------------- | --------- |
-| `admin@example.com`        | `admin123`    | ADMIN          | ✅        |
-| `designer@example.com`     | `designer123` | MODEL_DESIGNER | ❌        |
-| `editor@example.com`       | `editor123`   | MODEL_EDITOR   | ❌        |
-| `configurator@example.com` | `config123`   | CONFIGURATOR   | ❌        |
-| `viewer@example.com`       | `viewer123`   | VIEWER         | ❌        |
-| `reviewer@example.com`     | `reviewer123` | REVIEWER       | ❌        |
+| Email                               | Password      | Rol            | Descripción                      |
+| ----------------------------------- | ------------- | -------------- | -------------------------------- |
+| `admin@example.com`                 | `admin123`    | ADMIN          | Administrador del sistema        |
+| `diseñador.curricular@example.com`  | `designer123` | MODEL_DESIGNER | Diseñador de planes curriculares |
+| `coordinador.academico@example.com` | `editor123`   | MODEL_EDITOR   | Coordinador académico            |
+| `jefe.carrera@example.com`          | `config123`   | CONFIGURATOR   | Jefe de carrera o programa       |
+| `profesor@example.com`              | `viewer123`   | VIEWER         | Profesor con acceso de lectura   |
+| `evaluador.curricular@example.com`  | `reviewer123` | REVIEWER       | Evaluador de diseño curricular   |
 
-### Usuarios de Producción
+### 👥 Usuarios de Producción
 
 Los usuarios de producción se crean con contraseña temporal `ChangeMe123!` que debe cambiarse:
 
-- `echemendiajoseluis@gmail.com` (ADMIN)
-- `carlos.rodriguez@gmail.com` (MODEL_DESIGNER)
-- `laura.martinez@gmail.com` (MODEL_EDITOR)
-- `lianysm99@gmail.com` (CONFIGURATOR)
-- `yadira.rodriguez@gmail.com` (VIEWER)
-- `ernesto.lito@gmail.com` (REVIEWER)
+- `echemendiajoseluis@gmail.com` (ADMIN) - Administrador principal
+- `yadira.rodriguez@uci.cu` (MODEL_DESIGNER) - Diseñadora curricular
+- `liany.sobrino@uci.cu` (MODEL_DESIGNER) - Diseñadora curricular
+- `ernesto.valdes@estudiantes.uci.cu` (MODEL_EDITOR) - Editor de modelos
+- `coord.academica@uci.cu` (CONFIGURATOR) - Coordinadora académica
+- `jefe.departamento@uci.cu` (REVIEWER) - Jefe de departamento
 
-### Dominios
+### 🎓 Dominios Académicos
 
-- **E-Commerce**: Sistemas de comercio electrónico
-- **Healthcare**: Aplicaciones de salud y medicina
-- **Education**: Plataformas educativas
-- **IoT**: Internet de las Cosas
-- **Finance**: Aplicaciones financieras
+1. **Ingeniería Informática** - Programas y planes de estudio para carreras de ingeniería en ciencias informáticas
+2. **Ciencias Básicas** - Cursos de matemáticas, física y química para programas de ingeniería
+3. **Formación General** - Cursos de humanidades, idiomas y formación integral
+4. **Desarrollo de Software** - Programas especializados en ingeniería de software
+5. **Ciencia de Datos** - Planes de estudio para ciencia de datos, IA y machine learning
+6. **Seguridad Informática** - Programas de ciberseguridad
 
-### Tags
+### 🏷️ Etiquetas Pedagógicas
 
-`performance`, `security`, `ui`, `api`, `mobile`, `analytics`, `payment`, `authentication`, `database`, `cloud`
+- `fundamentos` - Cursos fundamentales y de introducción
+- `avanzado` - Contenido de nivel avanzado
+- `práctico` - Enfoque práctico con laboratorios y proyectos
+- `teórico` - Contenido teórico y conceptual
+- `obligatorio` - Asignatura obligatoria del plan
+- `electivo` - Asignatura electiva u optativa
+- `proyecto` - Curso basado en proyectos
+- `certificacion` - Preparación para certificaciones profesionales
+- `investigacion` - Componente de investigación
+- `practica_profesional` - Prácticas profesionales o pasantías
 
-### Recursos Educativos
+### 📚 Recursos Educativos
 
-- Video: Introducción a Feature Models (15 min)
-- PDF: Guía de Configuración
-- Quiz: Feature Modeling
-- Video: Tutorial Avanzado (30 min)
+1. **Introducción a Feature Models en Educación** (VIDEO, 20 min)
+   - Tutorial sobre modelado de planes de estudio
+2. **Guía de Diseño Curricular con Feature Models** (PDF)
+   - Metodología completa de diseño curricular
+3. **Programación Orientada a Objetos - Conceptos Fundamentales** (VIDEO, 45 min)
+   - Serie sobre POO con ejemplos en Python y Java
+4. **Estructuras de Datos - Material de Estudio** (PDF)
+   - Guía completa con ejercicios
+5. **Quiz de Validación Curricular** (QUIZ, 15 min)
+   - Evaluación sobre reglas en diseño curricular
+6. **Base de Datos - Laboratorios Prácticos** (OTROS)
+   - Conjunto de laboratorios prácticos
 
-### Feature Models
+### 🎯 Planes de Estudio de Ejemplo
 
-- **E-Commerce Platform**: Modelo completo con 7 características
-- **Healthcare Management System**: Sistema de gestión médica
+#### 1. Ingeniería en Ciencias Informáticas (5 años, 240 créditos)
+
+**Estructura:**
+
+- **Ciclo Básico** (60 créditos, semestres 1-2)
+  - Matemática I (OBLIGATORIO)
+  - Matemática II (OBLIGATORIO, prereq: Matemática I)
+  - Fundamentos de Programación (OBLIGATORIO)
+  - Estructuras de Datos (OBLIGATORIO, prereq: Fundamentos)
+- **Ciclo Profesional** (120 créditos, semestres 3-8)
+  - Ingeniería de Software (OBLIGATORIO)
+  - Bases de Datos (OBLIGATORIO)
+  - Redes de Computadoras (OBLIGATORIO)
+  - **Especialización** (XOR - elegir una):
+    - Desarrollo de Software (30 créditos)
+    - Ciencia de Datos (30 créditos)
+    - Seguridad Informática (30 créditos)
+- **Asignaturas Electivas** (OR - mínimo 3):
+  - Desarrollo Móvil
+  - Computación en la Nube
+  - Internet de las Cosas
+  - Blockchain
+  - Realidad Virtual y Aumentada
+- **Práctica Profesional** (12 créditos, semestre 9)
+- **Trabajo de Diploma** (30 créditos, semestre 10)
+
+#### 2. Desarrollo Web Full Stack (6 meses)
+
+**Estructura:**
+
+- **Frontend Development** (OBLIGATORIO, 120 horas)
+  - HTML/CSS Fundamentals
+  - JavaScript
+  - **Framework Frontend** (XOR - elegir uno):
+    - React
+    - Vue.js
+    - Angular
+- **Backend Development** (OBLIGATORIO, 100 horas)
+  - Node.js y Express
+  - Bases de Datos
+  - RESTful APIs
+- **Módulos Opcionales** (OR - al menos uno):
+  - DevOps Básico
+  - Testing Avanzado
+  - Seguridad Web
+- **Proyecto Final** (OBLIGATORIO, 80 horas)
+
+### ⚙️ Configuraciones del Sistema
+
+| Configuración                  | Valor   | Descripción                                    |
+| ------------------------------ | ------- | ---------------------------------------------- |
+| `MAINTENANCE_MODE`             | `False` | Sistema disponible para uso normal             |
+| `GENERATE_PDF`                 | `True`  | Permite generación de PDF de planes de estudio |
+| `DOWNLOAD_PDF`                 | `True`  | Permite descarga de PDF de itinerarios         |
+| `CHECK_TASK`                   | `True`  | Consulta de tareas de procesamiento            |
+| `ENABLE_CURRICULUM_VALIDATION` | `True`  | Validación automática de coherencia curricular |
+| `MAX_CURRICULUM_VERSIONS`      | `10`    | Número máximo de versiones a mantener          |
+| `ENABLE_COLLABORATIVE_DESIGN`  | `True`  | Diseño colaborativo de modelos                 |
+| `AUTO_SAVE_INTERVAL`           | `300`   | Auto-guardado cada 5 minutos                   |
+| `ENABLE_LEARNING_ANALYTICS`    | `True`  | Módulo de analíticas de aprendizaje            |
+| `DEFAULT_CREDIT_HOURS`         | `120`   | Créditos académicos por defecto                |
 
 ## 🔧 Configuración
 
@@ -177,28 +255,28 @@ El sistema usa la variable `ENVIRONMENT` para determinar qué tipo de seeding ej
 
 ```bash
 # .env
-ENVIRONMENT=local           # → seed_development()
-ENVIRONMENT=development     # → seed_development()
-ENVIRONMENT=staging         # → seed_production()
-ENVIRONMENT=production      # → seed_production()
+ENVIRONMENT=local           # → seed_development() - Todos los datos de ejemplo
+ENVIRONMENT=development     # → seed_development() - Todos los datos de ejemplo
+ENVIRONMENT=staging         # → seed_production() - Solo datos esenciales
+ENVIRONMENT=production      # → seed_production() - Solo datos esenciales
 ```
 
 ### Personalización
 
 #### Agregar Nuevos Usuarios de Desarrollo
 
-Edita `data_users.py`:
+Edita `backend/app/seed/data_users.py`:
 
 ```python
 development_users = [
     # ... usuarios existentes ...
-    ("nuevo@example.com", "password123", UserRole.ADMIN, False),
+    ("nuevo.profesor@example.com", "password123", UserRole.VIEWER, False),
 ]
 ```
 
-#### Agregar Nuevos Dominios
+#### Agregar Nuevos Dominios Académicos
 
-Edita `data_models.py`:
+Edita `backend/app/seed/data_models.py`:
 
 ```python
 domains_data = [
@@ -210,32 +288,57 @@ domains_data = [
 ]
 ```
 
-#### Agregar Nuevo Feature Model
+#### Agregar Nuevo Plan de Estudios
 
-Edita `data_models.py`:
+Edita `backend/app/seed/data_models.py`:
 
 ```python
-nuevo_modelo = {
-    "name": "Mi Modelo",
-    "description": "Descripción del modelo",
-    "domain_name": "E-Commerce",
+nuevo_plan = {
+    "name": "Maestría en Inteligencia Artificial",
+    "description": "Programa de posgrado en IA",
+    "domain_name": "Ciencia de Datos",
     "version": {
         "version_number": 1,
         "status": ModelStatus.PUBLISHED,
         "features": [
             {
-                "name": "Característica Principal",
+                "name": "Maestría IA",
                 "type": FeatureType.MANDATORY,
-                "properties": {"description": "Descripción"},
+                "properties": {
+                    "creditos_totales": 90,
+                    "duracion_años": 2
+                },
                 "children": [
-                    # ... subfeatures ...
+                    {
+                        "name": "Machine Learning Avanzado",
+                        "type": FeatureType.MANDATORY,
+                        "properties": {"creditos": 8},
+                    },
+                    # ... más asignaturas ...
                 ],
             }
         ],
     },
 }
 
-feature_models_data.append(nuevo_modelo)
+feature_models_data.append(nuevo_plan)
+```
+
+#### Agregar Nuevos Recursos Educativos
+
+Edita `backend/app/seed/data_models.py`:
+
+```python
+resources_data.append({
+    "title": "Nuevo Curso Online",
+    "type": ResourceType.VIDEO,
+    "description": "Descripción del curso",
+    "language": "es",
+    "duration_minutes": 120,
+    "status": ResourceStatus.PUBLISHED,
+    "license": LicenseType.CREATIVE_COMMONS_BY,
+    "content_url_or_data": {"url": "https://example.com/curso"},
+})
 ```
 
 ## 🛡️ Características de Seguridad

@@ -11,11 +11,11 @@ from app.enums import UserRole
 # Estructura: (email, role)
 production_users = [
     ("echemendiajoseluis@gmail.com", UserRole.ADMIN),
-    ("carlos.rodriguez@gmail.com", UserRole.MODEL_DESIGNER),
-    ("laura.martinez@gmail.com", UserRole.MODEL_EDITOR),
-    ("lianysm99@gmail.com", UserRole.CONFIGURATOR),
-    ("yadira.rodriguez@gmail.com", UserRole.VIEWER),
-    ("ernesto.lito@gmail.com", UserRole.REVIEWER),
+    ("yadira.rodriguez@uci.cu", UserRole.MODEL_DESIGNER),
+    ("liany.sobrino@uci.cu", UserRole.MODEL_DESIGNER),
+    ("ernesto.valdes@estudiantes.uci.cu", UserRole.MODEL_EDITOR),
+    ("coord.academica@uci.cu", UserRole.CONFIGURATOR),
+    ("jefe.departamento@uci.cu", UserRole.REVIEWER),
 ]
 
 # ============================================================================
@@ -24,9 +24,9 @@ production_users = [
 # Estructura: (email, password, role, is_superuser)
 development_users = [
     ("admin@example.com", "admin123", UserRole.ADMIN, True),
-    ("designer@example.com", "designer123", UserRole.MODEL_DESIGNER, False),
-    ("editor@example.com", "editor123", UserRole.MODEL_EDITOR, False),
-    ("configurator@example.com", "config123", UserRole.CONFIGURATOR, False),
-    ("viewer@example.com", "viewer123", UserRole.VIEWER, False),
-    ("reviewer@example.com", "reviewer123", UserRole.REVIEWER, False),
+    ("diseñador.curricular@example.com", "designer123", UserRole.MODEL_DESIGNER, False),
+    ("coordinador.academico@example.com", "editor123", UserRole.MODEL_EDITOR, False),
+    ("jefe.carrera@example.com", "config123", UserRole.CONFIGURATOR, False),
+    ("profesor@example.com", "viewer123", UserRole.VIEWER, False),
+    ("evaluador.curricular@example.com", "reviewer123", UserRole.REVIEWER, False),
 ]
