@@ -1,8 +1,16 @@
-FROM python:3.10
+FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app/
+
+# Install system dependencies required for building Python packages
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install uv
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
