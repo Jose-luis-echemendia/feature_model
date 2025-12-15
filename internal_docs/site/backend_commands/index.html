@@ -1,0 +1,3379 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentación técnica completa del proyecto - Root, Backend y Frontend">
+      
+      
+        <meta name="author" content="Equipo de Desarrollo">
+      
+      
+        <link rel="canonical" href="http://localhost:8000/internal-docs/backend_commands/">
+      
+      
+        <link rel="prev" href="../backend_README/">
+      
+      
+        <link rel="next" href="../backend_db/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Comandos - Documentación Interna de la Plataforma</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#comandos-esenciales-del-backend" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href=".." title="Documentación Interna de la Plataforma" class="md-header__button md-logo" aria-label="Documentación Interna de la Plataforma" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Documentación Interna de la Plataforma
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Comandos
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo oscuro"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Cambiar a modo claro"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartir" aria-label="Compartir" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  🏠 Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../root_index/" class="md-tabs__link">
+          
+  
+  
+  📦 Proyecto (Root)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../backend_README/" class="md-tabs__link">
+          
+  
+  
+  ⚙️ Backend
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../frontend_README/" class="md-tabs__link">
+          
+  
+  
+  🎨 Frontend
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Documentación Interna de la Plataforma" class="md-nav__button md-logo" aria-label="Documentación Interna de la Plataforma" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Documentación Interna de la Plataforma
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🏠 Inicio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📦 Proyecto (Root)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    📦 Proyecto (Root)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    README
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_requirements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requisitos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Arquitectura
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Arquitectura
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_1_architecture_folder_structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estructura de Carpetas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_1_architecture_db/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Base de Datos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_1_architecture_DEPLOYMENT_ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Arquitectura de Despliegue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuración
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Configuración
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_2_configuration_development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Desarrollo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../root_2_configuration_deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Despliegue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚙️ Backend
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ⚙️ Backend
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comandos
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comandos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-base-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🗄️ Comandos de Base de Datos
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🗄️ Comandos de Base de Datos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migraciones-con-alembic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migraciones con Alembic
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-seeding-poblacion-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌱 Comandos de Seeding (Población de Datos)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🌱 Comandos de Seeding (Población de Datos)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-seeding-completo-automatico-segun-entorno" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar seeding completo (automático según entorno)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#script-legacy-redirige-a-seedmain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Script Legacy (redirige a seed.main)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐳 Comandos de Docker
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🐳 Comandos de Docker">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#desarrollo-local" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Desarrollo Local
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#produccion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Producción
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Comandos de Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Comandos de Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-todos-los-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar todos los tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-tests-con-cobertura" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar tests con cobertura
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-tests-especificos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar tests específicos
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-tests-en-modo-verbose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar tests en modo verbose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-tests-y-detener-en-el-primer-fallo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar tests y detener en el primer fallo
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-del-servidor-desarrollo-sin-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Comandos del Servidor (Desarrollo sin Docker)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Comandos del Servidor (Desarrollo sin Docker)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#iniciar-servidor-de-desarrollo-con-uvicorn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Iniciar servidor de desarrollo con Uvicorn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-hot-reload-y-logs-detallados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Con hot-reload y logs detallados
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-dependencias" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Comandos de Dependencias
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 Comandos de Dependencias">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#instalar-dependencias" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Instalar dependencias
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instalar-dependencias-de-desarrollo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Instalar dependencias de desarrollo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#actualizar-requirements-desde-poetry-si-usas-poetry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Actualizar requirements desde Poetry (si usas Poetry)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ver-dependencias-instaladas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ver dependencias instaladas
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Comandos de Debugging
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Comandos de Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#acceder-a-shell-interactivo-de-python-con-contexto-de-la-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Acceder a shell interactivo de Python con contexto de la app
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ver-configuracion-actual" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ver configuración actual
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verificar-conexion-a-base-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verificar conexión a base de datos
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-limpieza" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧹 Comandos de Limpieza
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧹 Comandos de Limpieza">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#limpiar-archivos-python-compilados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limpiar archivos Python compilados
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limpiar-cache-de-pytest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limpiar cache de pytest
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limpiar-coverage-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limpiar coverage reports
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-mantenimiento" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Comandos de Mantenimiento
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Comandos de Mantenimiento">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#crear-backup-de-la-base-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Crear backup de la base de datos
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restaurar-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restaurar backup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limpiar-volumenes-docker-no-usados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limpiar volúmenes Docker no usados
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ver-uso-de-espacio-de-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ver uso de espacio de Docker
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-utiles-de-desarrollo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📝 Comandos Útiles de Desarrollo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📝 Comandos Útiles de Desarrollo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#formatear-codigo-con-black" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formatear código con Black
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ordenar-imports-con-isort" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ordenar imports con isort
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter-con-flake8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linter con Flake8
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type-checking-con-mypy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type checking con MyPy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-pre-commit-hooks-manualmente" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar pre-commit hooks manualmente
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-seguridad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔐 Comandos de Seguridad
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔐 Comandos de Seguridad">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generar-secret_key-nueva" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generar SECRET_KEY nueva
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hashear-una-contrasena" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hashear una contraseña
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-monitoreo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Comandos de Monitoreo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Comandos de Monitoreo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ver-estado-de-celery-workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ver estado de Celery workers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ver-tareas-en-cola" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ver tareas en cola
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#purgar-todas-las-tareas-de-celery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purgar todas las tareas de Celery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flujo-tipico-de-desarrollo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚦 Flujo Típico de Desarrollo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚦 Flujo Típico de Desarrollo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-inicio-del-dia-primera-vez" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Inicio del día (primera vez)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-hacer-cambios-en-modelos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Hacer cambios en modelos
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-ejecutar-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Ejecutar tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-limpiar-y-reiniciar-desde-cero" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Limpiar y reiniciar desde cero
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notas-importantes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📌 Notas Importantes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-emergencia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🆘 Comandos de Emergencia
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🆘 Comandos de Emergencia">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-no-responde" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend no responde
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-de-datos-corrupta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base de datos corrupta
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limpiar-todo-y-empezar-de-nuevo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limpiar todo y empezar de nuevo
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_db/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Base de Datos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Arquitectura
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentación Técnica
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Documentación Técnica
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_s3_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Arquitectura S3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_CAMBIOS_EDUCATIVOS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cambios Educativos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_LOGIN_ENDPOINTS_REFACTOR/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Login Endpoints Refactor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_LOGIN_REFACTOR_SUMMARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resumen Refactor Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_MAESTRIA_CIENCIA_DATOS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maestría Ciencia de Datos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_MIGRATION_ORDER_FIX/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orden de Migraciones
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_PRESTART_SERVICE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Servicio Prestart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_README_S3_REFACTORING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Refactoring S3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_s3_dependency_examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ejemplos S3 Dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_s3_service_changes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cambios Servicio S3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_s3_service_usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uso Servicio S3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_suggestions_code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sugerencias de Código
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_user_endpoints_migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migración User Endpoints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_user_role/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roles de Usuario
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backend_rf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requisitos Funcionales
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎨 Frontend
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🎨 Frontend
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontend_README/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-base-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🗄️ Comandos de Base de Datos
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🗄️ Comandos de Base de Datos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migraciones-con-alembic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migraciones con Alembic
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-seeding-poblacion-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌱 Comandos de Seeding (Población de Datos)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🌱 Comandos de Seeding (Población de Datos)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-seeding-completo-automatico-segun-entorno" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar seeding completo (automático según entorno)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#script-legacy-redirige-a-seedmain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Script Legacy (redirige a seed.main)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐳 Comandos de Docker
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🐳 Comandos de Docker">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#desarrollo-local" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Desarrollo Local
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#produccion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Producción
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Comandos de Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Comandos de Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-todos-los-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar todos los tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-tests-con-cobertura" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar tests con cobertura
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-tests-especificos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar tests específicos
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-tests-en-modo-verbose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar tests en modo verbose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-tests-y-detener-en-el-primer-fallo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar tests y detener en el primer fallo
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-del-servidor-desarrollo-sin-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Comandos del Servidor (Desarrollo sin Docker)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Comandos del Servidor (Desarrollo sin Docker)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#iniciar-servidor-de-desarrollo-con-uvicorn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Iniciar servidor de desarrollo con Uvicorn
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#con-hot-reload-y-logs-detallados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Con hot-reload y logs detallados
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-dependencias" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Comandos de Dependencias
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 Comandos de Dependencias">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#instalar-dependencias" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Instalar dependencias
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#instalar-dependencias-de-desarrollo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Instalar dependencias de desarrollo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#actualizar-requirements-desde-poetry-si-usas-poetry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Actualizar requirements desde Poetry (si usas Poetry)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ver-dependencias-instaladas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ver dependencias instaladas
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Comandos de Debugging
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Comandos de Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#acceder-a-shell-interactivo-de-python-con-contexto-de-la-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Acceder a shell interactivo de Python con contexto de la app
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ver-configuracion-actual" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ver configuración actual
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verificar-conexion-a-base-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verificar conexión a base de datos
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-limpieza" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧹 Comandos de Limpieza
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧹 Comandos de Limpieza">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#limpiar-archivos-python-compilados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limpiar archivos Python compilados
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limpiar-cache-de-pytest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limpiar cache de pytest
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limpiar-coverage-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limpiar coverage reports
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-mantenimiento" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Comandos de Mantenimiento
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Comandos de Mantenimiento">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#crear-backup-de-la-base-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Crear backup de la base de datos
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restaurar-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restaurar backup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limpiar-volumenes-docker-no-usados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limpiar volúmenes Docker no usados
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ver-uso-de-espacio-de-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ver uso de espacio de Docker
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-utiles-de-desarrollo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📝 Comandos Útiles de Desarrollo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📝 Comandos Útiles de Desarrollo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#formatear-codigo-con-black" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formatear código con Black
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ordenar-imports-con-isort" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ordenar imports con isort
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter-con-flake8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linter con Flake8
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type-checking-con-mypy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type checking con MyPy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejecutar-pre-commit-hooks-manualmente" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejecutar pre-commit hooks manualmente
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-seguridad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔐 Comandos de Seguridad
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔐 Comandos de Seguridad">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generar-secret_key-nueva" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generar SECRET_KEY nueva
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hashear-una-contrasena" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hashear una contraseña
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-monitoreo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Comandos de Monitoreo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Comandos de Monitoreo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ver-estado-de-celery-workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ver estado de Celery workers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ver-tareas-en-cola" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ver tareas en cola
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#purgar-todas-las-tareas-de-celery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purgar todas las tareas de Celery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flujo-tipico-de-desarrollo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚦 Flujo Típico de Desarrollo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚦 Flujo Típico de Desarrollo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-inicio-del-dia-primera-vez" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Inicio del día (primera vez)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-hacer-cambios-en-modelos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Hacer cambios en modelos
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-ejecutar-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Ejecutar tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-limpiar-y-reiniciar-desde-cero" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Limpiar y reiniciar desde cero
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notas-importantes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📌 Notas Importantes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-de-emergencia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🆘 Comandos de Emergencia
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🆘 Comandos de Emergencia">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-no-responde" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backend no responde
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-de-datos-corrupta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base de datos corrupta
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limpiar-todo-y-empezar-de-nuevo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limpiar todo y empezar de nuevo
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="comandos-esenciales-del-backend">📚 Comandos Esenciales del Backend<a class="headerlink" href="#comandos-esenciales-del-backend" title="Permanent link">&para;</a></h1>
+<p>Este documento contiene todos los comandos importantes para trabajar con el backend de Feature Models.</p>
+<hr />
+<h2 id="comandos-de-base-de-datos">🗄️ Comandos de Base de Datos<a class="headerlink" href="#comandos-de-base-de-datos" title="Permanent link">&para;</a></h2>
+<h3 id="migraciones-con-alembic">Migraciones con Alembic<a class="headerlink" href="#migraciones-con-alembic" title="Permanent link">&para;</a></h3>
+<h4 id="crear-una-nueva-migracion-auto-detecta-cambios">Crear una nueva migración (auto-detecta cambios)<a class="headerlink" href="#crear-una-nueva-migracion-auto-detecta-cambios" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>alembic<span class="w"> </span>revision<span class="w"> </span>--autogenerate<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;descripción de los cambios&quot;</span>
+</span></code></pre></div>
+<p><strong>Ejemplos</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>alembic<span class="w"> </span>revision<span class="w"> </span>--autogenerate<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;add user roles&quot;</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>alembic<span class="w"> </span>revision<span class="w"> </span>--autogenerate<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;add feature constraints table&quot;</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>alembic<span class="w"> </span>revision<span class="w"> </span>--autogenerate<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;update feature model relationships&quot;</span>
+</span></code></pre></div></p>
+<h4 id="aplicar-migraciones-pendientes">Aplicar migraciones pendientes<a class="headerlink" href="#aplicar-migraciones-pendientes" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>alembic<span class="w"> </span>upgrade<span class="w"> </span>head
+</span></code></pre></div>
+<h4 id="ver-historial-de-migraciones">Ver historial de migraciones<a class="headerlink" href="#ver-historial-de-migraciones" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>alembic<span class="w"> </span><span class="nb">history</span>
+</span></code></pre></div>
+<h4 id="ver-migracion-actual">Ver migración actual<a class="headerlink" href="#ver-migracion-actual" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>alembic<span class="w"> </span>current
+</span></code></pre></div>
+<h4 id="revertir-ultima-migracion">Revertir última migración<a class="headerlink" href="#revertir-ultima-migracion" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>alembic<span class="w"> </span>downgrade<span class="w"> </span>-1
+</span></code></pre></div>
+<h4 id="revertir-a-una-revision-especifica">Revertir a una revisión específica<a class="headerlink" href="#revertir-a-una-revision-especifica" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>alembic<span class="w"> </span>downgrade<span class="w"> </span>&lt;revision_id&gt;
+</span></code></pre></div>
+<h4 id="revertir-todas-las-migraciones">Revertir todas las migraciones<a class="headerlink" href="#revertir-todas-las-migraciones" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>alembic<span class="w"> </span>downgrade<span class="w"> </span>base
+</span></code></pre></div>
+<hr />
+<h2 id="comandos-de-seeding-poblacion-de-datos">🌱 Comandos de Seeding (Población de Datos)<a class="headerlink" href="#comandos-de-seeding-poblacion-de-datos" title="Permanent link">&para;</a></h2>
+<h3 id="ejecutar-seeding-completo-automatico-segun-entorno">Ejecutar seeding completo (automático según entorno)<a class="headerlink" href="#ejecutar-seeding-completo-automatico-segun-entorno" title="Permanent link">&para;</a></h3>
+<p><div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python<span class="w"> </span>-m<span class="w"> </span>app.seed.main
+</span></code></pre></div>
+- <strong>Producción/Staging</strong>: Solo datos esenciales (settings, FIRST_SUPERUSER, usuarios de producción)
+- <strong>Local/Development</strong>: Datos completos (esenciales + ejemplos + usuarios de prueba)</p>
+<h3 id="script-legacy-redirige-a-seedmain">Script Legacy (redirige a seed.main)<a class="headerlink" href="#script-legacy-redirige-a-seedmain" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>python<span class="w"> </span>-m<span class="w"> </span>app.seed_data
+</span></code></pre></div>
+<hr />
+<h2 id="comandos-de-docker">🐳 Comandos de Docker<a class="headerlink" href="#comandos-de-docker" title="Permanent link">&para;</a></h2>
+<h3 id="desarrollo-local">Desarrollo Local<a class="headerlink" href="#desarrollo-local" title="Permanent link">&para;</a></h3>
+<h4 id="iniciar-todos-los-servicios">Iniciar todos los servicios<a class="headerlink" href="#iniciar-todos-los-servicios" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>up
+</span></code></pre></div>
+<h4 id="iniciar-en-segundo-plano-detached">Iniciar en segundo plano (detached)<a class="headerlink" href="#iniciar-en-segundo-plano-detached" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span></code></pre></div>
+<h4 id="reconstruir-imagenes-antes-de-iniciar">Reconstruir imágenes antes de iniciar<a class="headerlink" href="#reconstruir-imagenes-antes-de-iniciar" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>up<span class="w"> </span>--build
+</span></code></pre></div>
+<h4 id="ver-logs-de-un-servicio-especifico">Ver logs de un servicio específico<a class="headerlink" href="#ver-logs-de-un-servicio-especifico" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>backend
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>db
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>redis
+</span></code></pre></div>
+<h4 id="detener-todos-los-servicios">Detener todos los servicios<a class="headerlink" href="#detener-todos-los-servicios" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>down
+</span></code></pre></div>
+<h4 id="detener-y-eliminar-volumenes-borra-la-base-de-datos">Detener y eliminar volúmenes (⚠️ BORRA LA BASE DE DATOS)<a class="headerlink" href="#detener-y-eliminar-volumenes-borra-la-base-de-datos" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>down<span class="w"> </span>-v
+</span></code></pre></div>
+<h4 id="ejecutar-comandos-dentro-del-contenedor-backend">Ejecutar comandos dentro del contenedor backend<a class="headerlink" href="#ejecutar-comandos-dentro-del-contenedor-backend" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>bash
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>alembic<span class="w"> </span>upgrade<span class="w"> </span>head
+</span></code></pre></div>
+<h4 id="reiniciar-solo-el-backend">Reiniciar solo el backend<a class="headerlink" href="#reiniciar-solo-el-backend" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>restart<span class="w"> </span>backend
+</span></code></pre></div>
+<h3 id="produccion">Producción<a class="headerlink" href="#produccion" title="Permanent link">&para;</a></h3>
+<h4 id="iniciar-servicios-de-produccion">Iniciar servicios de producción<a class="headerlink" href="#iniciar-servicios-de-produccion" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span></code></pre></div>
+<h4 id="ver-logs-de-produccion">Ver logs de producción<a class="headerlink" href="#ver-logs-de-produccion" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>logs<span class="w"> </span>-f
+</span></code></pre></div>
+<h4 id="detener-servicios-de-produccion">Detener servicios de producción<a class="headerlink" href="#detener-servicios-de-produccion" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.prod.yml<span class="w"> </span>down
+</span></code></pre></div>
+<hr />
+<h2 id="comandos-de-testing">🧪 Comandos de Testing<a class="headerlink" href="#comandos-de-testing" title="Permanent link">&para;</a></h2>
+<h3 id="ejecutar-todos-los-tests">Ejecutar todos los tests<a class="headerlink" href="#ejecutar-todos-los-tests" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>pytest
+</span></code></pre></div>
+<h3 id="ejecutar-tests-con-cobertura">Ejecutar tests con cobertura<a class="headerlink" href="#ejecutar-tests-con-cobertura" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>pytest<span class="w"> </span>--cov<span class="o">=</span>app<span class="w"> </span>--cov-report<span class="o">=</span>html
+</span></code></pre></div>
+<h3 id="ejecutar-tests-especificos">Ejecutar tests específicos<a class="headerlink" href="#ejecutar-tests-especificos" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>pytest<span class="w"> </span>tests/test_users.py
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>pytest<span class="w"> </span>tests/test_users.py::test_create_user
+</span></code></pre></div>
+<h3 id="ejecutar-tests-en-modo-verbose">Ejecutar tests en modo verbose<a class="headerlink" href="#ejecutar-tests-en-modo-verbose" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>pytest<span class="w"> </span>-v
+</span></code></pre></div>
+<h3 id="ejecutar-tests-y-detener-en-el-primer-fallo">Ejecutar tests y detener en el primer fallo<a class="headerlink" href="#ejecutar-tests-y-detener-en-el-primer-fallo" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>pytest<span class="w"> </span>-x
+</span></code></pre></div>
+<hr />
+<h2 id="comandos-del-servidor-desarrollo-sin-docker">🚀 Comandos del Servidor (Desarrollo sin Docker)<a class="headerlink" href="#comandos-del-servidor-desarrollo-sin-docker" title="Permanent link">&para;</a></h2>
+<h3 id="iniciar-servidor-de-desarrollo-con-uvicorn">Iniciar servidor de desarrollo con Uvicorn<a class="headerlink" href="#iniciar-servidor-de-desarrollo-con-uvicorn" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>uvicorn<span class="w"> </span>app.main:app<span class="w"> </span>--reload<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span>
+</span></code></pre></div>
+<h3 id="con-hot-reload-y-logs-detallados">Con hot-reload y logs detallados<a class="headerlink" href="#con-hot-reload-y-logs-detallados" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>uvicorn<span class="w"> </span>app.main:app<span class="w"> </span>--reload<span class="w"> </span>--log-level<span class="w"> </span>debug
+</span></code></pre></div>
+<hr />
+<h2 id="comandos-de-dependencias">📦 Comandos de Dependencias<a class="headerlink" href="#comandos-de-dependencias" title="Permanent link">&para;</a></h2>
+<h3 id="instalar-dependencias">Instalar dependencias<a class="headerlink" href="#instalar-dependencias" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</span></code></pre></div>
+<h3 id="instalar-dependencias-de-desarrollo">Instalar dependencias de desarrollo<a class="headerlink" href="#instalar-dependencias-de-desarrollo" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-dev.txt
+</span></code></pre></div>
+<h3 id="actualizar-requirements-desde-poetry-si-usas-poetry">Actualizar requirements desde Poetry (si usas Poetry)<a class="headerlink" href="#actualizar-requirements-desde-poetry-si-usas-poetry" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>poetry<span class="w"> </span><span class="nb">export</span><span class="w"> </span>-f<span class="w"> </span>requirements.txt<span class="w"> </span>--output<span class="w"> </span>requirements.txt<span class="w"> </span>--without-hashes
+</span></code></pre></div>
+<h3 id="ver-dependencias-instaladas">Ver dependencias instaladas<a class="headerlink" href="#ver-dependencias-instaladas" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>pip<span class="w"> </span>list
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>pip<span class="w"> </span>freeze
+</span></code></pre></div>
+<hr />
+<h2 id="comandos-de-debugging">🔍 Comandos de Debugging<a class="headerlink" href="#comandos-de-debugging" title="Permanent link">&para;</a></h2>
+<h3 id="acceder-a-shell-interactivo-de-python-con-contexto-de-la-app">Acceder a shell interactivo de Python con contexto de la app<a class="headerlink" href="#acceder-a-shell-interactivo-de-python-con-contexto-de-la-app" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from app.core.db import engine; from sqlmodel import Session; session = Session(engine); print(&#39;Session ready&#39;)&quot;</span>
+</span></code></pre></div>
+<h3 id="ver-configuracion-actual">Ver configuración actual<a class="headerlink" href="#ver-configuracion-actual" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from app.core.config import settings; print(settings.model_dump())&quot;</span>
+</span></code></pre></div>
+<h3 id="verificar-conexion-a-base-de-datos">Verificar conexión a base de datos<a class="headerlink" href="#verificar-conexion-a-base-de-datos" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>python<span class="w"> </span>app/backend_pre_start.py
+</span></code></pre></div>
+<hr />
+<h2 id="comandos-de-limpieza">🧹 Comandos de Limpieza<a class="headerlink" href="#comandos-de-limpieza" title="Permanent link">&para;</a></h2>
+<h3 id="limpiar-archivos-python-compilados">Limpiar archivos Python compilados<a class="headerlink" href="#limpiar-archivos-python-compilados" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>find<span class="w"> </span>.<span class="w"> </span>-type<span class="w"> </span>d<span class="w"> </span>-name<span class="w"> </span>__pycache__<span class="w"> </span>-exec<span class="w"> </span>rm<span class="w"> </span>-r<span class="w"> </span><span class="o">{}</span><span class="w"> </span>+
+</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>find<span class="w"> </span>.<span class="w"> </span>-type<span class="w"> </span>f<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*.pyc&quot;</span><span class="w"> </span>-delete
+</span></code></pre></div>
+<h3 id="limpiar-cache-de-pytest">Limpiar cache de pytest<a class="headerlink" href="#limpiar-cache-de-pytest" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>rm<span class="w"> </span>-rf<span class="w"> </span>.pytest_cache
+</span></code></pre></div>
+<h3 id="limpiar-coverage-reports">Limpiar coverage reports<a class="headerlink" href="#limpiar-coverage-reports" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>rm<span class="w"> </span>-rf<span class="w"> </span>htmlcov<span class="w"> </span>.coverage
+</span></code></pre></div>
+<hr />
+<h2 id="comandos-de-mantenimiento">🔧 Comandos de Mantenimiento<a class="headerlink" href="#comandos-de-mantenimiento" title="Permanent link">&para;</a></h2>
+<h3 id="crear-backup-de-la-base-de-datos">Crear backup de la base de datos<a class="headerlink" href="#crear-backup-de-la-base-de-datos" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>db<span class="w"> </span>pg_dump<span class="w"> </span>-U<span class="w"> </span>postgres<span class="w"> </span>featuremodels<span class="w"> </span>&gt;<span class="w"> </span>backup_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d_%H%M%S<span class="k">)</span>.sql
+</span></code></pre></div>
+<h3 id="restaurar-backup">Restaurar backup<a class="headerlink" href="#restaurar-backup" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-T<span class="w"> </span>db<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>postgres<span class="w"> </span>featuremodels<span class="w"> </span>&lt;<span class="w"> </span>backup_20231124_120000.sql
+</span></code></pre></div>
+<h3 id="limpiar-volumenes-docker-no-usados">Limpiar volúmenes Docker no usados<a class="headerlink" href="#limpiar-volumenes-docker-no-usados" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>docker<span class="w"> </span>volume<span class="w"> </span>prune
+</span></code></pre></div>
+<h3 id="ver-uso-de-espacio-de-docker">Ver uso de espacio de Docker<a class="headerlink" href="#ver-uso-de-espacio-de-docker" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-41-1"><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>docker<span class="w"> </span>system<span class="w"> </span>df
+</span></code></pre></div>
+<hr />
+<h2 id="comandos-utiles-de-desarrollo">📝 Comandos Útiles de Desarrollo<a class="headerlink" href="#comandos-utiles-de-desarrollo" title="Permanent link">&para;</a></h2>
+<h3 id="formatear-codigo-con-black">Formatear código con Black<a class="headerlink" href="#formatear-codigo-con-black" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-42-1"><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a>black<span class="w"> </span>app/
+</span></code></pre></div>
+<h3 id="ordenar-imports-con-isort">Ordenar imports con isort<a class="headerlink" href="#ordenar-imports-con-isort" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-43-1"><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a>isort<span class="w"> </span>app/
+</span></code></pre></div>
+<h3 id="linter-con-flake8">Linter con Flake8<a class="headerlink" href="#linter-con-flake8" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-44-1"><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>flake8<span class="w"> </span>app/
+</span></code></pre></div>
+<h3 id="type-checking-con-mypy">Type checking con MyPy<a class="headerlink" href="#type-checking-con-mypy" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-45-1"><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>mypy<span class="w"> </span>app/
+</span></code></pre></div>
+<h3 id="ejecutar-pre-commit-hooks-manualmente">Ejecutar pre-commit hooks manualmente<a class="headerlink" href="#ejecutar-pre-commit-hooks-manualmente" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-46-1"><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
+</span></code></pre></div>
+<hr />
+<h2 id="comandos-de-seguridad">🔐 Comandos de Seguridad<a class="headerlink" href="#comandos-de-seguridad" title="Permanent link">&para;</a></h2>
+<h3 id="generar-secret_key-nueva">Generar SECRET_KEY nueva<a class="headerlink" href="#generar-secret_key-nueva" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-47-1"><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import secrets; print(secrets.token_urlsafe(32))&quot;</span>
+</span></code></pre></div>
+<h3 id="hashear-una-contrasena">Hashear una contraseña<a class="headerlink" href="#hashear-una-contrasena" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-48-1"><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from passlib.context import CryptContext; pwd_context = CryptContext(schemes=[&#39;bcrypt&#39;], deprecated=&#39;auto&#39;); print(pwd_context.hash(&#39;mi_password&#39;))&quot;</span>
+</span></code></pre></div>
+<hr />
+<h2 id="comandos-de-monitoreo">📊 Comandos de Monitoreo<a class="headerlink" href="#comandos-de-monitoreo" title="Permanent link">&para;</a></h2>
+<h3 id="ver-estado-de-celery-workers">Ver estado de Celery workers<a class="headerlink" href="#ver-estado-de-celery-workers" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-49-1"><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>celery_worker<span class="w"> </span>celery<span class="w"> </span>-A<span class="w"> </span>app.worker<span class="w"> </span>inspect<span class="w"> </span>active
+</span></code></pre></div>
+<h3 id="ver-tareas-en-cola">Ver tareas en cola<a class="headerlink" href="#ver-tareas-en-cola" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-50-1"><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>celery_worker<span class="w"> </span>celery<span class="w"> </span>-A<span class="w"> </span>app.worker<span class="w"> </span>inspect<span class="w"> </span>reserved
+</span></code></pre></div>
+<h3 id="purgar-todas-las-tareas-de-celery">Purgar todas las tareas de Celery<a class="headerlink" href="#purgar-todas-las-tareas-de-celery" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-51-1"><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>celery_worker<span class="w"> </span>celery<span class="w"> </span>-A<span class="w"> </span>app.worker<span class="w"> </span>purge
+</span></code></pre></div>
+<hr />
+<h2 id="flujo-tipico-de-desarrollo">🚦 Flujo Típico de Desarrollo<a class="headerlink" href="#flujo-tipico-de-desarrollo" title="Permanent link">&para;</a></h2>
+<h3 id="1-inicio-del-dia-primera-vez">1. Inicio del día (primera vez)<a class="headerlink" href="#1-inicio-del-dia-primera-vez" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-52-1"><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a><span class="c1"># Clonar repositorio (solo primera vez)</span>
+</span><span id="__span-52-2"><a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a>git<span class="w"> </span>clone<span class="w"> </span>&lt;repository-url&gt;
+</span><span id="__span-52-3"><a id="__codelineno-52-3" name="__codelineno-52-3" href="#__codelineno-52-3"></a><span class="nb">cd</span><span class="w"> </span>feature_model
+</span><span id="__span-52-4"><a id="__codelineno-52-4" name="__codelineno-52-4" href="#__codelineno-52-4"></a>
+</span><span id="__span-52-5"><a id="__codelineno-52-5" name="__codelineno-52-5" href="#__codelineno-52-5"></a><span class="c1"># Copiar variables de entorno</span>
+</span><span id="__span-52-6"><a id="__codelineno-52-6" name="__codelineno-52-6" href="#__codelineno-52-6"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
+</span><span id="__span-52-7"><a id="__codelineno-52-7" name="__codelineno-52-7" href="#__codelineno-52-7"></a>
+</span><span id="__span-52-8"><a id="__codelineno-52-8" name="__codelineno-52-8" href="#__codelineno-52-8"></a><span class="c1"># Iniciar servicios</span>
+</span><span id="__span-52-9"><a id="__codelineno-52-9" name="__codelineno-52-9" href="#__codelineno-52-9"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span><span id="__span-52-10"><a id="__codelineno-52-10" name="__codelineno-52-10" href="#__codelineno-52-10"></a>
+</span><span id="__span-52-11"><a id="__codelineno-52-11" name="__codelineno-52-11" href="#__codelineno-52-11"></a><span class="c1"># Ver logs</span>
+</span><span id="__span-52-12"><a id="__codelineno-52-12" name="__codelineno-52-12" href="#__codelineno-52-12"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>backend
+</span></code></pre></div>
+<h3 id="2-hacer-cambios-en-modelos">2. Hacer cambios en modelos<a class="headerlink" href="#2-hacer-cambios-en-modelos" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-53-1"><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a><span class="c1"># 1. Modificar models en app/models/</span>
+</span><span id="__span-53-2"><a id="__codelineno-53-2" name="__codelineno-53-2" href="#__codelineno-53-2"></a>
+</span><span id="__span-53-3"><a id="__codelineno-53-3" name="__codelineno-53-3" href="#__codelineno-53-3"></a><span class="c1"># 2. Crear migración</span>
+</span><span id="__span-53-4"><a id="__codelineno-53-4" name="__codelineno-53-4" href="#__codelineno-53-4"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>alembic<span class="w"> </span>revision<span class="w"> </span>--autogenerate<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;descripción&quot;</span>
+</span><span id="__span-53-5"><a id="__codelineno-53-5" name="__codelineno-53-5" href="#__codelineno-53-5"></a>
+</span><span id="__span-53-6"><a id="__codelineno-53-6" name="__codelineno-53-6" href="#__codelineno-53-6"></a><span class="c1"># 3. Aplicar migración</span>
+</span><span id="__span-53-7"><a id="__codelineno-53-7" name="__codelineno-53-7" href="#__codelineno-53-7"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>alembic<span class="w"> </span>upgrade<span class="w"> </span>head
+</span><span id="__span-53-8"><a id="__codelineno-53-8" name="__codelineno-53-8" href="#__codelineno-53-8"></a>
+</span><span id="__span-53-9"><a id="__codelineno-53-9" name="__codelineno-53-9" href="#__codelineno-53-9"></a><span class="c1"># 4. Si necesitas datos nuevos, ejecutar seeding</span>
+</span><span id="__span-53-10"><a id="__codelineno-53-10" name="__codelineno-53-10" href="#__codelineno-53-10"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>app.seed.main
+</span></code></pre></div>
+<h3 id="3-ejecutar-tests">3. Ejecutar tests<a class="headerlink" href="#3-ejecutar-tests" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-54-1"><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>backend<span class="w"> </span>pytest<span class="w"> </span>-v
+</span></code></pre></div>
+<h3 id="4-limpiar-y-reiniciar-desde-cero">4. Limpiar y reiniciar desde cero<a class="headerlink" href="#4-limpiar-y-reiniciar-desde-cero" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-55-1"><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a><span class="c1"># ⚠️ CUIDADO: Esto borra toda la base de datos</span>
+</span><span id="__span-55-2"><a id="__codelineno-55-2" name="__codelineno-55-2" href="#__codelineno-55-2"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>down<span class="w"> </span>-v
+</span><span id="__span-55-3"><a id="__codelineno-55-3" name="__codelineno-55-3" href="#__codelineno-55-3"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span></code></pre></div>
+<hr />
+<h2 id="notas-importantes">📌 Notas Importantes<a class="headerlink" href="#notas-importantes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Migraciones</strong>: Siempre revisa las migraciones autogeneradas antes de aplicarlas</li>
+<li><strong>Seeding</strong>: El seeding es automático en desarrollo, manual en producción</li>
+<li><strong>Backups</strong>: Haz backups antes de cambios importantes en la BD</li>
+<li><strong>Testing</strong>: Ejecuta tests antes de hacer commits importantes</li>
+<li><strong>Logs</strong>: Usa <code>docker-compose logs -f</code> para ver logs en tiempo real</li>
+</ul>
+<hr />
+<h2 id="comandos-de-emergencia">🆘 Comandos de Emergencia<a class="headerlink" href="#comandos-de-emergencia" title="Permanent link">&para;</a></h2>
+<h3 id="backend-no-responde">Backend no responde<a class="headerlink" href="#backend-no-responde" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-56-1"><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>restart<span class="w"> </span>backend
+</span></code></pre></div>
+<h3 id="base-de-datos-corrupta">Base de datos corrupta<a class="headerlink" href="#base-de-datos-corrupta" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-57-1"><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>down<span class="w"> </span>-v
+</span><span id="__span-57-2"><a id="__codelineno-57-2" name="__codelineno-57-2" href="#__codelineno-57-2"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>up<span class="w"> </span>-d
+</span></code></pre></div>
+<h3 id="limpiar-todo-y-empezar-de-nuevo">Limpiar todo y empezar de nuevo<a class="headerlink" href="#limpiar-todo-y-empezar-de-nuevo" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-58-1"><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>down<span class="w"> </span>-v
+</span><span id="__span-58-2"><a id="__codelineno-58-2" name="__codelineno-58-2" href="#__codelineno-58-2"></a>docker<span class="w"> </span>system<span class="w"> </span>prune<span class="w"> </span>-a
+</span><span id="__span-58-3"><a id="__codelineno-58-3" name="__codelineno-58-3" href="#__codelineno-58-3"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span>up<span class="w"> </span>--build
+</span></code></pre></div>
+<hr />
+<p><strong>Última actualización</strong>: 24 de noviembre de 2025</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Volver al principio
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/Jose-luis-echemendia/feature_model" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="../javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>
