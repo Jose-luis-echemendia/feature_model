@@ -1,9 +1,8 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 
-from app import crud
-from app.api.deps import SessionDep
+from app.api.deps import AsyncConfigurationRepoDep
 from app.models.configuration import (
     ConfigurationCreate,
     ConfigurationPublic,
@@ -15,46 +14,49 @@ router = APIRouter()
 
 
 @router.post("/", response_model=ConfigurationPublic)
-def create_configuration(
-    *, session: SessionDep, configuration_in: ConfigurationCreate
+async def create_configuration(
+    *,
+    configuration_in: ConfigurationCreate,
+    configuration_repo: AsyncConfigurationRepoDep,
 ) -> ConfigurationPublic:
     """
     Crea una nueva configuración.
     """
-    configuration = crud.create_configuration(
-        session=session, configuration_create=configuration_in
-    )
+    configuration = await configuration_repo.create(data=configuration_in)
     return configuration
 
 
 @router.get("/{id}", response_model=ConfigurationPublicWithFeatures)
-def read_configuration(
-    *, session: SessionDep, id: uuid.UUID
+async def read_configuration(
+    *,
+    id: uuid.UUID,
+    configuration_repo: AsyncConfigurationRepoDep,
 ) -> ConfigurationPublicWithFeatures:
     """
     Obtiene una configuración por su ID.
     """
-    db_configuration = crud.get_configuration_by_id(
-        session=session, configuration_id=id
-    )
+    db_configuration = await configuration_repo.get(configuration_id=id)
     if not db_configuration:
         raise HTTPException(status_code=404, detail="Configuration not found")
     return db_configuration
 
 
 @router.put("/{id}", response_model=ConfigurationPublic)
-def update_configuration(
-    *, session: SessionDep, id: uuid.UUID, configuration_in: ConfigurationUpdate
+async def update_configuration(
+    *,
+    id: uuid.UUID,
+    configuration_in: ConfigurationUpdate,
+    configuration_repo: AsyncConfigurationRepoDep,
 ) -> ConfigurationPublic:
     """
     Actualiza una configuración.
     """
-    db_configuration = crud.get_configuration_by_id(
-        session=session, configuration_id=id
-    )
+    db_configuration = await configuration_repo.get(configuration_id=id)
     if not db_configuration:
         raise HTTPException(status_code=404, detail="Configuration not found")
-    db_configuration = crud.update_configuration(
-        session=session, db_obj=db_configuration, obj_in=configuration_in
+
+    db_configuration = await configuration_repo.update(
+        db_configuration=db_configuration,
+        data=configuration_in,
     )
     return db_configuration

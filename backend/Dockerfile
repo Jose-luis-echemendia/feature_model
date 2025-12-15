@@ -1,8 +1,16 @@
-FROM python:3.10
+FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app/
+
+# Install system dependencies required for building Python packages
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install uv
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
@@ -29,15 +37,44 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 ENV PYTHONPATH=/app
 
+
+# =================================================================================
+#                  --- COPIA DE CARPETAS NECESARIOS ---
+# =================================================================================
+
+# Copy backend scripts
 COPY ./scripts /app/scripts
 
+# copy config files
 COPY ./pyproject.toml ./uv.lock ./alembic.ini /app/
 
+# copy backend sistem files
 COPY ./app /app/app
+
+# =================================================================================
+#          --- COPIA DE LAS 3 CARPETAS DE DOCUMENTACIÓN ---
+# =================================================================================
+
+# Copiar documentación del ROOT (docs/ en la raíz del proyecto)
+# Nota: En el contexto de build, ../docs NO funciona, por eso usamos volúmenes en docker-compose
+# En producción, estas carpetas se copiarán explícitamente
+
+# Copiar documentación del BACKEND (backend/docs/)
+COPY ./docs /app/backend_docs
+
+# Las carpetas root_docs y frontend_docs se montan via volúmenes en docker-compose
+# para desarrollo, y se copian en producción mediante CI/CD
+
+# Crear carpeta de internal_docs si no existe
+RUN mkdir -p /app/internal_docs/docs
 
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync
+
+# =================================================================================
+#                       --- COMANDO A EJECUTAR ---
+# =================================================================================
 
 CMD ["fastapi", "run", "--workers", "4", "app/main.py"]

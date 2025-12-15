@@ -4,3 +4,8 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+.env
+
+# Docs
+internal_docs/docs/
+internal_docs/site/

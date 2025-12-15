@@ -1,21 +1,24 @@
 import sentry_sdk
+
 from fastapi import FastAPI
-from fastapi.routing import APIRoute
-from fastapi_cache import FastAPICache
-from fastapi_cache.backends.redis import RedisBackend
-from redis import asyncio as aioredis
+from fastapi.staticfiles import StaticFiles
+
 from starlette.middleware.cors import CORSMiddleware
 
-from app.api.v1.router import api_router
+# --- imports de la APP ---
+from app.admin import setup_admin
+from app.utils import custom_generate_unique_id
 from app.core.config import settings
-
-
-def custom_generate_unique_id(route: APIRoute) -> str:
-    return f"{route.tags[0]}-{route.name}"
-
+from app.api.v1.router import api_router as api_router_v1
+from app.services import RedisService, S3Service
+from app.middlewares import setup_middlewares
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
+
+# ========================================================================
+#                 --- INSTANCIA DEL PROJECTO ---
+# ========================================================================
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -24,31 +27,45 @@ app = FastAPI(
 )
 
 
-# --- INICIALIZACIÓN DE CACHÉ ---
-@app.on_event("startup")
-async def startup_event():
-    """
-    Inicializa la conexión a Redis para el cacheo al iniciar la app.
-    """
-    print("Conectando a Redis para el cacheo...")
-    try:
-        redis = aioredis.from_url(settings.REDIS_URL, encoding="utf-8", decode_responses=True)
-        # Verifica la conexión
-        await redis.ping()
-        FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
-        print("Conexión a Redis establecida y FastAPICache inicializado.")
-    except Exception as e:
-        print(f"ERROR: No se pudo conectar a Redis. La caché estará deshabilitada. Error: {e}")
+# ========================================================================
+#              --- Servir documentación interna ---
+# ========================================================================
+app.mount(
+    "/internal-docs",
+    StaticFiles(directory="internal_docs/site", html=True),
+    name="internal-docs",
+)
 
+# ========================================================================
+#              --- CONFIGURACIÓN DE MIDDLEWARES ---
+# ========================================================================
+setup_middlewares(app)
+
+
+# ========================================================================
+#           --- INICIALIZACIÓN DE SERVICIOS (CACHÉ Y STORAGES) ---
+# ========================================================================
+@app.on_event("startup")
+async def on_startup():
+    await RedisService.init_async()
+    RedisService.init_sync()
+    await S3Service.init_async()
+    S3Service.init_sync()
+
+
+# ========================================================================
+#                   --- MANEJADOR DE ERRORES ---
+# ========================================================================
 
 # Import exceptions to register global exception handlers
 import app.exceptions as _exceptions
 
 # Register exception handlers defined in app.exceptions
-app.add_exception_handler(_exceptions.RequestValidationError, _exceptions.validation_exception_handler)
+app.add_exception_handler(
+    _exceptions.RequestValidationError, _exceptions.validation_exception_handler
+)
 app.add_exception_handler(_exceptions.HTTPException, _exceptions.http_exception_handler)
 app.add_exception_handler(Exception, _exceptions.generic_exception_handler)
-
 
 # Set all CORS enabled origins
 if settings.all_cors_origins:
@@ -60,5 +77,13 @@ if settings.all_cors_origins:
         allow_headers=["*"],
     )
 
+# ========================================================================
+#             --- MÉTODOS DE LA API ( ROUTERS ) ---
+# ========================================================================
+app.include_router(api_router_v1, prefix=settings.API_V1_STR)
 
-app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# ========================================================================
+#             --- PANEL DE ADMINISTRACIÓN INICIALIZADO ---
+# ========================================================================
+setup_admin(app)

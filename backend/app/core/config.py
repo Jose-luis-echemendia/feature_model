@@ -49,7 +49,7 @@ class Settings(BaseSettings):
             self.FRONTEND_HOST
         ]
 
-    PROJECT_NAME: str = "Featurea Models"
+    PROJECT_NAME: str = "Feature Models API"
     SENTRY_ENVIRONMENT: str | None = None
     SENTRY_DSN: HttpUrl | None = None
     POSTGRES_SERVER: str
@@ -58,11 +58,22 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
 
-    # REDIS
+    # --- S3/MinIO Settings ---
+    S3_ENDPOINT: str
+    S3_ACCESS_KEY: str
+    S3_SECRET_KEY: str
+    S3_BUCKET_NAME: str
+    S3_USE_SSL: bool = True
+    S3_PUBLIC_DOMAIN: str | None = None
+
+    # --- REDIS Settings ---
     REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
-    REDIS_URL: str = f"{REDIS_HOST}://pizza-template-redis-1:{REDIS_PORT}"
-    
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def REDIS_URL(self) -> str:
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
 
     @computed_field  # type: ignore[prop-decorator]
     @property

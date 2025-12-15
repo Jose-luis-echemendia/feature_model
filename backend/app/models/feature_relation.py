@@ -1,3 +1,9 @@
+"""Relaciones entre features (requiere/excluye/implica etc.).
+
+Define `FeatureRelation` que modela relaciones semánticas entre una feature
+origen y una feature destino dentro de una misma versión del modelo.
+"""
+
 import uuid
 from typing import TYPE_CHECKING
 
@@ -11,23 +17,33 @@ if TYPE_CHECKING:
     from .feature_model_version import FeatureModelVersion
 
 
+# ========================================================================
+#        --- Modelo de Relaciones entre Características base ---
+# ========================================================================
+
+
 class FeatureRelationBase(SQLModel):
+
+    # ------------------ FIELDs ----------------------------------------
+
     type: FeatureRelationType = Field(index=True)
-    source_feature_id: uuid.UUID = Field(foreign_key="feature.id", index=True)
-    target_feature_id: uuid.UUID = Field(foreign_key="feature.id", index=True)
+    source_feature_id: uuid.UUID = Field(foreign_key="features.id", index=True)
+    target_feature_id: uuid.UUID = Field(foreign_key="features.id", index=True)
     feature_model_version_id: uuid.UUID = Field(foreign_key="feature_model_versions.id")
 
 
-class FeatureRelationCreate(SQLModel):
-    type: FeatureRelationType
-    source_feature_id: uuid.UUID
-    target_feature_id: uuid.UUID
-    # La versión del modelo se infiere de las features, no se pasa directamente
+# ===============================================================================
+#  --- Modelo para la tabla física de las Relaciones entre Características ---
+# ===============================================================================
 
 
 class FeatureRelation(BaseTable, FeatureRelationBase, table=True):
-    
+
+    # ------------------ METADATA FOR TABLE ----------------------------------
+
     __tablename__ = "feature_relations"
+
+    # ------------------ RELATIONSHIP ----------------------------------------
 
     feature_model_version: "FeatureModelVersion" = Relationship(
         back_populates="feature_relations"
@@ -43,9 +59,26 @@ class FeatureRelation(BaseTable, FeatureRelationBase, table=True):
     )
 
 
-class FeatureRelationPublic(FeatureRelationBase):
-    id: uuid.UUID
+# ===================================================================================
+#  --- Modelos para Entrada de datos de las Relaciones entre Características ---
+# ===================================================================================
+
+
+class FeatureRelationCreate(SQLModel):
+    type: FeatureRelationType
+    source_feature_id: uuid.UUID
+    target_feature_id: uuid.UUID
+    # La versión del modelo se infiere de las features, no se pasa directamente
 
 
 class FeatureRelationUpdate(SQLModel):
     pass  # Las relaciones no se actualizan, se crean o eliminan
+
+
+# ===================================================================================
+#  ---  Modelos para Respuestas de las Relaciones entre Características ---
+# ===================================================================================
+
+
+class FeatureRelationPublic(FeatureRelationBase):
+    id: uuid.UUID

@@ -1,9 +1,14 @@
+import logging
+
 from sqlmodel import Session, create_engine, select
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.core.config import settings
 
-engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+logger = logging.getLogger(__name__)
 
+engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+a_engine = create_async_engine(str(settings.SQLALCHEMY_DATABASE_URI), echo=False)
 
 # make sure all SQLModel models are imported (app.models) before initializing DB
 # otherwise, SQLModel might fail to initialize relationships properly
@@ -11,26 +16,23 @@ engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
 
 def init_db(session: Session) -> None:
-    # Tables should be created with Alembic migrations
-    # But if you don't want to use migrations, create
-    # the tables un-commenting the next lines
-    # from sqlmodel import SQLModel
+    """
+    Inicializar conexión a la base de datos
 
-    # This works because the models are already imported and registered from app.models
-    # SQLModel.metadata.create_all(engine)
+    IMPORTANTE: Esta función SOLO verifica la conexión a la base de datos.
+    NO crea datos - eso lo hace el módulo app.seed.main
 
-    from app.models.user import User, UserCreate
+    El seeding se ejecuta desde scripts/prestart.sh llamando a:
+        python -m app.seed.main
+    """
 
-    user = session.exec(
-        select(User).where(User.email == settings.FIRST_SUPERUSER)
-    ).first()
-    if not user:
-        user_in = UserCreate(
-            email=settings.FIRST_SUPERUSER,
-            password=settings.FIRST_SUPERUSER_PASSWORD,
-            is_superuser=True,
-        )
+    logger.info("Verificando conexión a la base de datos...")
 
-        from app import crud
-
-        user = crud.create_user(session=session, user_create=user_in)
+    # Simplemente verificar que la sesión funciona
+    try:
+        # Hacer una query simple para verificar conexión
+        session.exec(select(1)).first()
+        logger.info("✅ Conexión a la base de datos verificada correctamente")
+    except Exception as e:
+        logger.error(f"❌ Error al conectar con la base de datos: {e}")
+        raise

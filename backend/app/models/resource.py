@@ -1,89 +1,167 @@
-   
+"""Modelos para recursos multimedia y metadatos asociados.
+
+Un `Resource` representa contenido (ficheros, URLs o JSON) que puede
+ser referenciado por una `Feature`. Contiene metadatos de publicación,
+licencia y accesibilidad para su gestión en la plataforma.
+"""
+
 import uuid
+
 from datetime import date, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Union
 from sqlmodel import Field, SQLModel, Relationship, Column
 from sqlalchemy.dialects.postgresql import JSONB
 
+
+# --- imports APP ---
 from .common import BaseTable
 from app.models import UserPublic
 from app.enums import ResourceType, ResourceStatus, LicenseType
 
 if TYPE_CHECKING:
     from .feature import Feature
-    from .user import User 
+    from .user import User
 
-# --- Modelo Base Mejorado ---
+
+# ========================================================================
+#           --- Modelo de Recursos (MEDIA) base ---
+# ========================================================================
+
+
 class ResourceBase(SQLModel):
+
+    # ------------------ FIELDs ----------------------------------------
+
     # --- Metadatos Fundamentales ---
-    title: str = Field(index=True, max_length=255, description="Título principal del recurso, visible para el usuario.")
-    type: ResourceType = Field(description="El tipo de recurso (video, pdf, quiz, etc.).")
-    content_url_or_data: str | dict = Field(description="URL, contenido embebido o JSON que define el recurso.")
+    title: str = Field(
+        index=True,
+        max_length=255,
+        description="Título principal del recurso, visible para el usuario.",
+    )
+    type: ResourceType = Field(
+        description="El tipo de recurso (video, pdf, quiz, etc.)."
+    )
+    content_url_or_data: str | dict = Field(
+        description="URL, contenido embebido o JSON que define el recurso.",
+        sa_column=Column(JSONB),
+    )
 
     # --- Metadatos Descriptivos ---
-    description: str | None = Field(default=None, description="Una breve sinopsis o resumen del contenido del recurso.")
-    language: str = Field(default="es", max_length=10, description="Idioma principal del contenido (ej. 'es', 'en-US').")
-    duration_minutes: int | None = Field(default=None, description="Duración estimada en minutos para completar/consumir el recurso.")
-    
+    description: Optional[str] = Field(
+        default=None,
+        description="Una breve sinopsis o resumen del contenido del recurso.",
+    )
+    language: str = Field(
+        default="es",
+        max_length=10,
+        description="Idioma principal del contenido (ej. 'es', 'en-US').",
+    )
+    duration_minutes: Optional[int] = Field(
+        default=None,
+        description="Duración estimada en minutos para completar/consumir el recurso.",
+    )
+
     # --- Metadatos de Gestión y Ciclo de Vida ---
-    version: int = Field(default=1, description="Versión del recurso para controlar cambios y actualizaciones.")
-    status: ResourceStatus = Field(default=ResourceStatus.DRAFT, description="Estado del ciclo de vida del recurso (borrador, publicado, etc.).")
-    publication_date: date | None = Field(default=None, description="Fecha en que el recurso fue publicado o considerado 'estable'.")
-    
+    version: int = Field(
+        default=1,
+        description="Versión del recurso para controlar cambios y actualizaciones.",
+    )
+    status: ResourceStatus = Field(
+        default=ResourceStatus.DRAFT,
+        description="Estado del ciclo de vida del recurso (borrador, publicado, etc.).",
+    )
+    publication_date: Optional[date] = Field(
+        default=None,
+        description="Fecha en que el recurso fue publicado o considerado 'estable'.",
+    )
+
     # --- Metadatos de Autoría y Propiedad ---
-    author_name: str | None = Field(default=None, description="Nombre del autor o creador del contenido (texto libre).")
-    owner_id: uuid.UUID | None = Field(foreign_key="users.id", description="ID del usuario propietario del recurso dentro de la plataforma.")
+    author_name: Optional[str] = Field(
+        default=None,
+        description="Nombre del autor o creador del contenido (texto libre).",
+    )
+    owner_id: Optional[uuid.UUID] = Field(
+        foreign_key="users.id",
+        description="ID del usuario propietario del recurso dentro de la plataforma.",
+    )
 
     # --- Metadatos de Licenciamiento y Uso ---
-    license: LicenseType = Field(default=LicenseType.INTERNAL_USE, description="Tipo de licencia que rige el uso del recurso.")
-    valid_until: date | None = Field(default=None, description="Fecha de caducidad de la licencia o del contenido (si aplica).")
-    
+    license: LicenseType = Field(
+        default=LicenseType.INTERNAL_USE,
+        description="Tipo de licencia que rige el uso del recurso.",
+    )
+    valid_until: Optional[date] = Field(
+        default=None,
+        description="Fecha de caducidad de la licencia o del contenido (si aplica).",
+    )
+
     # --- Metadatos de Accesibilidad y Técnicos ---
-    tags: list[str] = Field(default=[], sa_column=Column(JSONB), description="Etiquetas de formato libre para búsqueda (ej. 'algebra', 'introduccion', 'python3.9').")
-    accessibility_notes: str | None = Field(default=None, description="Notas sobre características de accesibilidad (ej. 'subtítulos en español', 'compatible con lector de pantalla').")
-    
-    
-# --- Modelo de Base de Datos ---
+    tags: list[str] = Field(
+        default=[],
+        sa_column=Column(JSONB),
+        description="Etiquetas de formato libre para búsqueda (ej. 'algebra', 'introduccion', 'python3.9').",
+    )
+    accessibility_notes: Optional[str] = Field(
+        default=None,
+        description="Notas sobre características de accesibilidad (ej. 'subtítulos en español', 'compatible con lector de pantalla').",
+    )
+
+
+# ========================================================================
+#           --- Modelo para la tabla física de Recursos ---
+# ========================================================================
 class Resource(BaseTable, ResourceBase, table=True):
-    
+
     # ------------------ METADATA FOR TABLE ----------------------------------------
-    
+
     __tablename__ = "resources"
-    
-    
-     # ------------------ RELATIONSHIP ----------------------------------------
-    
+
+    # ------------------ RELATIONSHIP ----------------------------------------
+
     # Relación de vuelta para saber en qué features se usa este recurso
     features: list["Feature"] = Relationship(back_populates="resource")
 
     # Relación con el usuario propietario
-    owner: "User" | None = Relationship()
+    owner: Optional["User"] = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[Resource.owner_id]"}
+    )
+
+
+# ========================================================================
+#           --- Modelos para Entrada de datos de Recursos ---
+# ========================================================================
+
 
 # --- Modelos Pydantic para la API ---
 class ResourceCreate(ResourceBase):
     pass
 
+
 class ResourceUpdate(SQLModel):
     # Definimos qué campos se pueden actualizar, todos opcionales
-    title: str | None = None
-    type: ResourceType | None = None
-    content_url_or_data: str | dict | None = None
-    description: str | None = None
-    language: str | None = None
-    duration_minutes: int | None = None
-    version: int | None = None
-    status: ResourceStatus | None = None
-    publication_date: date | None = None
-    author_name: str | None = None
-    owner_id: uuid.UUID | None = None
-    license: LicenseType | None = None
-    valid_until: date | None = None
-    tags: list[str] | None = None
-    accessibility_notes: str | None = None
+    title: Optional[str] = None
+    type: Optional[ResourceType] = None
+    content_url_or_data: Optional[Union[str, dict]] = None
+    description: Optional[str] = None
+    language: Optional[str] = None
+    duration_minutes: Optional[int] = None
+    version: Optional[int] = None
+    status: Optional[ResourceStatus] = None
+    publication_date: Optional[date] = None
+    author_name: Optional[str] = None
+    owner_id: Optional[uuid.UUID] = None
+    license: Optional[LicenseType] = None
+    valid_until: Optional[date] = None
+    tags: Optional[list[str]] = None
+    accessibility_notes: Optional[str] = None
+
+
+# ========================================================================
+#           --- Modelos para Respuestas de Recursos ---
+# ========================================================================
+
 
 class ResourcePublic(ResourceBase):
     id: uuid.UUID
     created_at: datetime
-    owner: UserPublic | None = None
-    
-    
+    owner: Optional[UserPublic] = None
