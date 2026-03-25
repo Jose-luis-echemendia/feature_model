@@ -82,22 +82,22 @@ async def recover_password_html_content(email: str, user_repo: AsyncUserRepoDep)
 
 ```python
 # Versión asíncrona de get_current_user
-async def aget_current_user(user_repo: AsyncUserRepoDep, token: TokenDep) -> User:
+async def get_current_user(user_repo: AsyncUserRepoDep, token: TokenDep) -> User:
     """Obtiene usuario actual usando repositorio asíncrono"""
     # Decodificación JWT + validaciones
     user = await user_repo.get(user_id=token_data.sub)
     return user
 
 # Versión asíncrona de get_optional_user
-async def aget_optional_user(user_repo: AsyncUserRepoDep, token: OptionalTokenDep = None) -> User | None:
+async def get_optional_user(user_repo: AsyncUserRepoDep, token: OptionalTokenDep = None) -> User | None:
     """Usuario opcional (endpoints públicos)"""
     if not token:
         return None
-    return await aget_current_user(user_repo=user_repo, token=token)
+    return await get_current_user(user_repo=user_repo, token=token)
 
 # Type hints
-AsyncCurrentUser = Annotated[User, Depends(aget_current_user)]
-AsyncOptionalUser = Annotated[User | None, Depends(aget_optional_user)]
+AsyncCurrentUser = Annotated[User, Depends(get_current_user)]
+AsyncOptionalUser = Annotated[User | None, Depends(get_optional_user)]
 ```
 
 ---
@@ -234,7 +234,7 @@ backend/
 - [x] Usar métodos del repositorio (`authenticate`, `get_by_email`)
 - [x] Agregar documentación completa con ejemplos
 - [x] Usar códigos de estado semánticos (`status.HTTP_*`)
-- [x] Crear dependencias asíncronas (`aget_current_user`, `aget_optional_user`)
+- [x] Crear dependencias asíncronas (`get_current_user`, `get_optional_user`)
 - [x] Crear type hints (`AsyncCurrentUser`, `AsyncOptionalUser`)
 - [x] Documentar cambios en README
 
@@ -243,7 +243,6 @@ backend/
 ## 🔜 Próximos Pasos Sugeridos
 
 1. **Aplicar mismo patrón a otros endpoints**:
-
    - `/users/*` - Gestión de usuarios
    - `/domains/*` - Gestión de dominios
    - `/feature-models/*` - Modelos de features
@@ -251,7 +250,6 @@ backend/
    - etc.
 
 2. **Testing automatizado**:
-
    - Tests unitarios de endpoints con mocks de repositorio
    - Tests de integración con BD de prueba
    - Tests de performance (async vs sync)

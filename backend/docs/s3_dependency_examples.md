@@ -86,7 +86,7 @@ async def upload_file_async(
 ):
     """Sube un archivo a S3 (asíncrono)."""
     object_name = await storage.asave_file(file, prefix="uploads/")
-    url = await storage.aget_presigned_url_for_object(object_name)
+    url = await storage.get_presigned_url_for_object(object_name)
 
     return {
         "object_name": object_name,
@@ -100,7 +100,7 @@ async def get_download_url_async(
     storage: S3StorageDep = None
 ):
     """Obtiene URL de descarga para un archivo (async)."""
-    url = await storage.aget_presigned_url_for_object(object_name, expires_in=7200)
+    url = await storage.get_presigned_url_for_object(object_name, expires_in=7200)
     return {"download_url": url}
 
 
@@ -180,7 +180,7 @@ async def download_file(
         )
 
     # Generar URL temporal (válida por 15 minutos)
-    url = await storage.aget_presigned_url_for_object(
+    url = await storage.get_presigned_url_for_object(
         object_name,
         expires_in=900
     )
@@ -286,8 +286,8 @@ async def export_data(
     backup_name = await backups_storage.asave_file(export_file, prefix="backups/")
 
     return {
-        "export_url": await exports_storage.aget_presigned_url_for_object(export_name),
-        "backup_url": await backups_storage.aget_presigned_url_for_object(backup_name)
+        "export_url": await exports_storage.get_presigned_url_for_object(export_name),
+        "backup_url": await backups_storage.get_presigned_url_for_object(backup_name)
     }
 ```
 

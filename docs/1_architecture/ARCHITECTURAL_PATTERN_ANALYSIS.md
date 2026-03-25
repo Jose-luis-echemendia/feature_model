@@ -143,12 +143,12 @@ El patrón Microkernel (o Plugin Architecture avanzado) también está presente 
 
 ```python
 # PORTS (Interfaces/Protocols)
-class IDomainRepositoryAsync(Protocol):
+class IDomainRepository(Protocol):
     async def create(self, data: DomainCreate) -> Domain: ...
     async def get(self, domain_id: UUID) -> Optional[Domain]: ...
 
 # ADAPTERS (Implementaciones concretas)
-class DomainRepositoryAsync(BaseDomainRepository, IDomainRepositoryAsync):
+class DomainRepository(BaseDomainRepository, IDomainRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -1185,49 +1185,49 @@ Fase 3 (2-3 semanas):
 ✅ Explicaciones en lenguaje natural
 ✅ Asistencia pedagógica
 ✅ Generación de descripciones\begin{figure}[H]
-            \centering
-            \resizebox{\textwidth}{!}{%
-                \begin{forest}
-                    for tree={
-                        draw,
-                        rounded corners,
-                        font=\footnotesize,
-                        node options={align=center},
-                        anchor=north,
-                        parent anchor=south,
-                        l sep=15pt,
-                        s sep=15pt,
-                        edge={-latex},
-                        grow=0,
-                        child anchor=west,
-                        parent anchor=east
-                    }
-                    [Estructura de Datos I
-                        [Fundamentos y Análisis]
-                        [Estructuras Lineales
-                            [Arreglos]
-                            [Listas Enlazadas]
-                            [Listas Circulares (Opc.)]
-                        ]
-                        [Pilas
-                            [Implementación (XOR)
-                                [Con Arreglos]
-                                [Con Listas]
-                            ]
-                        ]
-                        [Colas
-                            [FIFO]
-                            [Prioridad]
-                            [Deque (Opc.)]
-                        ]
-                        [Árboles Binarios]
-                        [Algoritmos Ordenamiento]
-                    ]
-                    \end{forest}%
-            }
-            \caption{Representación simplificada del \ac{FM} de la asignatura Estructura de Datos I.}
-            \label{fig:fm_data_structures}
-            \end{figure}
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{forest}
+for tree={
+draw,
+rounded corners,
+font=\footnotesize,
+node options={align=center},
+anchor=north,
+parent anchor=south,
+l sep=15pt,
+s sep=15pt,
+edge={-latex},
+grow=0,
+child anchor=west,
+parent anchor=east
+}
+[Estructura de Datos I
+[Fundamentos y Análisis]
+[Estructuras Lineales
+[Arreglos]
+[Listas Enlazadas]
+[Listas Circulares (Opc.)]
+]
+[Pilas
+[Implementación (XOR)
+[Con Arreglos]
+[Con Listas]
+]
+]
+[Colas
+[FIFO]
+[Prioridad]
+[Deque (Opc.)]
+]
+[Árboles Binarios]
+[Algoritmos Ordenamiento]
+]
+\end{forest}%
+}
+\caption{Representación simplificada del \ac{FM} de la asignatura Estructura de Datos I.}
+\label{fig:fm_data_structures}
+\end{figure}
 ✅ Traducción de errores técnicos
 
 ---

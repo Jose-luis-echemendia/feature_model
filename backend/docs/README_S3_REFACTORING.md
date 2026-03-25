@@ -95,7 +95,7 @@ storage = S3StorageService(bucket_name=bucket)
 
 - ✅ `asave_audio_file(file)`
 - ✅ `asave_file(file, prefix="")`
-- ✅ `aget_presigned_url_for_object(object_name, expires_in=3600)`
+- ✅ `get_presigned_url_for_object(object_name, expires_in=3600)`
 - ✅ `adelete_file(object_name)` ⭐ NUEVO
 - ✅ `afile_exists(object_name)` ⭐ NUEVO
 
@@ -140,7 +140,7 @@ async def upload(file: UploadFile):
     object_name = await storage.asave_file(file, prefix="uploads/")
 
     # Obtener URL de descarga (async)
-    url = await storage.aget_presigned_url_for_object(object_name)
+    url = await storage.get_presigned_url_for_object(object_name)
 
     return {"object_name": object_name, "url": url}
 ```

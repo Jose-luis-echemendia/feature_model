@@ -50,7 +50,7 @@
 │  │                          │   │                          │   │
 │  │  save_audio_file()       │   │  asave_audio_file()      │   │
 │  │  save_file()             │   │  asave_file()            │   │
-│  │  get_presigned_url_*()   │   │  aget_presigned_url_*()  │   │
+│  │  get_presigned_url_*()   │   │  get_presigned_url_*()  │   │
 │  │  delete_file()           │   │  adelete_file()          │   │
 │  │  file_exists()           │   │  afile_exists()          │   │
 │  │                          │   │                          │   │
@@ -176,7 +176,7 @@ storage.file_exists(object_name)  # ✨ Nuevo
 # Métodos asíncronos (todos nuevos)
 await storage.asave_audio_file(file)
 await storage.asave_file(file, prefix="uploads/")
-await storage.aget_presigned_url_for_object(object_name)
+await storage.get_presigned_url_for_object(object_name)
 await storage.adelete_file(object_name)
 await storage.afile_exists(object_name)
 ```
@@ -221,7 +221,7 @@ async def download(object_name: str):
         raise HTTPException(404, "File not found")
 
     # Generar URL temporal
-    url = await storage.aget_presigned_url_for_object(
+    url = await storage.get_presigned_url_for_object(
         object_name,
         expires_in=300  # 5 minutos
     )
@@ -280,22 +280,18 @@ El patrón implementado sigue estos principios:
 ## 📈 Beneficios de la Arquitectura
 
 1. **Separación de Responsabilidades**
-
    - `S3Service`: Gestión de conexiones
    - `S3StorageService`: Lógica de negocio
 
 2. **Reutilización**
-
    - Una inicialización, múltiples instancias de storage
    - Diferentes buckets con la misma base
 
 3. **Escalabilidad**
-
    - Fácil agregar nuevos métodos
    - Soporte para múltiples buckets
 
 4. **Mantenibilidad**
-
    - Código organizado y predecible
    - Logging consistente
 

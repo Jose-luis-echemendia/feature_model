@@ -163,28 +163,28 @@ async def reset_password(user_repo: AsyncUserRepoDep, body: NewPassword) -> Mess
 
 Se agregaron al archivo `deps.py`:
 
-### `aget_current_user()`
+### `get_current_user()`
 
 Versión asíncrona de `get_current_user()` que usa el repositorio asíncrono.
 
 ```python
-async def aget_current_user(user_repo: AsyncUserRepoDep, token: TokenDep) -> User:
+async def get_current_user(user_repo: AsyncUserRepoDep, token: TokenDep) -> User:
     # Decodificación JWT + validaciones
     user = await user_repo.get(user_id=token_data.sub)
     # Validaciones de usuario activo
     return user
 ```
 
-### `aget_optional_user()`
+### `get_optional_user()`
 
 Versión asíncrona de `get_optional_user()` para endpoints públicos.
 
 ```python
-async def aget_optional_user(user_repo: AsyncUserRepoDep, token: OptionalTokenDep = None) -> User | None:
+async def get_optional_user(user_repo: AsyncUserRepoDep, token: OptionalTokenDep = None) -> User | None:
     if not token:
         return None
     try:
-        return await aget_current_user(user_repo=user_repo, token=token)
+        return await get_current_user(user_repo=user_repo, token=token)
     except HTTPException:
         return None
 ```
@@ -192,8 +192,8 @@ async def aget_optional_user(user_repo: AsyncUserRepoDep, token: OptionalTokenDe
 ### Nuevos Type Hints
 
 ```python
-AsyncCurrentUser = Annotated[User, Depends(aget_current_user)]
-AsyncOptionalUser = Annotated[User | None, Depends(aget_optional_user)]
+AsyncCurrentUser = Annotated[User, Depends(get_current_user)]
+AsyncOptionalUser = Annotated[User | None, Depends(get_optional_user)]
 ```
 
 ---
@@ -302,7 +302,7 @@ curl -X POST http://localhost/api/v1/reset-password/ \
 
 1. **Compatibilidad**: Los endpoints mantienen exactamente la misma interfaz externa (rutas, parámetros, respuestas)
 2. **Sin Breaking Changes**: Clientes existentes funcionarán sin modificaciones
-3. **Repositorio**: Ya existían `UserRepositorySync` y `UserRepositoryAsync` con los métodos necesarios
+3. **Repositorio**: Ya existían `UserRepositorySync` y `UserRepository` con los métodos necesarios
 4. **Dependencias**: Se agregaron versiones asíncronas de las dependencias de autenticación
 
 ---

@@ -30,7 +30,7 @@ El patrón Repository abstrae la lógica de acceso a datos, proporcionando una i
 ```python
 # Interfaz (Contrato)
 # backend/app/interfaces/a_sync/domain.py
-class IDomainRepositoryAsync(Protocol):
+class IDomainRepository(Protocol):
     """Protocolo que define el contrato para repositorios de dominios."""
 
     async def create(self, data: DomainCreate) -> Domain: ...
@@ -41,7 +41,7 @@ class IDomainRepositoryAsync(Protocol):
 
 # Implementación Concreta
 # backend/app/repositories/a_sync/domain.py
-class DomainRepositoryAsync(BaseDomainRepository, IDomainRepositoryAsync):
+class DomainRepository(BaseDomainRepository, IDomainRepository):
     """Implementación asíncrona del repositorio de dominios."""
 
     def __init__(self, session: AsyncSession):
@@ -98,12 +98,12 @@ Inversión de control donde las dependencias se inyectan en lugar de ser creadas
 # backend/app/api/deps.py
 
 # Definición de fábricas de dependencias
-async def aget_domain_repo(session: AsyncSessionDep):
+async def get_domain_repo(session: SessionDep):
     """Factory que inyecta el repositorio de dominios."""
-    return DomainRepositoryAsync(session)
+    return DomainRepository(session)
 
 # Type alias para uso en endpoints
-AsyncDomainRepoDep = Annotated[DomainRepositoryAsync, Depends(aget_domain_repo)]
+AsyncDomainRepoDep = Annotated[DomainRepository, Depends(get_domain_repo)]
 
 # Uso en endpoints
 # backend/app/api/v1/endpoints/domain.py
@@ -217,17 +217,17 @@ Define una interfaz para crear objetos, pero deja que las subclases decidan qué
 # backend/app/api/deps.py
 
 # Factory methods para crear repositorios
-async def aget_domain_repo(session: AsyncSessionDep):
+async def get_domain_repo(session: SessionDep):
     """Factory Method para DomainRepository."""
-    return DomainRepositoryAsync(session)
+    return DomainRepository(session)
 
-async def aget_feature_repo(session: AsyncSessionDep):
+async def get_feature_repo(session: SessionDep):
     """Factory Method para FeatureRepository."""
-    return FeatureRepositoryAsync(session)
+    return FeatureRepository(session)
 
-async def aget_feature_model_repo(session: AsyncSessionDep):
+async def get_feature_model_repo(session: SessionDep):
     """Factory Method para FeatureModelRepository."""
-    return FeatureModelRepositoryAsync(session)
+    return FeatureModelRepository(session)
 
 # Uso
 @router.post("/domains/")
@@ -254,7 +254,7 @@ class RepositoryFactory(ABC):
 
 class AsyncRepositoryFactory(RepositoryFactory):
     def create_domain_repo(self):
-        return DomainRepositoryAsync(self.session)
+        return DomainRepository(self.session)
 ```
 
 ---
@@ -438,11 +438,11 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 CurrentActiveUser = Annotated[User, Depends(get_current_active_user)]
 CurrentSuperuser = Annotated[User, Depends(get_current_active_superuser)]
 
-AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_session)]
+SessionDep = Annotated[AsyncSession, Depends(get_async_session)]
 SessionDep = Annotated[Session, Depends(get_session)]
 
-AsyncDomainRepoDep = Annotated[DomainRepositoryAsync, Depends(aget_domain_repo)]
-AsyncFeatureRepoDep = Annotated[FeatureRepositoryAsync, Depends(aget_feature_repo)]
+AsyncDomainRepoDep = Annotated[DomainRepository, Depends(get_domain_repo)]
+AsyncFeatureRepoDep = Annotated[FeatureRepository, Depends(get_feature_repo)]
 ```
 
 #### Beneficios Obtenidos
@@ -468,7 +468,7 @@ Define una familia de algoritmos, encapsula cada uno y los hace intercambiables.
 ```python
 # Estrategia 1: Repositorios Asíncronos
 # backend/app/repositories/a_sync/domain.py
-class DomainRepositoryAsync:
+class DomainRepository:
     """Estrategia async para persistencia."""
 
     async def create(self, data: DomainCreate) -> Domain:
@@ -494,9 +494,9 @@ class DomainRepositorySync:
 
 # Selección de estrategia en runtime
 # backend/app/api/deps.py
-async def aget_domain_repo(session: AsyncSessionDep):
+async def get_domain_repo(session: SessionDep):
     """Usa estrategia async."""
-    return DomainRepositoryAsync(session)
+    return DomainRepository(session)
 
 def get_domain_repo(session: SessionDep):
     """Usa estrategia sync."""
@@ -590,7 +590,7 @@ class BaseDomainRepository:
 
 # Subclase implementa pasos específicos
 # backend/app/repositories/a_sync/domain.py
-class DomainRepositoryAsync(BaseDomainRepository):
+class DomainRepository(BaseDomainRepository):
     """Implementación asíncrona que reutiliza template methods."""
 
     async def create(self, data: DomainCreate) -> Domain:
@@ -1030,7 +1030,7 @@ class AsyncRepositoryFactory(RepositoryFactory):
         self.session = session
 
     def create_domain_repo(self):
-        return DomainRepositoryAsync(self.session)
+        return DomainRepository(self.session)
 
     # ...
 ```
