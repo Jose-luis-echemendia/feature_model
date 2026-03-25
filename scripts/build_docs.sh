@@ -18,11 +18,11 @@ else
 fi
 echo ""
 
-echo "🔨 Step 2/2: Building site with MkDocs..."
+echo "🔨 Step 2/2: Building site with Zensical..."
 cd internal_docs
-mkdocs build --clean
+zensical build --clean
 if [ $? -eq 0 ]; then
-    echo "✅ MkDocs site built successfully"
+    echo "✅ Zensical site built successfully"
     cd ..
 else
     echo "❌ MkDocs build failed"
