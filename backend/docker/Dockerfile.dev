@@ -1,0 +1,69 @@
+# =================================================================================
+#          Dockerfile.dev - Optimizado para desarrollo con hot-reload
+# =================================================================================
+FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app
+
+WORKDIR /app/
+
+# Install system dependencies (including dev tools)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    make \
+    python3-dev \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /uvx /bin/
+
+# Environment variables for uv
+ENV PATH="/app/.venv/bin:$PATH" \
+    UV_COMPILE_BYTECODE=0 \
+    UV_LINK_MODE=copy
+
+# Install dependencies only (without building the local package)
+# --no-install-project avoids hatchling failing due to missing app/ directory
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project
+
+# Copy application files (en dev, se sobrescribe con volúmenes)
+COPY ./pyproject.toml ./uv.lock ./alembic.ini /app/
+COPY ./scripts /app/scripts
+COPY ./app /app/app
+COPY ./docs /app/backend_docs
+
+# Install the local project now that app/ is available
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen
+
+# Create documentation directories
+RUN mkdir -p /app/internal_docs/docs
+
+# Create non-root user for development
+RUN groupadd -r devuser && useradd -r -g devuser -u 1001 devuser && \
+    chown -R devuser:devuser /app
+
+USER devuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+
+EXPOSE 8000
+
+# Development server with auto-reload
+CMD ["uvicorn", "app.main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--reload", \
+     "--reload-dir", "app", \
+     "--log-level", "debug"]
