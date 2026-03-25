@@ -1,0 +1,19 @@
+services:
+  # SERVICIO DE FRONTEND CON VITE
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173" # Puerto para Vite
+    volumes:
+      - ./frontend:/app # Monta el código fuente del frontend para desarrollo en caliente
+    environment:
+      - VITE_API_URL=http://backend:8000/api # URL del backend para las llamadas API
+    networks:
+      - shared-network
+      - default
+      
+networks:
+  shared-network:
+    external: true
