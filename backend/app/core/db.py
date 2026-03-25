@@ -36,3 +36,13 @@ def init_db(session: Session) -> None:
     except Exception as e:
         logger.error(f"❌ Error al conectar con la base de datos: {e}")
         raise
+
+async def check_database() -> bool:
+    """Health check de la base de datos."""
+    try:
+        async with a_engine.connect() as conn:
+            await conn.execute(__import__("sqlalchemy").text("SELECT 1"))
+        return True
+    except Exception as exc:
+        logger.error("db.health_check.failed: %s", exc)
+        return False

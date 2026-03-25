@@ -1,7 +1,5 @@
 import logging
 
-from fastapi.routing import APIRoute
-
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -17,11 +15,6 @@ from app.core.config import settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# --- UTILIDAD PARA INICIAR LA APP ---
-def custom_generate_unique_id(route: APIRoute) -> str:
-    return f"{route.tags[0]}-{route.name}"
-
 
 
 @dataclass
@@ -64,11 +57,11 @@ def send_email(
 
 
 def generate_test_email(email_to: str) -> EmailData:
-    project_name = settings.PROJECT_NAME
+    project_name = settings.APP_NAME
     subject = f"{project_name} - Test email"
     html_content = render_email_template(
         template_name="test_email.html",
-        context={"project_name": settings.PROJECT_NAME, "email": email_to},
+        context={"project_name": settings.APP_NAME, "email": email_to},
     )
     return EmailData(html_content=html_content, subject=subject)
 
