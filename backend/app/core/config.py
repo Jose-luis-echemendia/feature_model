@@ -174,7 +174,6 @@ class Settings(BaseSettings):
     @property
     def REDIS_URL(self) -> str:
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
-
     # ── Celery ────────────────────────────────────────────────────────────────
     CELERY_TASK_SOFT_TIME_LIMIT: int = 120  # segundos — warning antes de matar
     CELERY_TASK_TIME_LIMIT: int = 180  # segundos — kill hard
@@ -192,15 +191,17 @@ class Settings(BaseSettings):
     EMAILS_FROM_NAME: EmailStr | None = None
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
     EMAIL_TEST_USER: EmailStr = "test@example.com"
-
     @computed_field  # type: ignore[prop-decorator]
     @property
     def emails_enabled(self) -> bool:
         return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
-
     # --- FIRST USER ---
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Validadores
+    # ─────────────────────────────────────────────────────────────────────────
 
     # ─────────────────────────────────────────────────────────────────────────
     # Validadores
@@ -336,6 +337,18 @@ class Settings(BaseSettings):
             self._check_default_secret("SMTP_PASSWORD", self.SMTP_PASSWORD)
 
         return self
+    
+    # ─────────────────────────────────────────────────────────────────────────
+    # Helpers
+    # ─────────────────────────────────────────────────────────────────────────
+
+    @property
+    def is_development(self) -> bool:
+        return self.ENVIRONMENT == Environment.DEVELOPMENT
+
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT == Environment.PRODUCTION
 
     # ─────────────────────────────────────────────────────────────────────────
     # Helpers
