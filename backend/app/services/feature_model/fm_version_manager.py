@@ -25,7 +25,7 @@ from app.models import (
 )
 from app.enums import ModelStatus, FeatureType, FeatureGroupType, FeatureRelationType
 from app.repositories.a_sync.feature_model_version import (
-    FeatureModelVersionRepositoryAsync,
+    FeatureModelVersionRepository,
 )
 from app.exceptions import (
     FeatureModelVersionNotFoundException,
@@ -71,7 +71,7 @@ class FeatureModelVersionManager:
         self.session = session
         self.feature_model = feature_model
         self.user = user
-        self.repository = FeatureModelVersionRepositoryAsync(session)
+        self.repository = FeatureModelVersionRepository(session)
 
     # ========================================================================
     # CREACIÓN Y GESTIÓN DE VERSIONES

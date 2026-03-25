@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.core.config import settings
-from app.api.v1.endpoints import (
+from app.api.v1.routes import (
     user,
     login,
     private,

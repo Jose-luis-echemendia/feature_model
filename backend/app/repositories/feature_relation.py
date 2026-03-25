@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 from datetime import datetime
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -9,19 +9,10 @@ from app.models import (
     FeatureRelationCreate,
     User,
 )
-from app.interfaces import IFeatureRelationRepositoryAsync
 from app.repositories.base import BaseFeatureRelationRepository
 
-if TYPE_CHECKING:
-    from app.interfaces import (
-        IFeatureRepositoryAsync,
-        IFeatureModelVersionRepositoryAsync,
-    )
 
-
-class FeatureRelationRepositoryAsync(
-    BaseFeatureRelationRepository, IFeatureRelationRepositoryAsync
-):
+class FeatureRelationRepository(BaseFeatureRelationRepository):
     """Implementación asíncrona del repositorio de relaciones entre features."""
 
     def __init__(self, session: AsyncSession):
@@ -31,8 +22,8 @@ class FeatureRelationRepositoryAsync(
         self,
         data: FeatureRelationCreate,
         user: User,
-        feature_repo: "IFeatureRepositoryAsync",
-        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+        feature_repo: "FeatureRepository",
+        feature_model_version_repo: "FeatureModelVersionRepository",
     ) -> FeatureRelation:
         """
         Crea una nueva relación usando la estrategia "copy-on-write".
@@ -106,7 +97,7 @@ class FeatureRelationRepositoryAsync(
         self,
         db_relation: FeatureRelation,
         user: User,
-        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+        feature_model_version_repo: "FeatureModelVersionRepository",
     ) -> None:
         """
         Elimina una relación usando la estrategia "copy-on-write".

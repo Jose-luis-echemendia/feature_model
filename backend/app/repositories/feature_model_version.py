@@ -11,13 +11,10 @@ from app.models import (
     FeatureRelation,
     User,
 )
-from app.interfaces import IFeatureModelVersionRepositoryAsync
 from app.repositories.base import BaseFeatureModelVersionRepository
 
 
-class FeatureModelVersionRepositoryAsync(
-    BaseFeatureModelVersionRepository, IFeatureModelVersionRepositoryAsync
-):
+class FeatureModelVersionRepository(BaseFeatureModelVersionRepository):
     """Implementación asíncrona del repositorio de versiones de feature models."""
 
     def __init__(self, session: AsyncSession):

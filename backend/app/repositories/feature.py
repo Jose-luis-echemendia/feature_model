@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 from datetime import datetime
 from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -11,17 +11,10 @@ from app.models import (
     FeaturePublicWithChildren,
     User,
 )
-from app.interfaces import IFeatureRepositoryAsync
 from app.repositories.base import BaseFeatureRepository
 
-if TYPE_CHECKING:
-    from app.interfaces.a_sync import (
-        IFeatureModelVersionRepositoryAsync,
-        IFeatureGroupRepositoryAsync,
-    )
 
-
-class FeatureRepositoryAsync(BaseFeatureRepository, IFeatureRepositoryAsync):
+class FeatureRepository(BaseFeatureRepository):
     """Implementación asíncrona del repositorio de features."""
 
     def __init__(self, session: AsyncSession):
@@ -31,7 +24,7 @@ class FeatureRepositoryAsync(BaseFeatureRepository, IFeatureRepositoryAsync):
         self,
         data: FeatureCreate,
         user: User,
-        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+        feature_model_version_repo: "FeatureModelVersionRepository",
     ) -> Feature:
         """
         Crea una nueva feature usando la estrategia "copy-on-write".
@@ -121,8 +114,8 @@ class FeatureRepositoryAsync(BaseFeatureRepository, IFeatureRepositoryAsync):
         db_feature: Feature,
         data: FeatureUpdate,
         user: User,
-        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
-        feature_group_repo: "IFeatureGroupRepositoryAsync",
+        feature_model_version_repo: "FeatureModelVersionRepository",
+        feature_group_repo: "FeatureGroupRepository",
     ) -> Feature:
         """
         Actualiza una feature usando la estrategia "copy-on-write".
@@ -217,7 +210,7 @@ class FeatureRepositoryAsync(BaseFeatureRepository, IFeatureRepositoryAsync):
         self,
         db_feature: Feature,
         user: User,
-        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+        feature_model_version_repo: "FeatureModelVersionRepository",
     ) -> None:
         """
         Elimina una feature usando la estrategia "copy-on-write".

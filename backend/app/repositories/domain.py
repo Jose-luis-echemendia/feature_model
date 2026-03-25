@@ -5,11 +5,10 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models import Domain, DomainCreate, DomainUpdate, DomainPublicWithFeatureModels
-from app.interfaces import IDomainRepositoryAsync
 from app.repositories.base import BaseDomainRepository
 
 
-class DomainRepositoryAsync(BaseDomainRepository, IDomainRepositoryAsync):
+class DomainRepository(BaseDomainRepository):
     """Implementación asíncrona del repositorio de dominios."""
 
     def __init__(self, session: AsyncSession):

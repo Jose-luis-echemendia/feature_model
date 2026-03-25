@@ -5,13 +5,10 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models import FeatureModel, FeatureModelCreate, FeatureModelUpdate
-from app.interfaces import IFeatureModelRepositoryAsync
 from app.repositories.base import BaseFeatureModelRepository
 
 
-class FeatureModelRepositoryAsync(
-    BaseFeatureModelRepository, IFeatureModelRepositoryAsync
-):
+class FeatureModelRepository(BaseFeatureModelRepository):
     """Implementación asíncrona del repositorio de feature models."""
 
     def __init__(self, session: AsyncSession):

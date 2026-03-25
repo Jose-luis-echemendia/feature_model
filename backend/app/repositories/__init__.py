@@ -1,22 +1,9 @@
-from .sync import (
-    UserRepositorySync,
-    DomainRepositorySync,
-    FeatureModelRepositorySync,
-    FeatureRepositorySync,
-    FeatureRelationRepositorySync,
-    FeatureGroupRepositorySync,
-    ConstraintRepositorySync,
-    FeatureModelVersionRepositorySync,
-    ConfigurationRepositorySync,
-)
-from .a_sync import (
-    UserRepositoryAsync,
-    DomainRepositoryAsync,
-    FeatureModelRepositoryAsync,
-    FeatureRepositoryAsync,
-    FeatureRelationRepositoryAsync,
-    FeatureGroupRepositoryAsync,
-    ConstraintRepositoryAsync,
-    FeatureModelVersionRepositoryAsync,
-    ConfigurationRepositoryAsync,
-)
+from .user import UserRepository
+from .domain import DomainRepository
+from .feature_model import FeatureModelRepository
+from .feature import FeatureRepository
+from .feature_relation import FeatureRelationRepository
+from .feature_group import FeatureGroupRepository
+from .constraint import ConstraintRepository
+from .configuration import ConfigurationRepository
+from .feature_model_version import FeatureModelVersionRepository

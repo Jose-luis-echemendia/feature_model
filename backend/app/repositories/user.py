@@ -6,12 +6,11 @@ from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models import User, UserCreate, UserUpdate
-from app.interfaces import IUserRepositoryAsync
 from app.core.security import get_password_hash, verify_password
 from app.repositories.base import BaseUserRepository
 
 
-class UserRepositoryAsync(BaseUserRepository, IUserRepositoryAsync):
+class UserRepository(BaseUserRepository):
 
     def __init__(self, session: AsyncSession):
         self.session = session
