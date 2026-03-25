@@ -43,7 +43,7 @@
 - ✅ **Métodos Asíncronos** (prefijo `a`):
   - `asave_audio_file(file)`
   - `asave_file(file, prefix)`
-  - `aget_presigned_url_for_object(object_name, expires_in)`
+  - `get_presigned_url_for_object(object_name, expires_in)`
   - `adelete_file(object_name)`
   - `afile_exists(object_name)`
 - ✅ Logging detallado en todos los métodos

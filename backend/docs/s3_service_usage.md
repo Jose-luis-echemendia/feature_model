@@ -128,13 +128,13 @@ async def upload_file_async(file: UploadFile):
     return {"object_name": object_name}
 ```
 
-#### 3. `aget_presigned_url_for_object(object_name: str, expires_in: int = 3600) -> str`
+#### 3. `get_presigned_url_for_object(object_name: str, expires_in: int = 3600) -> str`
 
 ```python
 @router.get("/download-url-async/{object_name}")
 async def get_download_url_async(object_name: str):
     storage_service = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
-    url = await storage_service.aget_presigned_url_for_object(object_name)
+    url = await storage_service.get_presigned_url_for_object(object_name)
     return {"download_url": url}
 ```
 
@@ -202,7 +202,7 @@ async def upload_file_async(file: UploadFile = File(...)):
     object_name = await storage.asave_file(file, prefix="uploads/")
 
     # Generar URL de descarga
-    download_url = await storage.aget_presigned_url_for_object(object_name)
+    download_url = await storage.get_presigned_url_for_object(object_name)
 
     return {
         "object_name": object_name,

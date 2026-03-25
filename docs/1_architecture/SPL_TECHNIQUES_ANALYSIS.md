@@ -83,10 +83,10 @@ El backend usa **Dependency Injection** extensivamente mediante FastAPI:
 # backend/app/api/deps.py
 
 # Repositorios inyectables
-async def aget_domain_repo(session: AsyncSessionDep):
-    return DomainRepositoryAsync(session)
+async def get_domain_repo(session: SessionDep):
+    return DomainRepository(session)
 
-AsyncDomainRepoDep = Annotated[DomainRepositoryAsync, Depends(aget_domain_repo)]
+AsyncDomainRepoDep = Annotated[DomainRepository, Depends(get_domain_repo)]
 
 # En endpoints
 @router.get("/domains/")
@@ -110,7 +110,7 @@ async def read_domains(
 
 ```python
 # backend/app/interfaces/a_sync/domain.py
-class IDomainRepositoryAsync(Protocol):
+class IDomainRepository(Protocol):
     """Interfaz para el repositorio asíncrono de dominios."""
 
     async def create(self, data: DomainCreate) -> Domain: ...
@@ -119,7 +119,7 @@ class IDomainRepositoryAsync(Protocol):
     # ...
 
 # backend/app/repositories/a_sync/domain.py
-class DomainRepositoryAsync(BaseDomainRepository, IDomainRepositoryAsync):
+class DomainRepository(BaseDomainRepository, IDomainRepository):
     """Implementación asíncrona del repositorio de dominios."""
 
     def __init__(self, session: AsyncSession):
@@ -201,21 +201,21 @@ class RepositoryFactory(ABC):
     """Factory abstracta para crear familias de repositorios."""
 
     @abstractmethod
-    def create_domain_repo(self, session) -> IDomainRepositoryAsync:
+    def create_domain_repo(self, session) -> IDomainRepository:
         pass
 
     @abstractmethod
-    def create_feature_repo(self, session) -> IFeatureRepositoryAsync:
+    def create_feature_repo(self, session) -> IFeatureRepository:
         pass
 
 class AsyncRepositoryFactory(RepositoryFactory):
     """Factory concreta para repositorios asíncronos."""
 
-    def create_domain_repo(self, session: AsyncSession) -> IDomainRepositoryAsync:
-        return DomainRepositoryAsync(session)
+    def create_domain_repo(self, session: AsyncSession) -> IDomainRepository:
+        return DomainRepository(session)
 
-    def create_feature_repo(self, session: AsyncSession) -> IFeatureRepositoryAsync:
-        return FeatureRepositoryAsync(session)
+    def create_feature_repo(self, session: AsyncSession) -> IFeatureRepository:
+        return FeatureRepository(session)
 
 class SyncRepositoryFactory(RepositoryFactory):
     """Factory concreta para repositorios síncronos."""
@@ -877,14 +877,14 @@ from sqlmodel import Session
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.interfaces import (
-    IDomainRepositoryAsync,
-    IFeatureRepositoryAsync,
-    IFeatureModelRepositoryAsync,
+    IDomainRepository,
+    IFeatureRepository,
+    IFeatureModelRepository,
 )
 from app.repositories.a_sync import (
-    DomainRepositoryAsync,
-    FeatureRepositoryAsync,
-    FeatureModelRepositoryAsync,
+    DomainRepository,
+    FeatureRepository,
+    FeatureModelRepository,
 )
 from app.repositories.sync import (
     DomainRepositorySync,
@@ -913,14 +913,14 @@ class AsyncRepositoryFactory(RepositoryFactory):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    def create_domain_repo(self) -> IDomainRepositoryAsync:
-        return DomainRepositoryAsync(self.session)
+    def create_domain_repo(self) -> IDomainRepository:
+        return DomainRepository(self.session)
 
-    def create_feature_repo(self) -> IFeatureRepositoryAsync:
-        return FeatureRepositoryAsync(self.session)
+    def create_feature_repo(self) -> IFeatureRepository:
+        return FeatureRepository(self.session)
 
-    def create_feature_model_repo(self) -> IFeatureModelRepositoryAsync:
-        return FeatureModelRepositoryAsync(self.session)
+    def create_feature_model_repo(self) -> IFeatureModelRepository:
+        return FeatureModelRepository(self.session)
 
 class SyncRepositoryFactory(RepositoryFactory):
     """Factory para repositorios síncronos."""
@@ -938,7 +938,7 @@ class SyncRepositoryFactory(RepositoryFactory):
         return FeatureModelRepositorySync(self.session)
 
 # Uso en deps.py
-def get_async_repo_factory(session: AsyncSessionDep) -> AsyncRepositoryFactory:
+def get_async_repo_factory(session: SessionDep) -> AsyncRepositoryFactory:
     return AsyncRepositoryFactory(session)
 
 AsyncRepoFactoryDep = Annotated[
