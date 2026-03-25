@@ -18,13 +18,10 @@ from datetime import datetime
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status, Depends
 
-from app.api.deps import (
-    AsyncSessionDep,
-    get_verified_user
-)
-from app.repositories.a_sync.feature_model import FeatureModelRepositoryAsync
+from app.api.deps import SessionDep, get_verified_user
+from app.repositories.a_sync.feature_model import FeatureModelRepository
 from app.repositories.a_sync.feature_model_version import (
-    FeatureModelVersionRepositoryAsync,
+    FeatureModelVersionRepository,
 )
 
 router = APIRouter(
@@ -125,7 +122,7 @@ async def websocket_statistics(
     websocket: WebSocket,
     model_id: uuid.UUID,
     version_id: uuid.UUID,
-    session: AsyncSessionDep,
+    session: SessionDep,
 ):
     """
     WebSocket para recibir estadísticas en tiempo real de un feature model.
@@ -261,8 +258,8 @@ async def websocket_statistics(
         - Máximo 100 conexiones simultáneas por versión (configurable)
     """
     # Inicializar repositorios
-    feature_model_repo = FeatureModelRepositoryAsync(session)
-    version_repo = FeatureModelVersionRepositoryAsync(session)
+    feature_model_repo = FeatureModelRepository(session)
+    version_repo = FeatureModelVersionRepository(session)
 
     try:
         # Validar que el modelo existe
@@ -377,7 +374,7 @@ async def websocket_statistics(
 
 async def trigger_statistics_update(
     version_id: uuid.UUID,
-    session: AsyncSessionDep,
+    session: SessionDep,
 ):
     """
     Función auxiliar para disparar actualización de estadísticas via WebSocket.
@@ -400,7 +397,7 @@ async def trigger_statistics_update(
         ```
     """
     # Calcular nuevas estadísticas
-    version_repo = FeatureModelVersionRepositoryAsync(session)
+    version_repo = FeatureModelVersionRepository(session)
     stats = await version_repo.get_statistics(version_id)
 
     if stats:

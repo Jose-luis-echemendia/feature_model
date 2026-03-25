@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 from datetime import datetime
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -10,16 +10,10 @@ from app.models import (
     User,
     Feature,
 )
-from app.interfaces import IFeatureGroupRepositoryAsync, IFeatureRepositoryAsync
 from app.repositories.base import BaseFeatureGroupRepository
 
-if TYPE_CHECKING:
-    from app.interfaces.a_sync import IFeatureModelVersionRepositoryAsync
 
-
-class FeatureGroupRepositoryAsync(
-    BaseFeatureGroupRepository, IFeatureGroupRepositoryAsync
-):
+class FeatureGroupRepository(BaseFeatureGroupRepository):
     """Implementación asíncrona del repositorio de grupos de features."""
 
     def __init__(self, session: AsyncSession):
@@ -29,8 +23,8 @@ class FeatureGroupRepositoryAsync(
         self,
         data: FeatureGroupCreate,
         user: User,
-        feature_repo: IFeatureRepositoryAsync,
-        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+        feature_repo: "FeatureRepository",
+        feature_model_version_repo: "FeatureModelVersionRepository",
     ) -> FeatureGroup:
         """
         Crea un nuevo grupo de características usando la estrategia "copy-on-write".
@@ -97,7 +91,7 @@ class FeatureGroupRepositoryAsync(
         self,
         db_group: FeatureGroup,
         user: User,
-        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+        feature_model_version_repo: "FeatureModelVersionRepository",
     ) -> None:
         """
         Elimina un grupo de características usando la estrategia "copy-on-write".

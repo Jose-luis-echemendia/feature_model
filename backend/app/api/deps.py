@@ -16,7 +16,7 @@ from app.enums import UserRole
 from app.core import security
 
 from app.core.config import settings
-from app.core.db import engine, a_engine
+from app.core.db import a_engine
 
 
 # ========================================================================
@@ -38,7 +38,7 @@ OptionalTokenDep = Annotated[str | None, Depends(reusable_oauth2)]
 
 # --- DEPENDENCIAS PARA ASYNC SESSION ---
 
-AsyncSessionLocal = async_sessionmaker(
+SessionLocal = async_sessionmaker(
     bind=a_engine,
     class_=AsyncSession,
     expire_on_commit=False,
@@ -46,26 +46,11 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 async def a_get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with AsyncSessionLocal() as session:
+    async with SessionLocal() as session:
         yield session
 
 
-AsyncSessionDep = Annotated[AsyncSession, Depends(a_get_db)]
-
-
-# --- DEPENDENCIAS PARA SYNC SESSION ---
-
-
-def get_db() -> Generator[Session, None, None]:
-    """Dependency para obtener sesión de base de datos."""
-    with Session(engine) as session:
-        try:
-            yield session
-        finally:
-            session.close()
-
-
-SessionDep = Annotated[Session, Depends(get_db)]
+SessionDep = Annotated[AsyncSession, Depends(a_get_db)]
 
 
 # ========================================================================
@@ -73,147 +58,81 @@ SessionDep = Annotated[Session, Depends(get_db)]
 # ========================================================================
 
 from app.repositories import (
-    UserRepositorySync,
-    UserRepositoryAsync,
-    DomainRepositorySync,
-    DomainRepositoryAsync,
-    FeatureModelRepositorySync,
-    FeatureModelRepositoryAsync,
-    FeatureRepositorySync,
-    FeatureRepositoryAsync,
-    FeatureRelationRepositorySync,
-    FeatureRelationRepositoryAsync,
-    FeatureGroupRepositorySync,
-    FeatureGroupRepositoryAsync,
-    ConstraintRepositorySync,
-    ConstraintRepositoryAsync,
-    ConfigurationRepositorySync,
-    ConfigurationRepositoryAsync,
-    FeatureModelVersionRepositorySync,
-    FeatureModelVersionRepositoryAsync,
+    UserRepository,
+    DomainRepository,
+    FeatureModelRepository,
+    FeatureRepository,
+    FeatureRelationRepository,
+    FeatureGroupRepository,
+    ConstraintRepository,
+    ConfigurationRepository,
+    FeatureModelVersionRepository,
 )
 
 
-def get_user_repo(session: SessionDep):
-    return UserRepositorySync(session)
+async def get_user_repo(session: SessionDep):
+    return UserRepository(session)
 
 
-async def aget_user_repo(session: AsyncSessionDep):
-    return UserRepositoryAsync(session)
+async def get_domain_repo(session: SessionDep):
+    return DomainRepository(session)
 
 
-def get_domain_repo(session: SessionDep):
-    return DomainRepositorySync(session)
+async def get_feature_model_repo(session: SessionDep):
+    return FeatureModelRepository(session)
 
 
-async def aget_domain_repo(session: AsyncSessionDep):
-    return DomainRepositoryAsync(session)
+async def get_feature_repo(session: SessionDep):
+    return FeatureRepository(session)
 
 
-def get_feature_model_repo(session: SessionDep):
-    return FeatureModelRepositorySync(session)
+async def get_feature_relation_repo(session: SessionDep):
+    return FeatureRelationRepository(session)
 
 
-async def aget_feature_model_repo(session: AsyncSessionDep):
-    return FeatureModelRepositoryAsync(session)
+async def get_feature_group_repo(session: SessionDep):
+    return FeatureGroupRepository(session)
 
 
-def get_feature_repo(session: SessionDep):
-    return FeatureRepositorySync(session)
+async def get_constraint_repo(session: SessionDep):
+    return ConstraintRepository(session)
 
 
-async def aget_feature_repo(session: AsyncSessionDep):
-    return FeatureRepositoryAsync(session)
+async def get_configuration_repo(session: SessionDep):
+    return ConfigurationRepository(session)
 
 
-def get_feature_relation_repo(session: SessionDep):
-    return FeatureRelationRepositorySync(session)
-
-
-async def aget_feature_relation_repo(session: AsyncSessionDep):
-    return FeatureRelationRepositoryAsync(session)
-
-
-def get_feature_group_repo(session: SessionDep):
-    return FeatureGroupRepositorySync(session)
-
-
-async def aget_feature_group_repo(session: AsyncSessionDep):
-    return FeatureGroupRepositoryAsync(session)
-
-
-def get_constraint_repo(session: SessionDep):
-    return ConstraintRepositorySync(session)
-
-
-async def aget_constraint_repo(session: AsyncSessionDep):
-    return ConstraintRepositoryAsync(session)
-
-
-def get_configuration_repo(session: SessionDep):
-    return ConfigurationRepositorySync(session)
-
-
-async def aget_configuration_repo(session: AsyncSessionDep):
-    return ConfigurationRepositoryAsync(session)
-
-
-def get_feature_model_version_repo(session: SessionDep):
-    return FeatureModelVersionRepositorySync(session)
-
-
-async def aget_feature_model_version_repo(session: AsyncSessionDep):
-    return FeatureModelVersionRepositoryAsync(session)
+async def get_feature_model_version_repo(session: SessionDep):
+    return FeatureModelVersionRepository(session)
 
 
 # usuarios
-UserRepoDep = Annotated[UserRepositorySync, Depends(get_user_repo)]
-AsyncUserRepoDep = Annotated[UserRepositoryAsync, Depends(aget_user_repo)]
+AsyncUserRepoDep = Annotated[UserRepository, Depends(get_user_repo)]
 # dominios
-DomainRepoDep = Annotated[DomainRepositorySync, Depends(get_domain_repo)]
-AsyncDomainRepoDep = Annotated[DomainRepositoryAsync, Depends(aget_domain_repo)]
+AsyncDomainRepoDep = Annotated[DomainRepository, Depends(get_domain_repo)]
 # feature models
-FeatureModelRepoDep = Annotated[
-    FeatureModelRepositorySync, Depends(get_feature_model_repo)
-]
 AsyncFeatureModelRepoDep = Annotated[
-    FeatureModelRepositoryAsync, Depends(aget_feature_model_repo)
+    FeatureModelRepository, Depends(get_feature_model_repo)
 ]
 # feature
-FeatureRepoDep = Annotated[FeatureRepositorySync, Depends(get_feature_repo)]
-AsyncFeatureRepoDep = Annotated[FeatureRepositoryAsync, Depends(aget_feature_repo)]
+AsyncFeatureRepoDep = Annotated[FeatureRepository, Depends(get_feature_repo)]
 # feature relation
-FeatureRelationRepoDep = Annotated[
-    FeatureRelationRepositorySync, Depends(get_feature_relation_repo)
-]
 AsyncFeatureRelationRepoDep = Annotated[
-    FeatureRelationRepositoryAsync, Depends(aget_feature_relation_repo)
+    FeatureRelationRepository, Depends(get_feature_relation_repo)
 ]
 # feature group
-FeatureGroupRepoDep = Annotated[
-    FeatureGroupRepositorySync, Depends(get_feature_group_repo)
-]
 AsyncFeatureGroupRepoDep = Annotated[
-    FeatureGroupRepositoryAsync, Depends(aget_feature_group_repo)
+    FeatureGroupRepository, Depends(get_feature_group_repo)
 ]
 # constraint
-ConstraintRepoDep = Annotated[ConstraintRepositorySync, Depends(get_constraint_repo)]
-AsyncConstraintRepoDep = Annotated[
-    ConstraintRepositoryAsync, Depends(aget_constraint_repo)
-]
+AsyncConstraintRepoDep = Annotated[ConstraintRepository, Depends(get_constraint_repo)]
 # configuration
-ConfigurationRepoDep = Annotated[
-    ConfigurationRepositorySync, Depends(get_configuration_repo)
-]
 AsyncConfigurationRepoDep = Annotated[
-    ConfigurationRepositoryAsync, Depends(aget_configuration_repo)
+    ConfigurationRepository, Depends(get_configuration_repo)
 ]
 # feature model version
-FeatureModelVersionRepoDep = Annotated[
-    FeatureModelVersionRepositorySync, Depends(get_feature_model_version_repo)
-]
 AsyncFeatureModelVersionRepoDep = Annotated[
-    FeatureModelVersionRepositoryAsync, Depends(aget_feature_model_version_repo)
+    FeatureModelVersionRepository, Depends(get_feature_model_version_repo)
 ]
 
 
@@ -306,7 +225,7 @@ OptionalUser = Annotated[User | None, Depends(get_optional_user)]
 # --- VERSIONES ASÍNCRONAS DE AUTENTICACIÓN ---
 
 
-async def aget_current_user(user_repo: AsyncUserRepoDep, token: TokenDep) -> User:
+async def get_current_user(user_repo: AsyncUserRepoDep, token: TokenDep) -> User:
     """
     Obtener usuario actual basado en el token JWT (versión asíncrona).
 
@@ -365,7 +284,7 @@ async def aget_current_user(user_repo: AsyncUserRepoDep, token: TokenDep) -> Use
     return user
 
 
-async def aget_optional_user(
+async def get_optional_user(
     user_repo: AsyncUserRepoDep, token: OptionalTokenDep = None
 ) -> User | None:
     """
@@ -376,13 +295,13 @@ async def aget_optional_user(
         return None
 
     try:
-        return await aget_current_user(user_repo=user_repo, token=token)
+        return await get_current_user(user_repo=user_repo, token=token)
     except HTTPException:
         return None
 
 
-AsyncCurrentUser = Annotated[User, Depends(aget_current_user)]
-AsyncOptionalUser = Annotated[User | None, Depends(aget_optional_user)]
+AsyncCurrentUser = Annotated[User, Depends(get_current_user)]
+AsyncOptionalUser = Annotated[User | None, Depends(get_optional_user)]
 
 
 # ========================================================================

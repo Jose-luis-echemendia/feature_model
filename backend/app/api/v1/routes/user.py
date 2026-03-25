@@ -293,7 +293,7 @@ async def register_user(
     """
     logger.info(f"📝 Intento de registro de nuevo usuario: {user_in.email}")
 
-    allows_user_registration = await settings_service.aget(
+    allows_user_registration = await settings_service.get(
         "ALLOWS_USER_REGISTRATION", default=False
     )
 

@@ -21,23 +21,6 @@ router = APIRouter(prefix="/utils", tags=["utils"])
 # ===========================================================================
 
 
-# ===========================================================================
-#               --- Endpoint raíz de bienvenida. ---
-# ===========================================================================
-
-@router.get("/")
-def read_root():
-    """ """
-    return {"message": f"Welcome to {settings.PROJECT_NAME}"}
-
-
-# ===========================================================================
-#               --- Endpoint Health Check ---
-# ===========================================================================
-
-@router.get("/health-check/")
-async def health_check() -> bool:
-    return True
 
 
 # ---------------------------------------------------------------------------
@@ -111,10 +94,10 @@ async def get_internal_error():
     return {"message": "Esto nunca se verá"}
 
 
+# ===========================================================================
+#       --- Endpoint para probar el envío de correos electrónicos. ---
+# ===========================================================================
 
-# ===========================================================================
-#       --- Endpoint para probar el envío de correos electrónicos. --- 
-# ===========================================================================
 
 @router.post(
     "/test-email/",
@@ -134,28 +117,27 @@ def test_email(email_to: EmailStr) -> Message:
     return Message(message="Test email sent")
 
 
-
 # ================================================================================
 #  --- Endpoint para probar el servicio de variables dinámicas del sistema. ---
 # ================================================================================
 
+
 @router.get("/test/setting/")
 async def get_example_with_dynamic_setting(
-    settings_service: SettingsService = Depends(get_settings_service)
+    settings_service: SettingsService = Depends(get_settings_service),
 ):
     """
-        Endpoint para probar el servicio de variables dinámicas configurables.
-        Usamos el servicio para obtener un ajuste dinámico
+    Endpoint para probar el servicio de variables dinámicas configurables.
+    Usamos el servicio para obtener un ajuste dinámico
     """
-    
-    items_per_page = await settings_service.aget("ITEMS_PER_PAGE", default=25)
-    maintenance_mode = await settings_service.aget("MAINTENANCE_MODE", default=False)
-    
+
+    items_per_page = await settings_service.get("ITEMS_PER_PAGE", default=25)
+    maintenance_mode = await settings_service.get("MAINTENANCE_MODE", default=False)
+
     if maintenance_mode:
         return {"message": "El sistema está en modo mantenimiento."}
 
     return {"message": f"Mostrando {items_per_page} items por página."}
-
 
 
 # ===========================================================================
@@ -170,18 +152,20 @@ def get_roles() -> list[str]:
     """
     Retrieve the roles of the system.
     """
-    from app.enums import UserRole 
+    from app.enums import UserRole
+
     return [role.value for role in UserRole]
 
 
 # ===========================================================================
 #           --- Endpoint para obtener los enums del sistema ---
 # ===========================================================================
-    
+
+
 @router.get(
     "/options/",
     response_model=AllEnumsResponse,
-    summary="Obtener todas las opciones (enums) para los selectores del frontend"
+    summary="Obtener todas las opciones (enums) para los selectores del frontend",
 )
 @cache(expire=86400)
 def read_enums():
@@ -203,10 +187,12 @@ def read_enums():
         "featureRelationType": format_enum_for_frontend(enums.FeatureRelationType),
     }
 
+
 # ===========================================================================
 #           --- Endpoint para limpiar la CACHÉ del sistema ---
 # ===========================================================================
-     
+
+
 @router.post("/clear-cache/", dependencies=[Depends(get_current_active_superuser)])
 async def clear_cache():
     """
@@ -247,4 +233,3 @@ async def clear_cache():
 
     except Exception as e:
         return {"detail": f"Error clearing cache: {str(e)}", "keys_deleted": 0}
-

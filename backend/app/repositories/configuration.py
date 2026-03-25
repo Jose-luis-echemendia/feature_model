@@ -9,13 +9,10 @@ from app.models import (
     ConfigurationUpdate,
     Feature,
 )
-from app.interfaces import IConfigurationRepositoryAsync
 from app.repositories.base import BaseConfigurationRepository
 
 
-class ConfigurationRepositoryAsync(
-    BaseConfigurationRepository, IConfigurationRepositoryAsync
-):
+class ConfigurationRepository(BaseConfigurationRepository):
     """Implementación asíncrona del repositorio de configuraciones."""
 
     def __init__(self, session: AsyncSession):

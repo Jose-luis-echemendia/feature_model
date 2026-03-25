@@ -1,5 +1,5 @@
 from uuid import UUID
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 from datetime import datetime
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -9,14 +9,10 @@ from app.models import (
     ConstraintCreate,
     User,
 )
-from app.interfaces import IConstraintRepositoryAsync
 from app.repositories.base import BaseConstraintRepository
 
-if TYPE_CHECKING:
-    from app.interfaces.a_sync import IFeatureModelVersionRepositoryAsync
 
-
-class ConstraintRepositoryAsync(BaseConstraintRepository, IConstraintRepositoryAsync):
+class ConstraintRepository(BaseConstraintRepository):
     """Implementación asíncrona del repositorio de constraints."""
 
     def __init__(self, session: AsyncSession):
@@ -26,7 +22,7 @@ class ConstraintRepositoryAsync(BaseConstraintRepository, IConstraintRepositoryA
         self,
         data: ConstraintCreate,
         user: User,
-        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+        feature_model_version_repo: "FeatureModelVersionRepository",
     ) -> Constraint:
         """
         Crea una nueva constraint usando la estrategia "copy-on-write".
@@ -82,7 +78,7 @@ class ConstraintRepositoryAsync(BaseConstraintRepository, IConstraintRepositoryA
         self,
         db_constraint: Constraint,
         user: User,
-        feature_model_version_repo: "IFeatureModelVersionRepositoryAsync",
+        feature_model_version_repo: "FeatureModelVersionRepository",
     ) -> None:
         """
         Elimina una constraint usando la estrategia "copy-on-write".
