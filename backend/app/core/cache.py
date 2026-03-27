@@ -107,6 +107,7 @@ class CacheKeys:
 # Connection pools
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _build_pool(db: int) -> ConnectionPool:
     """Pool Redis con reintentos exponenciales y health check."""
     base_url = (
@@ -155,6 +156,7 @@ def get_redis_client() -> Redis:
 # Lifecycle de fastapi-cache2
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 async def setup_cache() -> None:
     """
     Inicializa fastapi-cache2 con backend Redis.
@@ -188,6 +190,7 @@ async def teardown_cache() -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 # Key builders para @cache
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def user_key_builder(
     func: Any,
