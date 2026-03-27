@@ -3,7 +3,7 @@ from sqlmodel import Session
 
 from app.core.config import settings
 from app.models.user import User, UserCreate, UserUpdate
-from app.repositories.user import UserRepositorySync
+from app.repositories.user import UserRepository
 from app.tests.utils.utils import random_email, random_lower_string
 
 
@@ -23,7 +23,7 @@ def create_random_user(db: Session) -> User:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
     return user
 
@@ -37,7 +37,7 @@ def authentication_token_from_email(
     If the user doesn't exist it is created first.
     """
     password = random_lower_string()
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.get_by_email(email=email)
     if not user:
         user_in_create = UserCreate(email=email, password=password)

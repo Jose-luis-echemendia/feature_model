@@ -23,7 +23,7 @@ from app.models import (
 from app.core.security import get_password_hash
 from app.models.user import UserCreate
 from app.enums import UserRole, FeatureGroupType
-from app.repositories import UserRepositorySync
+from app.repositories import UserRepository
 
 # Importar datos
 from .data_settings import settings_data
@@ -100,7 +100,7 @@ def create_first_superuser(session: Session) -> Optional[User]:
         role=UserRole.DEVELOPER,
     )
 
-    user_repo = UserRepositorySync(session)
+    user_repo = UserRepository(session)
     user = user_repo.create(user_in)
 
     logger.info(f"  ✅ FIRST_SUPERUSER creado: {settings.FIRST_SUPERUSER}")
@@ -154,7 +154,7 @@ def seed_production_users(session: Session) -> dict[str, User]:
             role=role,
         )
 
-        user_repo = UserRepositorySync(session)
+        user_repo = UserRepository(session)
         user = user_repo.create(user_in)
         users[email] = user
         logger.info(f"  ✅ Creado usuario: {email} ({role.value})")

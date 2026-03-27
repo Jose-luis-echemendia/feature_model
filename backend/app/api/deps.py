@@ -185,7 +185,7 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
         )
 
     # Usar el repositorio para obtener el usuario
-    user_repo = UserRepositorySync(session)
+    user_repo = UserRepository(session)
     user = user_repo.get(user_id=token_data.sub)
     if not user:
         raise HTTPException(
