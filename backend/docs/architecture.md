@@ -28,7 +28,7 @@ El sistema está compuesto por cinco componentes principales que trabajan en con
 - Detección de contradicciones y tautologías en constraints
 
 **Tecnologías:** SAT solvers, SMT solvers, SymPy, análisis proposicional
-
+Generador de Configuraciones
 📖 Ver más: [Componentes del Motor de Validación](./VALIDATION_ENGINE_COMPONENTS.md)
 
 ---
