@@ -133,6 +133,20 @@ _http_cache_pool = _build_pool(settings.REDIS_DB_CACHE)
 _service_pool = _build_pool(settings.REDIS_DB_CACHE)
 
 
+async def _close_pool(pool: ConnectionPool) -> None:
+    """Cierra un pool Redis compatible con distintas versiones de redis-py."""
+    closer = getattr(pool, "aclose", None)
+    if callable(closer):
+        await closer()
+        return
+
+    disconnect = getattr(pool, "disconnect", None)
+    if callable(disconnect):
+        result = disconnect(inuse_connections=True)
+        if hasattr(result, "__await__"):
+            await result
+
+
 def get_redis_client() -> Redis:
     """Cliente Redis listo para usar en servicios y tareas Celery."""
     return Redis(connection_pool=_service_pool)
@@ -168,8 +182,8 @@ async def setup_cache() -> None:
 async def teardown_cache() -> None:
     """Libera pools Redis. Llamar en el lifespan shutdown de FastAPI."""
     await FastAPICache.clear()
-    await _http_cache_pool.aclose()
-    await _service_pool.aclose()
+    await _close_pool(_http_cache_pool)
+    await _close_pool(_service_pool)
     log.info("cache.shutdown")
 
 
