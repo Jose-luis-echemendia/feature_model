@@ -1,4 +1,10 @@
-from enum import Enum
+from enum import Enum, StrEnum
+
+
+class Environment(StrEnum):
+    DEVELOPMENT = "development"
+    STAGING     = "staging"
+    PRODUCTION  = "production"
 
 
 class UserRole(str, Enum):

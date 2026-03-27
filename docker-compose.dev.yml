@@ -51,6 +51,7 @@ services:
   prestart:
     build:
       context: ./backend
+      dockerfile: docker/Dockerfile.dev
     volumes:
       # Backend app files
       - ./backend/app:/app/app
@@ -138,6 +139,7 @@ services:
 
     build:
       context: ./backend
+      dockerfile: docker/Dockerfile.dev
     volumes:
       # Backend app files
       - ./backend/app:/app/app
@@ -158,6 +160,7 @@ services:
   celery_worker:
     build:
       context: ./backend
+      dockerfile: docker/Dockerfile.dev
     command: celery -A app.core.celery.celery_app worker --loglevel=info
     volumes:
       - ./backend/app:/app/app
@@ -176,11 +179,11 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-      - S3_ENDPOINT=${S3_ENDPOINT}
-      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${S3_SECRET_KEY}
-      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
-      - S3_USE_SSL=${S3_USE_SSL}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
+      - MINIO_USE_SSL=${MINIO_USE_SSL}
 
   # SERVICIO DEL FRONTEND
   frontend:
