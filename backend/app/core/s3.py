@@ -86,7 +86,7 @@ class MinIOClient:
         )
 
         # Bucket principal y bucket de assets
-        self._bucket_primary = getattr(settings, "MINIO_BUCKET_NAME", "media")
+        self._bucket_primary = getattr(settings, "MINIO_BUCKET_FM", "media")
         self._bucket_assets = getattr(
             settings,
             "MINIO_BUCKET_ASSETS",

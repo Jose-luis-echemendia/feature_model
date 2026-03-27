@@ -119,7 +119,8 @@ class Settings(BaseSettings):
     MINIO_ENDPOINT: str
     MINIO_ACCESS_KEY: str
     MINIO_SECRET_KEY: str
-    MINIO_BUCKET_NAME: str
+    MINIO_BUCKET_FM: str
+    MINIO_BUCKET_ASSETS: str
     MINIO_USE_SSL: bool = True
     # TTL del presigned URL de descarga (segundos)
     MINIO_PRESIGN_TTL: int = Field(
@@ -173,7 +174,7 @@ class Settings(BaseSettings):
     @property
     def REDIS_URL(self) -> str:
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
-    
+
     # ── Celery ────────────────────────────────────────────────────────────────
     CELERY_TASK_SOFT_TIME_LIMIT: int = 120  # segundos — warning antes de matar
     CELERY_TASK_TIME_LIMIT: int = 180  # segundos — kill hard
@@ -191,17 +192,16 @@ class Settings(BaseSettings):
     EMAILS_FROM_NAME: EmailStr | None = None
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
     EMAIL_TEST_USER: EmailStr = "test@example.com"
-    
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def emails_enabled(self) -> bool:
         return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
-    
-    
+
     # --- FIRST USER ---
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
-    
+
     # ─────────────────────────────────────────────────────────────────────────
     # Validadores
     # ─────────────────────────────────────────────────────────────────────────
@@ -288,10 +288,9 @@ class Settings(BaseSettings):
             self.EMAILS_FROM_NAME = self.APP_NAME
         return self
 
-
     # ─────────────────────────────────────────────────────────────────────────
     # Validadores para los secretos
-    # ───────────────────────────────────────────────────────────────────────── 
+    # ─────────────────────────────────────────────────────────────────────────
 
     def _check_default_secret(
         self, var_name: str, value: SecretStr | str | None
@@ -327,14 +326,14 @@ class Settings(BaseSettings):
                 stacklevel=1,
             )
         return
-    
-
 
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
         self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
-        self._check_default_secret("FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD)
+        self._check_default_secret(
+            "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
+        )
         self._check_default_secret("MINIO_ACCESS_KEY", self.MINIO_ACCESS_KEY)
         self._check_default_secret("MINIO_SECRET_KEY", self.MINIO_SECRET_KEY)
 
@@ -345,7 +344,7 @@ class Settings(BaseSettings):
             self._check_default_secret("SMTP_PASSWORD", self.SMTP_PASSWORD)
 
         return self
-    
+
     # ─────────────────────────────────────────────────────────────────────────
     # Helpers
     # ─────────────────────────────────────────────────────────────────────────
