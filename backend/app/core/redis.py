@@ -85,6 +85,20 @@ _request_pool: ConnectionPool = _build_pool(
 )
 
 
+async def _close_pool(pool: ConnectionPool) -> None:
+    """Cierra un pool Redis compatible con distintas versiones de redis-py."""
+    closer = getattr(pool, "aclose", None)
+    if callable(closer):
+        await closer()
+        return
+
+    disconnect = getattr(pool, "disconnect", None)
+    if callable(disconnect):
+        result = disconnect(inuse_connections=True)
+        if hasattr(result, "__await__"):
+            await result
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Clientes
 # ─────────────────────────────────────────────────────────────────────────────
@@ -141,8 +155,8 @@ async def setup_redis() -> None:
 
 async def teardown_redis() -> None:
     """Cierra los pools al apagar la app."""
-    await _cache_pool.aclose()
-    await _request_pool.aclose()
+    await _close_pool(_cache_pool)
+    await _close_pool(_request_pool)
     log.info("redis.pools_closed")
 
 

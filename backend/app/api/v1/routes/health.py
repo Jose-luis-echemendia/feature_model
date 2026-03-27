@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import time
 import shutil
-import psutil
 from datetime import datetime
 
 from fastapi import APIRouter
@@ -21,6 +20,11 @@ from app.core.logging import get_logger
 
 log = get_logger(__name__)
 router = APIRouter(tags=["Health"])
+
+try:
+    import psutil
+except ModuleNotFoundError:
+    psutil = None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -218,8 +222,18 @@ async def system_status() -> SystemStatusResponse:
         status=disk_status,
     )
 
-    mem = psutil.virtual_memory()
-    mem_percent = mem.percent
+    if psutil:
+        mem = psutil.virtual_memory()
+        mem_total = mem.total
+        mem_used = mem.used
+        mem_available = mem.available
+        mem_percent = mem.percent
+    else:
+        # Degradación elegante si psutil no está instalado
+        mem_total = 0
+        mem_used = 0
+        mem_available = 0
+        mem_percent = 0.0
     mem_status = "ok"
     if mem_percent >= MEM_CRITICAL_THRESHOLD:
         mem_status = "critical"
@@ -228,24 +242,35 @@ async def system_status() -> SystemStatusResponse:
         mem_status = "warning"
 
     mem_metrics = ResourceMetrics(
-        total_gb=round(mem.total / (1024**3), 2),
-        used_gb=round(mem.used / (1024**3), 2),
-        free_or_available_gb=round(mem.available / (1024**3), 2),
+        total_gb=round(mem_total / (1024**3), 2),
+        used_gb=round(mem_used / (1024**3), 2),
+        free_or_available_gb=round(mem_available / (1024**3), 2),
         usage_percent=mem_percent,
         status=mem_status,
     )
 
-    net = psutil.net_io_counters()
+    if psutil:
+        net = psutil.net_io_counters()
+        bytes_sent = net.bytes_sent
+        bytes_recv = net.bytes_recv
+        packets_sent = net.packets_sent
+        packets_recv = net.packets_recv
+    else:
+        bytes_sent = 0
+        bytes_recv = 0
+        packets_sent = 0
+        packets_recv = 0
+
     net_metrics = NetworkMetrics(
-        bytes_sent=net.bytes_sent,
-        bytes_recv=net.bytes_recv,
-        packets_sent=net.packets_sent,
-        packets_recv=net.packets_recv,
+        bytes_sent=bytes_sent,
+        bytes_recv=bytes_recv,
+        packets_sent=packets_sent,
+        packets_recv=packets_recv,
     )
 
     return SystemStatusResponse(
         status=overall,
-        version=settings.VERSION,
+        version=settings.APP_VERSION,
         environment=settings.ENVIRONMENT,
         timestamp=datetime.utcnow(),
         services=services,
