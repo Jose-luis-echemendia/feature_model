@@ -23,7 +23,7 @@ def test_create_domain(
     data = {"name": domain_name, "description": description}
 
     r = client.post(
-        f"{settings.API_V1_STR}/domains/",
+        f"{settings.API_V1_PREFIX}/domains/",
         headers=superuser_token_headers,
         json=data,
     )
@@ -52,7 +52,7 @@ def test_create_domain_duplicate_name(
     # Intentar crear otro con el mismo nombre
     data = {"name": domain_name, "description": "Another description"}
     r = client.post(
-        f"{settings.API_V1_STR}/domains/",
+        f"{settings.API_V1_PREFIX}/domains/",
         headers=superuser_token_headers,
         json=data,
     )
@@ -66,7 +66,7 @@ def test_create_domain_by_normal_user(
     domain_name = random_domain_name()
     data = {"name": domain_name, "description": "Test"}
     r = client.post(
-        f"{settings.API_V1_STR}/domains/",
+        f"{settings.API_V1_PREFIX}/domains/",
         headers=normal_user_token_headers,
         json=data,
     )
@@ -79,7 +79,7 @@ def test_create_domain_empty_name(
     """Test crear dominio con nombre vacío devuelve error de validación."""
     data = {"name": "", "description": "Test"}
     r = client.post(
-        f"{settings.API_V1_STR}/domains/",
+        f"{settings.API_V1_PREFIX}/domains/",
         headers=superuser_token_headers,
         json=data,
     )
@@ -95,7 +95,7 @@ def test_create_domain_without_description(
     data = {"name": domain_name}
 
     r = client.post(
-        f"{settings.API_V1_STR}/domains/",
+        f"{settings.API_V1_PREFIX}/domains/",
         headers=superuser_token_headers,
         json=data,
     )
@@ -118,7 +118,7 @@ def test_read_domain(
     domain = domain_repo.create(domain_in)
 
     r = client.get(
-        f"{settings.API_V1_STR}/domains/{domain.id}/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200
@@ -132,7 +132,7 @@ def test_read_domain_not_found(
 ) -> None:
     """Test obtener dominio inexistente devuelve 404."""
     r = client.get(
-        f"{settings.API_V1_STR}/domains/{uuid.uuid4()}/",
+        f"{settings.API_V1_PREFIX}/domains/{uuid.uuid4()}/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 404
@@ -153,7 +153,7 @@ def test_read_domains(
     )
 
     r = client.get(
-        f"{settings.API_V1_STR}/domains/",
+        f"{settings.API_V1_PREFIX}/domains/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200
@@ -171,7 +171,7 @@ def test_read_domains_with_pagination(
 ) -> None:
     """Test paginación en listado de dominios."""
     r = client.get(
-        f"{settings.API_V1_STR}/domains/?skip=0&limit=5",
+        f"{settings.API_V1_PREFIX}/domains/?skip=0&limit=5",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200
@@ -197,7 +197,7 @@ def test_read_domains_by_normal_user(
     domain_repo.deactivate(inactive_domain)
 
     r = client.get(
-        f"{settings.API_V1_STR}/domains/",
+        f"{settings.API_V1_PREFIX}/domains/",
         headers=normal_user_token_headers,
     )
     assert r.status_code == 200
@@ -224,7 +224,7 @@ def test_update_domain(
     data = {"name": new_name, "description": new_description}
 
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain.id}/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/",
         headers=superuser_token_headers,
         json=data,
     )
@@ -245,7 +245,7 @@ def test_update_domain_not_found(
     """Test actualizar dominio inexistente devuelve 404."""
     data = {"name": random_domain_name(), "description": "Test"}
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{uuid.uuid4()}/",
+        f"{settings.API_V1_PREFIX}/domains/{uuid.uuid4()}/",
         headers=superuser_token_headers,
         json=data,
     )
@@ -268,7 +268,7 @@ def test_update_domain_duplicate_name(
     # Intentar actualizar domain2 con el nombre de domain1
     data = {"name": domain1.name}
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain2.id}/",
+        f"{settings.API_V1_PREFIX}/domains/{domain2.id}/",
         headers=superuser_token_headers,
         json=data,
     )
@@ -289,7 +289,7 @@ def test_update_domain_only_name(
     data = {"name": new_name}
 
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain.id}/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/",
         headers=superuser_token_headers,
         json=data,
     )
@@ -314,7 +314,7 @@ def test_update_domain_only_description(
     data = {"description": new_description}
 
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain.id}/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/",
         headers=superuser_token_headers,
         json=data,
     )
@@ -336,7 +336,7 @@ def test_update_domain_by_normal_user(
 
     data = {"description": "New description"}
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain.id}/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/",
         headers=normal_user_token_headers,
         json=data,
     )
@@ -354,7 +354,7 @@ def test_delete_domain(
     domain_id = domain.id
 
     r = client.delete(
-        f"{settings.API_V1_STR}/domains/{domain_id}/",
+        f"{settings.API_V1_PREFIX}/domains/{domain_id}/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200
@@ -370,7 +370,7 @@ def test_delete_domain_not_found(
 ) -> None:
     """Test eliminar dominio inexistente devuelve 404."""
     r = client.delete(
-        f"{settings.API_V1_STR}/domains/{uuid.uuid4()}/",
+        f"{settings.API_V1_PREFIX}/domains/{uuid.uuid4()}/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 404
@@ -395,7 +395,7 @@ def test_delete_domain_with_feature_models(
     # feature_model = create_test_feature_model(domain_id=domain.id)
     #
     # r = client.delete(
-    #     f"{settings.API_V1_STR}/domains/{domain.id}/",
+    #     f"{settings.API_V1_PREFIX}/domains/{domain.id}/",
     #     headers=superuser_token_headers,
     # )
     # assert r.status_code == 400
@@ -413,7 +413,7 @@ def test_delete_domain_by_normal_user(
     )
 
     r = client.delete(
-        f"{settings.API_V1_STR}/domains/{domain.id}/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/",
         headers=normal_user_token_headers,
     )
     assert r.status_code == 403
@@ -437,7 +437,7 @@ def test_search_domains(
     )
 
     r = client.get(
-        f"{settings.API_V1_STR}/domains/search/?search_term={search_term}",
+        f"{settings.API_V1_PREFIX}/domains/search/?search_term={search_term}",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200
@@ -459,7 +459,7 @@ def test_search_domains_no_results(
     search_term = f"nonexistent_{random_lower_string()}"
 
     r = client.get(
-        f"{settings.API_V1_STR}/domains/search/?search_term={search_term}",
+        f"{settings.API_V1_PREFIX}/domains/search/?search_term={search_term}",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200
@@ -482,7 +482,7 @@ def test_search_domains_by_normal_user(
     )
 
     r = client.get(
-        f"{settings.API_V1_STR}/domains/search/?search_term={search_term}",
+        f"{settings.API_V1_PREFIX}/domains/search/?search_term={search_term}",
         headers=normal_user_token_headers,
     )
     assert r.status_code == 200
@@ -500,7 +500,7 @@ def test_read_domain_with_feature_models(
     )
 
     r = client.get(
-        f"{settings.API_V1_STR}/domains/{domain.id}/with-feature-models/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/with-feature-models/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200
@@ -518,7 +518,7 @@ def test_read_domain_with_feature_models_not_found(
 ) -> None:
     """Test obtener dominio inexistente con feature models devuelve 404."""
     r = client.get(
-        f"{settings.API_V1_STR}/domains/{uuid.uuid4()}/with-feature-models/",
+        f"{settings.API_V1_PREFIX}/domains/{uuid.uuid4()}/with-feature-models/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 404
@@ -535,7 +535,7 @@ def test_read_domain_with_feature_models_by_normal_user(
     )
 
     r = client.get(
-        f"{settings.API_V1_STR}/domains/{domain.id}/with-feature-models/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/with-feature-models/",
         headers=normal_user_token_headers,
     )
     assert r.status_code == 403
@@ -557,7 +557,7 @@ def test_activate_domain(
 
     # Activar vía API
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain.id}/activate/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/activate/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200
@@ -574,7 +574,7 @@ def test_activate_domain_not_found(
 ) -> None:
     """Test activar dominio inexistente devuelve 404."""
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{uuid.uuid4()}/activate/",
+        f"{settings.API_V1_PREFIX}/domains/{uuid.uuid4()}/activate/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 404
@@ -591,7 +591,7 @@ def test_activate_domain_by_normal_user(
     )
 
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain.id}/activate/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/activate/",
         headers=normal_user_token_headers,
     )
     assert r.status_code == 403
@@ -611,7 +611,7 @@ def test_activate_already_active_domain(
 
     # Activar dominio ya activo
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain.id}/activate/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/activate/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200
@@ -632,7 +632,7 @@ def test_deactivate_domain(
 
     # Desactivar vía API
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain.id}/deactivate/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/deactivate/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200
@@ -649,7 +649,7 @@ def test_deactivate_domain_not_found(
 ) -> None:
     """Test desactivar dominio inexistente devuelve 404."""
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{uuid.uuid4()}/deactivate/",
+        f"{settings.API_V1_PREFIX}/domains/{uuid.uuid4()}/deactivate/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 404
@@ -666,7 +666,7 @@ def test_deactivate_domain_by_normal_user(
     )
 
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain.id}/deactivate/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/deactivate/",
         headers=normal_user_token_headers,
     )
     assert r.status_code == 403
@@ -688,7 +688,7 @@ def test_deactivate_already_inactive_domain(
 
     # Desactivar dominio ya inactivo
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain.id}/deactivate/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/deactivate/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200
@@ -707,7 +707,7 @@ def test_activate_then_deactivate_domain(
 
     # Desactivar
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain.id}/deactivate/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/deactivate/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200
@@ -715,7 +715,7 @@ def test_activate_then_deactivate_domain(
 
     # Activar nuevamente
     r = client.patch(
-        f"{settings.API_V1_STR}/domains/{domain.id}/activate/",
+        f"{settings.API_V1_PREFIX}/domains/{domain.id}/activate/",
         headers=superuser_token_headers,
     )
     assert r.status_code == 200

@@ -24,7 +24,7 @@ from app.core.db import a_engine
 # ========================================================================
 
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/login/access-token",
+    tokenUrl=f"{settings.API_V1_PREFIX}/login/access-token",
     auto_error=False,  # Permite manejar tokens opcionales
 )
 
