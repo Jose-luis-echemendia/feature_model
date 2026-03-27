@@ -25,6 +25,7 @@ services:
     image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}"
     build:
       context: ./backend
+      dockerfile: docker/Dockerfile
     volumes:
       - ./backend/app:/app/app
     networks:
@@ -110,6 +111,7 @@ services:
 
     build:
       context: ./backend
+      dockerfile: docker/Dockerfile
     volumes:
       - ./backend/app:/app/app
     labels:
@@ -134,6 +136,7 @@ services:
   celery_worker:
     build:
       context: ./backend
+      dockerfile: docker/Dockerfile
     command: celery -A app.core.celery.celery_app worker --loglevel=info
     networks:
       - internal_network

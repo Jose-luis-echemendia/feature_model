@@ -34,6 +34,7 @@ log = get_logger(__name__)
 # Lifespan — startup y shutdown de todos los servicios
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # ── STARTUP ───────────────────────────────────────────────────────────────
@@ -45,8 +46,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if not db_ok:
         raise RuntimeError("No se puede conectar a PostgreSQL. Abortando arranque.")
     log.info("app.db.ready")
-    
-    # 2. Redis 
+
+    # 2. Redis
     await setup_redis()
     log.info("app.redis.ready")
 
@@ -73,7 +74,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await a_engine.dispose()
     log.info("app.db.closed")
 
-    log.info("app.stopped")    
+    log.info("app.stopped")
 
 
 # ========================================================================
@@ -87,7 +88,7 @@ app = FastAPI(
     docs_url="/docs" if not settings.is_production else None,
     redoc_url="/redoc" if not settings.is_production else None,
     generate_unique_id_function=custom_generate_unique_id,
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 
@@ -106,7 +107,6 @@ app.mount(
 setup_middlewares(app)
 
 
-
 # ========================================================================
 #                   --- MANEJADOR DE ERRORES ---
 # ========================================================================
@@ -120,7 +120,6 @@ app.add_exception_handler(
 )
 app.add_exception_handler(_exceptions.HTTPException, _exceptions.http_exception_handler)
 app.add_exception_handler(Exception, _exceptions.generic_exception_handler)
-
 
 
 # ========================================================================
@@ -141,7 +140,7 @@ if settings.all_cors_origins:
 # ========================================================================
 #             --- MÉTODOS DE LA API ( ROUTERS ) ---
 # ========================================================================
-app.include_router(api_router_v1, prefix=settings.API_V1_STR)
+app.include_router(api_router_v1, prefix=settings.API_V1_PREFIX)
 
 
 # ========================================================================
@@ -154,33 +153,34 @@ setup_admin(app)
 #             --- Welcome Response y Healt Check (ROOT) ---
 # ========================================================================
 
+
 @app.get("/", response_model=WelcomeResponse)
 def read_root():
-    
+
     log.info("app.root_accessed", message="Endpoint raíz accedido")
-    
+
     return WelcomeResponse(
         message=f"Welcome to {settings.APP_NAME}",
         project=settings.APP_NAME,
         version=settings.APP_VERSION,
         environment=settings.ENVIRONMENT,
     )
-    
-    
+
+
 @app.get("/health", tags=["health"], include_in_schema=False)
 async def health() -> dict:
     from app.core.cache import cache_service
-    
+
     log.info("app.health_check", message="Health check endpoint accedido")
-    
+
     return {
-        "status":   "ok",
-        "env":      settings.ENVIRONMENT,
-        "version":  settings.APP_VERSION,
+        "status": "ok",
+        "env": settings.ENVIRONMENT,
+        "version": settings.APP_VERSION,
         "services": {
             "database": await check_database(),
-            "redis":    await check_redis(),
-            "cache":    await cache_service.ping(),
-            "minio":    await minio_client.health_check(),
+            "redis": await check_redis(),
+            "cache": await cache_service.ping(),
+            "minio": await minio_client.health_check(),
         },
     }
