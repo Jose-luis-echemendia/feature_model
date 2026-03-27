@@ -34,6 +34,7 @@ log = get_logger(__name__)
 # Lifespan — startup y shutdown de todos los servicios
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # ── STARTUP ───────────────────────────────────────────────────────────────
