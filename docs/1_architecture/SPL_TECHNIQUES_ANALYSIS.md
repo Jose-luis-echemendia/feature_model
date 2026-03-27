@@ -147,9 +147,9 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = 5432
 
     # Configuración de S3
-    S3_ENDPOINT: str
-    S3_BUCKET_NAME: str
-    S3_USE_SSL: bool = True
+    MINIO_ENDPOINT: str
+    MINIO_BUCKET_NAME: str
+    MINIO_USE_SSL: bool = True
 
     # Configuración de Redis
     REDIS_HOST: str = "redis"
@@ -881,12 +881,12 @@ from app.interfaces import (
     IFeatureRepository,
     IFeatureModelRepository,
 )
-from app.repositories.a_sync import (
+from app.repositories import (
     DomainRepository,
     FeatureRepository,
     FeatureModelRepository,
 )
-from app.repositories.sync import (
+from app.repositories import (
     DomainRepositorySync,
     FeatureRepositorySync,
     FeatureModelRepositorySync,
