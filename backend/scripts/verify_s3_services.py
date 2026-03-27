@@ -11,7 +11,7 @@ from pathlib import Path
 # Agregar el directorio raíz al path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.services.s3_storage import S3Service, S3StorageService
+from app.services.MINIO_storage import S3Service, S3StorageService
 from app.core.config import settings
 
 
@@ -26,12 +26,12 @@ def check_sync_initialization():
         client = S3Service.get_sync()
 
         print("✅ Cliente síncrono inicializado correctamente")
-        print(f"   Endpoint: {settings.S3_ENDPOINT}")
-        print(f"   Bucket: {settings.S3_BUCKET_NAME}")
-        print(f"   SSL: {settings.S3_USE_SSL}")
+        print(f"   Endpoint: {settings.MINIO_ENDPOINT}")
+        print(f"   Bucket: {settings.MINIO_BUCKET_NAME}")
+        print(f"   SSL: {settings.MINIO_USE_SSL}")
 
         # Verificar que puede listar el bucket
-        response = client.list_objects_v2(Bucket=settings.S3_BUCKET_NAME, MaxKeys=1)
+        response = client.list_objects_v2(Bucket=settings.MINIO_BUCKET_NAME, MaxKeys=1)
         print(f"✅ Conexión al bucket verificada")
         print(f"   Objetos en bucket: {response.get('KeyCount', 0)}")
 
@@ -53,25 +53,25 @@ async def check_async_initialization():
         session = S3Service.get_async()
 
         print("✅ Sesión asíncrona inicializada correctamente")
-        print(f"   Endpoint: {settings.S3_ENDPOINT}")
-        print(f"   Bucket: {settings.S3_BUCKET_NAME}")
-        print(f"   SSL: {settings.S3_USE_SSL}")
+        print(f"   Endpoint: {settings.MINIO_ENDPOINT}")
+        print(f"   Bucket: {settings.MINIO_BUCKET_NAME}")
+        print(f"   SSL: {settings.MINIO_USE_SSL}")
 
         # Verificar que puede listar el bucket
-        protocol = "https" if settings.S3_USE_SSL else "http"
-        endpoint_url = f"{protocol}://{settings.S3_ENDPOINT}"
+        protocol = "https" if settings.MINIO_USE_SSL else "http"
+        endpoint_url = f"{protocol}://{settings.MINIO_ENDPOINT}"
 
         from botocore.client import Config
 
         async with session.client(
             "s3",
             endpoint_url=endpoint_url,
-            aws_access_key_id=settings.S3_ACCESS_KEY,
-            aws_secret_access_key=settings.S3_SECRET_KEY,
+            aws_access_key_id=settings.MINIO_ACCESS_KEY,
+            aws_secret_access_key=settings.MINIO_SECRET_KEY,
             config=Config(signature_version="s3v4"),
         ) as client:
             response = await client.list_objects_v2(
-                Bucket=settings.S3_BUCKET_NAME, MaxKeys=1
+                Bucket=settings.MINIO_BUCKET_NAME, MaxKeys=1
             )
             print(f"✅ Conexión al bucket verificada")
             print(f"   Objetos en bucket: {response.get('KeyCount', 0)}")
@@ -93,7 +93,7 @@ def check_storage_service_sync():
     print("=" * 60)
 
     try:
-        storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+        storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
         print("✅ S3StorageService inicializado correctamente")
         print(f"   Bucket: {storage.bucket_name}")
         print(f"   Cliente sync: {'✓' if storage.sync_client else '✗'}")
@@ -113,7 +113,7 @@ async def check_storage_service_async():
     print("=" * 60)
 
     try:
-        storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+        storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 
         # Test file_exists con un archivo que probablemente no existe
         test_object = "verification-test-file-that-does-not-exist.txt"
@@ -172,11 +172,11 @@ async def main():
     print("\n" + "=" * 60)
     print("⚙️  Configuración actual:")
     print("=" * 60)
-    print(f"   S3_ENDPOINT: {settings.S3_ENDPOINT}")
-    print(f"   S3_BUCKET_NAME: {settings.S3_BUCKET_NAME}")
-    print(f"   S3_USE_SSL: {settings.S3_USE_SSL}")
+    print(f"   MINIO_ENDPOINT: {settings.MINIO_ENDPOINT}")
+    print(f"   MINIO_BUCKET_NAME: {settings.MINIO_BUCKET_NAME}")
+    print(f"   MINIO_USE_SSL: {settings.MINIO_USE_SSL}")
     print(
-        f"   S3_ACCESS_KEY: {settings.S3_ACCESS_KEY[:4]}...{settings.S3_ACCESS_KEY[-4:]}"
+        f"   MINIO_ACCESS_KEY: {settings.MINIO_ACCESS_KEY[:4]}...{settings.MINIO_ACCESS_KEY[-4:]}"
     )
 
     # Ejecutar verificaciones

@@ -1,7 +1,7 @@
 site_name: Documentación Interna de la Plataforma
 site_description: Documentación técnica completa del proyecto - Root, Backend y Frontend
 site_author: Equipo de Desarrollo
-site_url: !ENV [DOCS_URL, 'http://localhost:8000/internal-docs/']
+site_url: !ENV [DOCS_URL, "http://localhost:8000/internal-docs/"]
 use_directory_urls: true
 
 theme:
@@ -39,7 +39,7 @@ theme:
 
 nav:
   - 🏠 Inicio: index.md
-  
+
   - 📦 Proyecto (Root):
       - Índice: root_index.md
       - README: root_README.md
@@ -51,29 +51,29 @@ nav:
       - Configuración:
           - Desarrollo: root_2_configuration_development.md
           - Despliegue: root_2_configuration_deployment.md
-  
+
   - ⚙️ Backend:
       - Índice: backend_README.md
       - Comandos: backend_commands.md
       - Base de Datos: backend_db.md
       - Arquitectura: backend_architecture.md
       - Documentación Técnica:
-          - Arquitectura S3: backend_s3_architecture.md
+          - Arquitectura S3: backend_MINIO_architecture.md
           - Cambios Educativos: backend_CAMBIOS_EDUCATIVOS.md
           - Login Endpoints Refactor: backend_LOGIN_ENDPOINTS_REFACTOR.md
           - Resumen Refactor Login: backend_LOGIN_REFACTOR_SUMMARY.md
           - Maestría Ciencia de Datos: backend_MAESTRIA_CIENCIA_DATOS.md
           - Orden de Migraciones: backend_MIGRATION_ORDER_FIX.md
           - Servicio Prestart: backend_PRESTART_SERVICE.md
-          - Refactoring S3: backend_README_S3_REFACTORING.md
-          - Ejemplos S3 Dependencies: backend_s3_dependency_examples.md
-          - Cambios Servicio S3: backend_s3_service_changes.md
-          - Uso Servicio S3: backend_s3_service_usage.md
+          - Refactoring S3: backend_README_MINIO_REFACTORING.md
+          - Ejemplos S3 Dependencies: backend_MINIO_dependency_examples.md
+          - Cambios Servicio S3: backend_MINIO_service_changes.md
+          - Uso Servicio S3: backend_MINIO_service_usage.md
           - Sugerencias de Código: backend_suggestions_code.md
           - Migración User Endpoints: backend_user_endpoints_migration.md
           - Roles de Usuario: backend_user_role.md
           - Requisitos Funcionales: backend_rf.md
-  
+
   - 🎨 Frontend:
       - Índice: frontend_README.md
 
@@ -130,14 +130,14 @@ plugins:
 
 extra:
   # URLs dinámicas basadas en variables de entorno
-  domain: !ENV [DOMAIN, 'http://localhost:8000']
-  frontend_url: !ENV [FRONTEND_URL, 'http://localhost:3000']
-  
+  domain: !ENV [DOMAIN, "http://localhost:8000"]
+  frontend_url: !ENV [FRONTEND_URL, "http://localhost:3000"]
+
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/Jose-luis-echemendia/feature_model
       name: GitHub Repository
-  
+
   generator: true
 
 extra_css:

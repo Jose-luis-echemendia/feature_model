@@ -35,11 +35,11 @@ Servicio de alto nivel para operaciones de almacenamiento.
 ### Inicialización
 
 ```python
-from app.services.s3_storage import S3StorageService
+from app.services.MINIO_storage import S3StorageService
 from app.core.config import settings
 
 # Crear instancia del servicio
-storage_service = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+storage_service = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 ```
 
 ### Métodos Sincrónicos
@@ -52,7 +52,7 @@ Guarda un archivo de audio en S3.
 from fastapi import UploadFile
 
 def upload_audio(file: UploadFile):
-    storage_service = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage_service = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     object_name = storage_service.save_audio_file(file)
     return {"object_name": object_name}
 ```
@@ -63,7 +63,7 @@ Guarda un archivo genérico con un prefijo opcional.
 
 ```python
 def upload_document(file: UploadFile):
-    storage_service = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage_service = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     object_name = storage_service.save_file(file, prefix="documents/")
     return {"object_name": object_name}
 ```
@@ -74,7 +74,7 @@ Genera una URL pre-firmada temporal.
 
 ```python
 def get_download_url(object_name: str):
-    storage_service = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage_service = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     url = storage_service.get_presigned_url_for_object(
         object_name=object_name,
         expires_in=7200  # 2 horas
@@ -88,7 +88,7 @@ Elimina un archivo de S3.
 
 ```python
 def remove_file(object_name: str):
-    storage_service = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage_service = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     success = storage_service.delete_file(object_name)
     return {"deleted": success}
 ```
@@ -99,7 +99,7 @@ Verifica si un archivo existe.
 
 ```python
 def check_file(object_name: str):
-    storage_service = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage_service = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     exists = storage_service.file_exists(object_name)
     return {"exists": exists}
 ```
@@ -113,7 +113,7 @@ Todos los métodos síncronos tienen su equivalente asíncrono con el prefijo `a
 ```python
 @router.post("/upload-audio-async")
 async def upload_audio_async(file: UploadFile):
-    storage_service = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage_service = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     object_name = await storage_service.asave_audio_file(file)
     return {"object_name": object_name}
 ```
@@ -123,7 +123,7 @@ async def upload_audio_async(file: UploadFile):
 ```python
 @router.post("/upload-async")
 async def upload_file_async(file: UploadFile):
-    storage_service = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage_service = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     object_name = await storage_service.asave_file(file, prefix="uploads/")
     return {"object_name": object_name}
 ```
@@ -133,7 +133,7 @@ async def upload_file_async(file: UploadFile):
 ```python
 @router.get("/download-url-async/{object_name}")
 async def get_download_url_async(object_name: str):
-    storage_service = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage_service = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     url = await storage_service.get_presigned_url_for_object(object_name)
     return {"download_url": url}
 ```
@@ -143,7 +143,7 @@ async def get_download_url_async(object_name: str):
 ```python
 @router.delete("/file-async/{object_name}")
 async def delete_file_async(object_name: str):
-    storage_service = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage_service = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     success = await storage_service.adelete_file(object_name)
     return {"deleted": success}
 ```
@@ -153,7 +153,7 @@ async def delete_file_async(object_name: str):
 ```python
 @router.get("/check-file-async/{object_name}")
 async def check_file_async(object_name: str):
-    storage_service = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage_service = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     exists = await storage_service.afile_exists(object_name)
     return {"exists": exists}
 ```
@@ -164,14 +164,14 @@ async def check_file_async(object_name: str):
 
 ```python
 from fastapi import APIRouter, UploadFile, File
-from app.services.s3_storage import S3StorageService
+from app.services.MINIO_storage import S3StorageService
 from app.core.config import settings
 
 router = APIRouter()
 
 @router.post("/upload")
 def upload_file(file: UploadFile = File(...)):
-    storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 
     # Guardar archivo
     object_name = storage.save_file(file, prefix="uploads/")
@@ -189,14 +189,14 @@ def upload_file(file: UploadFile = File(...)):
 
 ```python
 from fastapi import APIRouter, UploadFile, File
-from app.services.s3_storage import S3StorageService
+from app.services.MINIO_storage import S3StorageService
 from app.core.config import settings
 
 router = APIRouter()
 
 @router.post("/upload-async")
 async def upload_file_async(file: UploadFile = File(...)):
-    storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 
     # Guardar archivo
     object_name = await storage.asave_file(file, prefix="uploads/")
@@ -218,7 +218,7 @@ Todos los métodos lanzan `HTTPException` en caso de error:
 from fastapi import HTTPException
 
 try:
-    storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     object_name = storage.save_file(file)
 except HTTPException as e:
     # Manejo de error HTTP
@@ -262,11 +262,11 @@ poetry add boto3 aioboto3
 
 Las siguientes variables de entorno deben estar configuradas (ver `app/core/config.py`):
 
-- `S3_ENDPOINT`: Endpoint de Minio/S3
-- `S3_ACCESS_KEY`: Access key
-- `S3_SECRET_KEY`: Secret key
-- `S3_BUCKET_NAME`: Nombre del bucket
-- `S3_USE_SSL`: Si usar SSL (true/false)
+- `MINIO_ENDPOINT`: Endpoint de Minio/S3
+- `MINIO_ACCESS_KEY`: Access key
+- `MINIO_SECRET_KEY`: Secret key
+- `MINIO_BUCKET_NAME`: Nombre del bucket
+- `MINIO_USE_SSL`: Si usar SSL (true/false)
 
 ## Notas Importantes
 
