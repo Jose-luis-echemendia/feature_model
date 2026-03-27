@@ -195,10 +195,11 @@ class Settings(BaseSettings):
     @property
     def emails_enabled(self) -> bool:
         return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
+    
     # --- FIRST USER ---
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
-    
+
     # ─────────────────────────────────────────────────────────────────────────
     # Validadores
     # ─────────────────────────────────────────────────────────────────────────
@@ -337,7 +338,7 @@ class Settings(BaseSettings):
             self._check_default_secret("SMTP_PASSWORD", self.SMTP_PASSWORD)
 
         return self
-    
+
     # ─────────────────────────────────────────────────────────────────────────
     # Helpers
     # ─────────────────────────────────────────────────────────────────────────
