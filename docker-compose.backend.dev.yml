@@ -126,7 +126,13 @@ services:
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - SENTRY_DSN=${SENTRY_DSN}
-
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET_FM=${MINIO_BUCKET_FM}
+      - MINIO_BUCKET_ASSETS=${MINIO_BUCKET_ASSETS}
+      - MINIO_USE_SSL=${MINIO_USE_SSL}
+      
     ports:
       - "8000:8000"
 
@@ -184,7 +190,7 @@ services:
       - MINIO_ENDPOINT=${MINIO_ENDPOINT}
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
-      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
+      - MINIO_BUCKET_FM=${MINIO_BUCKET_FM}
       - MINIO_USE_SSL=${MINIO_USE_SSL}
     # Health check para verificar que Celery worker está respondiendo
     healthcheck:

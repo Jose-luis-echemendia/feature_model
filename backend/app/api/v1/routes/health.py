@@ -178,7 +178,7 @@ async def system_status() -> SystemStatusResponse:
             region_name="us-east-1",  # MinIO usually ignores this, but boto3 may complain if empty
         )
         # Verificamos si el bucket existe y tenemos acceso
-        s3.head_bucket(Bucket=settings.MINIO_BUCKET_NAME)
+        s3.head_bucket(Bucket=settings.MINIO_BUCKET_FM)
         latency = round((time.monotonic() - t0) * 1000, 1)
         services.append(
             ServiceStatus(
