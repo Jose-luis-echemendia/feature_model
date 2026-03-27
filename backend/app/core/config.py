@@ -217,14 +217,6 @@ class Settings(BaseSettings):
             )
         return v
 
-    @field_validator("PDF_TEMPLATES_DIR", mode="before")
-    @classmethod
-    def validate_templates_dir(cls, v: Path | str) -> Path:
-        path = Path(v)
-        if not path.exists():
-            raise ValueError(f"PDF_TEMPLATES_DIR no existe: {path}")
-        return path
-
     @field_validator(
         "SENTRY_ENVIRONMENT",
         "SENTRY_DSN",
