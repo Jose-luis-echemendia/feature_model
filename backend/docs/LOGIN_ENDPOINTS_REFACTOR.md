@@ -302,7 +302,7 @@ curl -X POST http://localhost/api/v1/reset-password/ \
 
 1. **Compatibilidad**: Los endpoints mantienen exactamente la misma interfaz externa (rutas, parámetros, respuestas)
 2. **Sin Breaking Changes**: Clientes existentes funcionarán sin modificaciones
-3. **Repositorio**: Ya existían `UserRepositorySync` y `UserRepository` con los métodos necesarios
+3. **Repositorio**: Ya existían `UserRepository` y `UserRepository` con los métodos necesarios
 4. **Dependencias**: Se agregaron versiones asíncronas de las dependencias de autenticación
 
 ---
