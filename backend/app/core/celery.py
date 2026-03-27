@@ -1,20 +1,21 @@
 """
-app/workers/celery_app.py
+app/core/celery.py
 
-Instancia y configuración de Celery para el dominio CV.
+Instancia y configuración de Celery para el dominio de Feature Models.
 
 Colas:
-  pdf        — generación de PDFs  (prioridad alta, tareas lentas)
-  default    — operaciones CRUD asíncronas  (prioridad media)
-  maintenance — limpieza y tareas de Beat  (prioridad baja)
+    import      — importación y transformación de modelos
+    validation  — validación lógica/estructural y análisis
+    default     — operaciones asíncronas generales
+    maintenance — tareas periódicas y housekeeping
 
 Arrancar worker:
-  celery -A app.celery_app.celery_app worker \
-         --queues pdf,default,maintenance \
-         --concurrency 4 --loglevel info
+    celery -A app.core.celery.celery_app worker \
+                 --queues import,validation,default,maintenance \
+                 --concurrency 4 --loglevel info
 
 Arrancar Beat (en proceso separado):
-  celery -A app.celery_app.celery_app beat --loglevel info
+    celery -A app.core.celery.celery_app beat --loglevel info
 """
 
 from __future__ import annotations
@@ -33,12 +34,11 @@ log = get_logger(__name__)
 # ─────────────────────────────────────────────────────────────────────────────
 
 celery_app = Celery(
-    "cv_generator",
+    "feature_model",
     broker=settings.REDIS_URL_BROKER,
     backend=settings.REDIS_URL_BACKEND,
     include=[
-        "app.tasks.pdf",
-        "app.tasks.cleanup",
+        "app.tasks.backfill",
     ],
 )
 
@@ -47,12 +47,14 @@ celery_app = Celery(
 # ─────────────────────────────────────────────────────────────────────────────
 
 _default_exchange = Exchange("default", type="direct")
-_pdf_exchange = Exchange("pdf", type="direct")
+_import_exchange = Exchange("import", type="direct")
+_validation_exchange = Exchange("validation", type="direct")
 _maintenance_exchange = Exchange("maintenance", type="direct")
 
 QUEUES = (
     Queue("default", _default_exchange, routing_key="default"),
-    Queue("pdf", _pdf_exchange, routing_key="pdf"),
+    Queue("import", _import_exchange, routing_key="import"),
+    Queue("validation", _validation_exchange, routing_key="validation"),
     Queue("maintenance", _maintenance_exchange, routing_key="maintenance"),
 )
 
@@ -79,23 +81,24 @@ celery_app.conf.update(
     task_default_routing_key="default",
     # ── Routing de tareas por nombre ──────────────────────────────────────────
     task_routes={
-        # Generación de PDFs → cola dedicada con más tiempo
-        "app.tasks.pdf.generate_cv_pdf": {
-            "queue": "pdf",
-            "routing_key": "pdf",
+        # Importación de Feature Models
+        "app.tasks.feature_model.import_feature_model": {
+            "queue": "import",
+            "routing_key": "import",
         },
-        # Mantenimiento periódico → baja prioridad
-        "app.tasks.cleanup.cleanup_expired_pdfs": {
-            "queue": "maintenance",
-            "routing_key": "maintenance",
+        # Validaciones y análisis
+        "app.tasks.feature_model.validate_feature_model_version": {
+            "queue": "validation",
+            "routing_key": "validation",
         },
-        "app.tasks.cleanup.cleanup_stale_building_cvs": {
+        # Mantenimiento periódico
+        "app.tasks.feature_model.cleanup_stale_import_jobs": {
             "queue": "maintenance",
             "routing_key": "maintenance",
         },
     },
     # ── Tiempos límite ────────────────────────────────────────────────────────
-    # pdf_tasks necesita más tiempo que las tareas de CRUD
+    # Import/validate puede tardar más que CRUD tradicional
     task_soft_time_limit=settings.CELERY_TASK_SOFT_TIME_LIMIT,  # SoftTimeLimitExceeded
     task_time_limit=settings.CELERY_TASK_TIME_LIMIT,  # SIGKILL
     # ── Reintentos ────────────────────────────────────────────────────────────
@@ -109,8 +112,8 @@ celery_app.conf.update(
     beat_schedule_filename="celerybeat-schedule",  # fichero de estado de Beat
     beat_max_loop_interval=5,
     # ── Worker ────────────────────────────────────────────────────────────────
-    worker_prefetch_multiplier=1,  # cada worker pide una tarea a la vez (justo para PDFs)
-    worker_max_tasks_per_child=50,  # reinicia el proceso cada 50 tareas (evita memory leaks de WeasyPrint)
+    worker_prefetch_multiplier=1,  # cada worker pide una tarea a la vez
+    worker_max_tasks_per_child=100,  # reinicia proceso para mitigar leaks en tareas pesadas
     worker_hijack_root_logger=False,  # structlog gestiona el logging
     # ── Beat schedule — importado desde beat_schedule.py ─────────────────────
     beat_schedule=None,  # se sobreescribe al final del módulo

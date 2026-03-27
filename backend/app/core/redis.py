@@ -1,11 +1,11 @@
 """
 app/core/redis.py
 
-Cliente Redis centralizado para el dominio CV.
+Cliente Redis centralizado para el dominio de Feature Models.
 
 Provee:
-  - Dos pools independientes: uno para el CacheService (DB 2)
-    y otro disponible para uso directo en servicios/tareas.
+    - Dos pools independientes: uno para `CacheService` y otro
+        disponible para uso directo en servicios/tareas.
   - Dependency de FastAPI (get_redis) para inyección en rutas.
   - Health check.
   - Función de inicialización/cierre para el lifespan.
@@ -18,6 +18,7 @@ Uso como dependency en rutas:
     from app.core.redis import get_redis
     async def my_route(redis: Redis = Depends(get_redis)): ...
 """
+
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
@@ -37,6 +38,7 @@ log = get_logger(__name__)
 # Factory de pools
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _build_pool(db: int, max_connections: int = 20) -> ConnectionPool:
     """
     Construye un ConnectionPool Redis con:
@@ -46,8 +48,8 @@ def _build_pool(db: int, max_connections: int = 20) -> ConnectionPool:
       - decode_responses=True → todos los valores son str, no bytes
     """
     password = settings.REDIS_PASSWORD
-    auth     = f":{password.get_secret_value()}@" if password else ""
-    url      = f"redis://{auth}{settings.REDIS_HOST}:{settings.REDIS_PORT}/{db}"
+    auth = f":{password.get_secret_value()}@" if password else ""
+    url = f"redis://{auth}{settings.REDIS_HOST}:{settings.REDIS_PORT}/{db}"
 
     return ConnectionPool.from_url(
         url,
@@ -68,7 +70,7 @@ def _build_pool(db: int, max_connections: int = 20) -> ConnectionPool:
 # Pools
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Pool principal — caché de la app (DB 2)
+# Pool principal — caché de la app
 # Compartido entre CacheService y cualquier uso directo en servicios.
 _cache_pool: ConnectionPool = _build_pool(
     db=settings.REDIS_DB_CACHE,
@@ -76,7 +78,7 @@ _cache_pool: ConnectionPool = _build_pool(
 )
 
 # Pool secundario — uso puntual en rutas via Depends(get_redis)
-# Mismo DB que _cache_pool pero pool separado para no saturarlo.
+# Mismo DB que `_cache_pool`, pero separado para no saturarlo.
 _request_pool: ConnectionPool = _build_pool(
     db=settings.REDIS_DB_CACHE,
     max_connections=10,
@@ -95,6 +97,7 @@ redis_client: Redis = Redis(connection_pool=_cache_pool)
 # ─────────────────────────────────────────────────────────────────────────────
 # Dependency FastAPI
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 async def get_redis() -> AsyncGenerator[Redis, None]:
     """
@@ -116,6 +119,7 @@ async def get_redis() -> AsyncGenerator[Redis, None]:
 # ─────────────────────────────────────────────────────────────────────────────
 # Lifecycle — llamar desde el lifespan de main.py
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 async def setup_redis() -> None:
     """
@@ -145,6 +149,7 @@ async def teardown_redis() -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 # Health check
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 async def check_redis() -> bool:
     """
