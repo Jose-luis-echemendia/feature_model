@@ -5278,7 +5278,11 @@ test = ["pytest"]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
 <<<<<<< HEAD
+<<<<<<< HEAD
 content-hash = "49b5114adc0eecd9961dc53b956f8d02a3a7b7d34d27ac2821d0defd8ca9568a"
 =======
 content-hash = "1fb902dcf03cd9f89a5a108a77880d5274e62fdd4232273e1e5b8481e74d5ef9"
 >>>>>>> f2d9619 (chore(): Update to environment variable and Docker configuration)
+=======
+content-hash = "49b5114adc0eecd9961dc53b956f8d02a3a7b7d34d27ac2821d0defd8ca9568a"
+>>>>>>> 6118bb6 (feat(): added psutil dependency and close_pool method implements)
