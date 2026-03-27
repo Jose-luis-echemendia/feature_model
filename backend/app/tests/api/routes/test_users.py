@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 from app.core.config import settings
 from app.core.security import verify_password
 from app.models.user import User, UserCreate
-from app.repositories.user import UserRepositorySync
+from app.repositories.user import UserRepository
 from app.tests.utils.utils import random_email, random_lower_string
 
 
@@ -55,7 +55,7 @@ def test_create_user_new_email(
         )
         assert 200 <= r.status_code < 300
         created_user = r.json()
-        user_repo = UserRepositorySync(db)
+        user_repo = UserRepository(db)
         user = user_repo.get_by_email(email=username)
         assert user
         assert user.email == created_user["email"]
@@ -67,7 +67,7 @@ def test_get_existing_user(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
     user_id = user.id
     r = client.get(
@@ -85,7 +85,7 @@ def test_get_existing_user_current_user(client: TestClient, db: Session) -> None
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
     user_id = user.id
 
@@ -127,7 +127,7 @@ def test_create_user_existing_username(
     # username = email
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user_repo.create(user_in)
     data = {"email": username, "password": password}
     r = client.post(
@@ -160,7 +160,7 @@ def test_retrieve_users(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user_repo.create(user_in)
 
     username2 = random_email()
@@ -257,7 +257,7 @@ def test_update_user_me_email_exists(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
 
     data = {"email": user.email}
@@ -330,7 +330,7 @@ def test_update_user(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
 
     new_email = random_email()
@@ -372,7 +372,7 @@ def test_update_user_email_exists(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
 
     username2 = random_email()
@@ -394,7 +394,7 @@ def test_delete_user_me(client: TestClient, db: Session) -> None:
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
     user_id = user.id
 
@@ -440,7 +440,7 @@ def test_delete_user_super_user(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
     user_id = user.id
     r = client.delete(
@@ -468,7 +468,7 @@ def test_delete_user_not_found(
 def test_delete_user_current_super_user_error(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     super_user = user_repo.get_by_email(email=settings.FIRST_SUPERUSER)
     assert super_user
     user_id = super_user.id
@@ -487,7 +487,7 @@ def test_delete_user_without_privileges(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
 
     r = client.delete(
@@ -505,7 +505,7 @@ def test_activate_user(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
 
     # Desactivar primero
@@ -546,7 +546,7 @@ def test_activate_user_without_privileges(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
 
     r = client.patch(
@@ -564,7 +564,7 @@ def test_deactivate_user(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
 
     assert user.is_active is True
@@ -602,7 +602,7 @@ def test_deactivate_user_without_privileges(
     username = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     user = user_repo.create(user_in)
 
     r = client.patch(
@@ -617,7 +617,7 @@ def test_deactivate_yourself_error(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test superusuario no puede desactivarse a sí mismo."""
-    user_repo = UserRepositorySync(db)
+    user_repo = UserRepository(db)
     super_user = user_repo.get_by_email(email=settings.FIRST_SUPERUSER)
     assert super_user
 
