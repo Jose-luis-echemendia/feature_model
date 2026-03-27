@@ -170,7 +170,7 @@ async def read_user_by_id_async(*, user_id: uuid.UUID, repo: AsyncUserRepoDep, c
 
 ```python
 def test_read_user():
-    mock_repo = Mock(spec=UserRepositorySync)
+    mock_repo = Mock(spec=UserRepository)
     mock_repo.get.return_value = mock_user
 
     # Fácil de testear sin base de datos real
