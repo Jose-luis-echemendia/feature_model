@@ -7,10 +7,10 @@ Documentación técnica del backend del sistema de Feature Models para gestión 
 ### 🏗️ Arquitectura y Diseño
 
 - **[db.md](./backend_db.md)** - Documentación de la base de datos y esquema
-- **[s3_architecture.md](./backend_s3_architecture.md)** - Arquitectura del servicio S3 para almacenamiento
-- **[s3_service_changes.md](./backend_s3_service_changes.md)** - Cambios en el servicio S3
-- **[s3_service_usage.md](./backend_s3_service_usage.md)** - Guía de uso del servicio S3
-- **[s3_dependency_examples.md](./backend_s3_dependency_examples.md)** - Ejemplos de inyección de dependencias S3
+- **[MINIO_architecture.md](./backend_MINIO_architecture.md)** - Arquitectura del servicio S3 para almacenamiento
+- **[MINIO_service_changes.md](./backend_MINIO_service_changes.md)** - Cambios en el servicio S3
+- **[MINIO_service_usage.md](./backend_MINIO_service_usage.md)** - Guía de uso del servicio S3
+- **[MINIO_dependency_examples.md](./backend_MINIO_dependency_examples.md)** - Ejemplos de inyección de dependencias S3
 
 ### 🔌 APIs y Endpoints
 
@@ -38,7 +38,7 @@ Documentación técnica del backend del sistema de Feature Models para gestión 
 ### 🚀 Servicios y Utilidades
 
 - **[PRESTART_SERVICE.md](./backend_PRESTART_SERVICE.md)** - Servicio de inicialización pre-arranque
-- **[README_S3_REFACTORING.md](./backend_README_S3_REFACTORING.md)** - Refactorización del servicio S3
+- **[README_MINIO_REFACTORING.md](./backend_README_MINIO_REFACTORING.md)** - Refactorización del servicio S3
 - **[commands.md](./backend_commands.md)** - Comandos útiles del proyecto
 - **[DEPENDENCIES_SUMMARY.md](./DEPENDENCIES_SUMMARY.md)** - 📦 **Resumen de dependencias de servicios** - Estado de SymPy y NetworkX
 - **[DEPENDENCIES_SERVICES.md](./DEPENDENCIES_SERVICES.md)** - 📦 **Dependencias detalladas** - Guía completa de instalación y configuración
@@ -77,7 +77,7 @@ Documentación técnica del backend del sistema de Feature Models para gestión 
 
 ### Para Arquitectos y Tech Leads
 
-1. **[s3_architecture.md](./backend_s3_architecture.md)** - Arquitectura de almacenamiento
+1. **[MINIO_architecture.md](./backend_MINIO_architecture.md)** - Arquitectura de almacenamiento
 2. **[LOGIN_REFACTOR_SUMMARY.md](./backend_LOGIN_REFACTOR_SUMMARY.md)** - Evolución del sistema de autenticación
 3. **[IMPLEMENTATION_SUMMARY.md](./backend_IMPLEMENTATION_SUMMARY.md)** - Decisiones técnicas importantes
 
@@ -91,7 +91,7 @@ docs/
 ├── tree.md ⭐ (Estructura JSON del endpoint /complete/)
 ├── STATISTICS_API.md (APIs de estadísticas)
 ├── db.md (Base de datos)
-├── s3_*.md (Servicios S3)
+├── MINIO_*.md (Servicios S3)
 ├── LOGIN_*.md (Sistema de autenticación)
 ├── *_FIX.md (Soluciones a problemas comunes)
 └── assets/ (Recursos: imágenes, diagramas)
@@ -108,7 +108,7 @@ docs/
 - **Respuesta del endpoint /complete/:** [tree.md](./backend_tree.md)
 - **WebSockets:** [REST_VS_WEBSOCKET.md](./backend_REST_VS_WEBSOCKET.md)
 - **Migraciones de BD:** [MIGRATION_ORDER_FIX.md](./backend_MIGRATION_ORDER_FIX.md)
-- **Almacenamiento S3:** [s3_architecture.md](./backend_s3_architecture.md)
+- **Almacenamiento S3:** [MINIO_architecture.md](./backend_MINIO_architecture.md)
 
 ---
 

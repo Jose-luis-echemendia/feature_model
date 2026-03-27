@@ -700,12 +700,12 @@ Convierte la interfaz de una clase en otra interfaz que los clientes esperan, pe
 class Settings(BaseSettings):
     """Adaptador para servicios externos."""
 
-    S3_ENDPOINT: str
-    S3_ACCESS_KEY: str
-    S3_SECRET_KEY: str
-    S3_BUCKET_NAME: str
+    MINIO_ENDPOINT: str
+    MINIO_ACCESS_KEY: str
+    MINIO_SECRET_KEY: str
+    MINIO_BUCKET_NAME: str
 
-    def get_s3_client(self):
+    def get_MINIO_client(self):
         """
         Adapta configuración interna a cliente S3 de boto3.
         Oculta detalles de implementación de boto3.
@@ -714,10 +714,10 @@ class Settings(BaseSettings):
 
         return boto3.client(
             's3',
-            endpoint_url=self.S3_ENDPOINT,
-            aws_access_key_id=self.S3_ACCESS_KEY,
-            aws_secret_access_key=self.S3_SECRET_KEY,
-            region_name=self.S3_REGION,
+            endpoint_url=self.MINIO_ENDPOINT,
+            aws_access_key_id=self.MINIO_ACCESS_KEY,
+            aws_secret_access_key=self.MINIO_SECRET_KEY,
+            region_name=self.MINIO_REGION,
         )
 
 

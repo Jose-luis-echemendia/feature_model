@@ -2,7 +2,7 @@
 
 ## 📋 Cambios Realizados
 
-### 1. **Refactorización de `S3Service`** (`app/services/s3_storage.py`)
+### 1. **Refactorización de `S3Service`** (`app/services/MINIO_storage.py`)
 
 #### Antes:
 
@@ -21,7 +21,7 @@
 - ✅ Verificación de bucket en ambos modos
 - ✅ Logging mejorado con indicadores (sync/async)
 
-### 2. **Refactorización de `S3StorageService`** (`app/services/s3_storage.py`)
+### 2. **Refactorización de `S3StorageService`** (`app/services/MINIO_storage.py`)
 
 #### Antes:
 
@@ -82,7 +82,7 @@ async def on_startup():
 
 ### 5. **Documentación Creada**
 
-#### Archivo: `docs/s3_service_usage.md`
+#### Archivo: `docs/MINIO_service_usage.md`
 
 - ✅ Guía completa de uso
 - ✅ Ejemplos de todos los métodos
@@ -120,7 +120,7 @@ pip install aioboto3
 
 ```python
 # ANTES y DESPUÉS - funciona igual
-storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 object_name = storage.save_audio_file(file)
 url = storage.get_presigned_url_for_object(object_name)
 ```
@@ -131,14 +131,14 @@ url = storage.get_presigned_url_for_object(object_name)
 # ANTES (síncrono en endpoint async)
 @router.post("/upload")
 async def upload(file: UploadFile):
-    storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     object_name = storage.save_audio_file(file)  # Bloquea el event loop
     return {"object_name": object_name}
 
 # DESPUÉS (asíncrono completo)
 @router.post("/upload")
 async def upload(file: UploadFile):
-    storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     object_name = await storage.asave_audio_file(file)  # No bloquea
     return {"object_name": object_name}
 ```
@@ -149,7 +149,7 @@ async def upload(file: UploadFile):
 
    ```python
    # ❌ ANTES
-   storage = S3StorageService(client=s3_client, bucket_name=bucket)
+   storage = S3StorageService(client=MINIO_client, bucket_name=bucket)
 
    # ✅ AHORA
    storage = S3StorageService(bucket_name=bucket)

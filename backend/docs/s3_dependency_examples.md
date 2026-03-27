@@ -9,19 +9,19 @@ Puedes crear dependencias reutilizables para inyectar `S3StorageService` en tus 
 
 from typing import Annotated
 from fastapi import Depends
-from app.services.s3_storage import S3StorageService
+from app.services.MINIO_storage import S3StorageService
 from app.core.config import settings
 
 
-def get_s3_storage() -> S3StorageService:
+def get_MINIO_storage() -> S3StorageService:
     """
     Dependencia para obtener una instancia de S3StorageService.
     """
-    return S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    return S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 
 
 # Type alias para usar en endpoints
-S3StorageDep = Annotated[S3StorageService, Depends(get_s3_storage)]
+S3StorageDep = Annotated[S3StorageService, Depends(get_MINIO_storage)]
 ```
 
 ## Uso en Endpoints
@@ -249,17 +249,17 @@ Si necesitas trabajar con múltiples buckets, puedes crear dependencias específ
 
 def get_uploads_storage() -> S3StorageService:
     """Bucket para archivos subidos por usuarios."""
-    return S3StorageService(bucket_name=settings.S3_UPLOADS_BUCKET)
+    return S3StorageService(bucket_name=settings.MINIO_UPLOADS_BUCKET)
 
 
 def get_exports_storage() -> S3StorageService:
     """Bucket para exportaciones y reportes."""
-    return S3StorageService(bucket_name=settings.S3_EXPORTS_BUCKET)
+    return S3StorageService(bucket_name=settings.MINIO_EXPORTS_BUCKET)
 
 
 def get_backups_storage() -> S3StorageService:
     """Bucket para backups."""
-    return S3StorageService(bucket_name=settings.S3_BACKUPS_BUCKET)
+    return S3StorageService(bucket_name=settings.MINIO_BACKUPS_BUCKET)
 
 
 # Type aliases
@@ -299,8 +299,8 @@ Para testing, puedes sobrescribir las dependencias:
 # tests/conftest.py
 
 from fastapi.testclient import TestClient
-from app.api.deps import get_s3_storage
-from app.services.s3_storage import S3StorageService
+from app.api.deps import get_MINIO_storage
+from app.services.MINIO_storage import S3StorageService
 
 
 class MockS3Storage(S3StorageService):
@@ -318,7 +318,7 @@ class MockS3Storage(S3StorageService):
 
 @pytest.fixture
 def client():
-    app.dependency_overrides[get_s3_storage] = lambda: MockS3Storage(bucket_name="test")
+    app.dependency_overrides[get_MINIO_storage] = lambda: MockS3Storage(bucket_name="test")
     yield TestClient(app)
     app.dependency_overrides.clear()
 ```

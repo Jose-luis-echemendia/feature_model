@@ -140,7 +140,7 @@ client = S3Service.get_client()
 # Uso
 storage = S3StorageService(
     client=client,  # ← Cliente como parámetro
-    bucket_name=settings.S3_BUCKET_NAME
+    bucket_name=settings.MINIO_BUCKET_NAME
 )
 
 # Métodos disponibles (solo sync)
@@ -163,7 +163,7 @@ await S3Service.init_async()
 
 # Uso (constructor simplificado)
 storage = S3StorageService(
-    bucket_name=settings.S3_BUCKET_NAME  # ← Solo bucket
+    bucket_name=settings.MINIO_BUCKET_NAME  # ← Solo bucket
 )
 
 # Métodos síncronos
@@ -188,7 +188,7 @@ await storage.afile_exists(object_name)
 ```python
 @router.post("/upload")
 def upload(file: UploadFile):
-    storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     object_name = storage.save_file(file)
     return {"object_name": object_name}
 ```
@@ -198,7 +198,7 @@ def upload(file: UploadFile):
 ```python
 @router.post("/users/{user_id}/avatar")
 async def upload_avatar(user_id: int, file: UploadFile):
-    storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 
     # Guardar en carpeta específica del usuario
     object_name = await storage.asave_file(
@@ -214,7 +214,7 @@ async def upload_avatar(user_id: int, file: UploadFile):
 ```python
 @router.get("/download/{object_name}")
 async def download(object_name: str):
-    storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 
     # Verificar que existe
     if not await storage.afile_exists(object_name):
@@ -234,7 +234,7 @@ async def download(object_name: str):
 ```python
 @router.delete("/files/{object_name}")
 async def delete(object_name: str, current_user: User):
-    storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 
     # Verificar permisos
     if not object_name.startswith(f"users/{current_user.id}/"):
@@ -252,13 +252,13 @@ async def delete(object_name: str, current_user: User):
 # app/api/deps.py
 from typing import Annotated
 from fastapi import Depends
-from app.services.s3_storage import S3StorageService
+from app.services.MINIO_storage import S3StorageService
 from app.core.config import settings
 
-def get_s3_storage() -> S3StorageService:
-    return S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+def get_MINIO_storage() -> S3StorageService:
+    return S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 
-S3StorageDep = Annotated[S3StorageService, Depends(get_s3_storage)]
+S3StorageDep = Annotated[S3StorageService, Depends(get_MINIO_storage)]
 
 # En endpoints
 @router.post("/upload")

@@ -8,19 +8,19 @@ Las clases `S3Service` y `S3StorageService` han sido completamente refactorizada
 
 ### 1. Código Principal
 
-- ✅ `app/services/s3_storage.py` - Refactorización completa
+- ✅ `app/services/MINIO_storage.py` - Refactorización completa
 - ✅ `app/main.py` - Actualización de inicialización
 - ✅ `pyproject.toml` - Agregada dependencia `aioboto3`
 
 ### 2. Documentación Creada
 
-- ✅ `docs/s3_service_usage.md` - Guía completa de uso
-- ✅ `docs/s3_service_changes.md` - Resumen de cambios
-- ✅ `docs/s3_dependency_examples.md` - Ejemplos con FastAPI dependencies
+- ✅ `docs/MINIO_service_usage.md` - Guía completa de uso
+- ✅ `docs/MINIO_service_changes.md` - Resumen de cambios
+- ✅ `docs/MINIO_dependency_examples.md` - Ejemplos con FastAPI dependencies
 
 ### 3. Scripts de Utilidad
 
-- ✅ `scripts/verify_s3_services.py` - Script de verificación
+- ✅ `scripts/verify_MINIO_services.py` - Script de verificación
 
 ## 🚀 Instalación
 
@@ -41,11 +41,11 @@ pip install aioboto3
 
 ```bash
 # Ejecutar script de verificación
-python scripts/verify_s3_services.py
+python scripts/verify_MINIO_services.py
 
 # O hacerlo ejecutable
-chmod +x scripts/verify_s3_services.py
-./scripts/verify_s3_services.py
+chmod +x scripts/verify_MINIO_services.py
+./scripts/verify_MINIO_services.py
 ```
 
 ## 📚 Nuevas Características
@@ -77,7 +77,7 @@ session = S3Service.get_async()
 
 ```python
 # ❌ ANTES
-storage = S3StorageService(client=s3_client, bucket_name=bucket)
+storage = S3StorageService(client=MINIO_client, bucket_name=bucket)
 
 # ✅ AHORA
 storage = S3StorageService(bucket_name=bucket)
@@ -105,14 +105,14 @@ storage = S3StorageService(bucket_name=bucket)
 
 ```python
 from fastapi import APIRouter, UploadFile
-from app.services.s3_storage import S3StorageService
+from app.services.MINIO_storage import S3StorageService
 from app.core.config import settings
 
 router = APIRouter()
 
 @router.post("/upload")
 def upload(file: UploadFile):
-    storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 
     # Guardar archivo
     object_name = storage.save_file(file, prefix="uploads/")
@@ -127,14 +127,14 @@ def upload(file: UploadFile):
 
 ```python
 from fastapi import APIRouter, UploadFile
-from app.services.s3_storage import S3StorageService
+from app.services.MINIO_storage import S3StorageService
 from app.core.config import settings
 
 router = APIRouter()
 
 @router.post("/upload")
 async def upload(file: UploadFile):
-    storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 
     # Guardar archivo (async)
     object_name = await storage.asave_file(file, prefix="uploads/")
@@ -151,13 +151,13 @@ async def upload(file: UploadFile):
 # app/api/deps.py
 from typing import Annotated
 from fastapi import Depends
-from app.services.s3_storage import S3StorageService
+from app.services.MINIO_storage import S3StorageService
 from app.core.config import settings
 
-def get_s3_storage() -> S3StorageService:
-    return S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+def get_MINIO_storage() -> S3StorageService:
+    return S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 
-S3StorageDep = Annotated[S3StorageService, Depends(get_s3_storage)]
+S3StorageDep = Annotated[S3StorageService, Depends(get_MINIO_storage)]
 
 # En tu endpoint
 @router.post("/upload")
@@ -171,11 +171,11 @@ async def upload(file: UploadFile, storage: S3StorageDep):
 Asegúrate de tener estas variables de entorno configuradas:
 
 ```env
-S3_ENDPOINT=localhost:9000
-S3_ACCESS_KEY=minioadmin
-S3_SECRET_KEY=minioadmin
-S3_BUCKET_NAME=my-bucket
-S3_USE_SSL=false
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET_NAME=my-bucket
+MINIO_USE_SSL=false
 ```
 
 ## ✅ Checklist de Migración
@@ -188,7 +188,7 @@ S3_USE_SSL=false
 - [x] Crear documentación completa
 - [x] Crear script de verificación
 - [ ] Instalar `aioboto3`: `uv pip install aioboto3`
-- [ ] Ejecutar script de verificación: `python scripts/verify_s3_services.py`
+- [ ] Ejecutar script de verificación: `python scripts/verify_MINIO_services.py`
 - [ ] Verificar que la aplicación inicia correctamente
 - [ ] (Opcional) Migrar código existente a métodos async
 
@@ -196,16 +196,16 @@ S3_USE_SSL=false
 
 Para más detalles, consulta:
 
-1. **`docs/s3_service_usage.md`** - Guía completa de uso con ejemplos
-2. **`docs/s3_service_changes.md`** - Resumen detallado de cambios
-3. **`docs/s3_dependency_examples.md`** - Ejemplos con FastAPI dependencies
+1. **`docs/MINIO_service_usage.md`** - Guía completa de uso con ejemplos
+2. **`docs/MINIO_service_changes.md`** - Resumen detallado de cambios
+3. **`docs/MINIO_dependency_examples.md`** - Ejemplos con FastAPI dependencies
 
 ## 🧪 Testing
 
 ### Verificación Automática
 
 ```bash
-python scripts/verify_s3_services.py
+python scripts/verify_MINIO_services.py
 ```
 
 Este script verifica:
@@ -220,11 +220,11 @@ Este script verifica:
 
 ```python
 # Test síncrono
-from app.services.s3_storage import S3Service, S3StorageService
+from app.services.MINIO_storage import S3Service, S3StorageService
 from app.core.config import settings
 
 S3Service.init_sync()
-storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
 exists = storage.file_exists("test-file.txt")
 print(f"File exists: {exists}")
 
@@ -233,7 +233,7 @@ import asyncio
 
 async def test():
     await S3Service.init_async()
-    storage = S3StorageService(bucket_name=settings.S3_BUCKET_NAME)
+    storage = S3StorageService(bucket_name=settings.MINIO_BUCKET_NAME)
     exists = await storage.afile_exists("test-file.txt")
     print(f"File exists: {exists}")
 
@@ -256,7 +256,7 @@ asyncio.run(test())
 
    ```python
    # Viejo (no funcionará)
-   storage = S3StorageService(client=s3_client, bucket_name=bucket)
+   storage = S3StorageService(client=MINIO_client, bucket_name=bucket)
 
    # Nuevo
    storage = S3StorageService(bucket_name=bucket)
@@ -299,7 +299,7 @@ asyncio.run(test())
 
 Si tienes problemas:
 
-1. Ejecuta `python scripts/verify_s3_services.py` para diagnóstico
+1. Ejecuta `python scripts/verify_MINIO_services.py` para diagnóstico
 2. Revisa los logs de la aplicación (nivel DEBUG)
 3. Consulta la documentación en `docs/`
 

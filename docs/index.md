@@ -68,7 +68,7 @@ Documentación técnica del backend (FastAPI + PostgreSQL):
 - [README Backend](backend_README.md) - Introducción y setup
 - [Comandos](backend_commands.md) - Comandos útiles de desarrollo
 - [Base de Datos](backend_db.md) - Esquema y migraciones
-- [Arquitectura S3](backend_s3_architecture.md) - Gestión de archivos
+- [Arquitectura S3](backend_MINIO_architecture.md) - Gestión de archivos
 
 **Refactorings y Mejoras:**
 
@@ -81,10 +81,10 @@ Documentación técnica del backend (FastAPI + PostgreSQL):
 
 **Servicios S3:**
 
-- [Refactoring S3](backend_README_S3_REFACTORING.md)
-- [Ejemplos S3 Dependencies](backend_s3_dependency_examples.md)
-- [Cambios Servicio S3](backend_s3_service_changes.md)
-- [Uso Servicio S3](backend_s3_service_usage.md)
+- [Refactoring S3](backend_README_MINIO_REFACTORING.md)
+- [Ejemplos S3 Dependencies](backend_MINIO_dependency_examples.md)
+- [Cambios Servicio S3](backend_MINIO_service_changes.md)
+- [Uso Servicio S3](backend_MINIO_service_usage.md)
 
 **Gestión de Usuarios:**
 
