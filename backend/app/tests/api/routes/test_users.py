@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 from app.core.config import settings
 from app.core.security import verify_password
 from app.models.user import User, UserCreate
-from app.repositories.sync.user import UserRepositorySync
+from app.repositories.user import UserRepositorySync
 from app.tests.utils.utils import random_email, random_lower_string
 
 

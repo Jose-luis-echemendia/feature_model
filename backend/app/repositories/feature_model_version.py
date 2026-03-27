@@ -54,7 +54,7 @@ class FeatureModelVersionRepository(BaseFeatureModelVersionRepository):
         """
 
         def _create_version_sync(sync_session):
-            from app.repositories.sync.feature_model_version import (
+            from app.repositories.feature_model_version import (
                 FeatureModelVersionRepositorySync,
             )
 

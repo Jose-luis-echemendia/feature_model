@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.models.domain import Domain, DomainCreate, DomainUpdate
-from app.repositories.sync.domain import DomainRepositorySync
+from app.repositories.domain import DomainRepositorySync
 from app.tests.utils.utils import random_lower_string
 
 

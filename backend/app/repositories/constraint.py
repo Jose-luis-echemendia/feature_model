@@ -33,7 +33,7 @@ class ConstraintRepository(BaseConstraintRepository):
 
         def _create_constraint_sync(sync_session):
             # Importar repositorio sync dentro de la función sync
-            from app.repositories.sync import FeatureModelVersionRepositorySync
+            from app.repositories import FeatureModelVersionRepositorySync
 
             sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
 
@@ -89,7 +89,7 @@ class ConstraintRepository(BaseConstraintRepository):
 
         def _delete_constraint_sync(sync_session):
             # Importar repositorio sync dentro de la función sync
-            from app.repositories.sync import FeatureModelVersionRepositorySync
+            from app.repositories import FeatureModelVersionRepositorySync
 
             sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
 

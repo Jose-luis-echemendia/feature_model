@@ -35,7 +35,7 @@ class FeatureGroupRepository(BaseFeatureGroupRepository):
 
         def _create_group_sync(sync_session):
             # Importar repositorio sync dentro de la función sync
-            from app.repositories.sync import FeatureModelVersionRepositorySync
+            from app.repositories import FeatureModelVersionRepositorySync
 
             sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
 
@@ -102,7 +102,7 @@ class FeatureGroupRepository(BaseFeatureGroupRepository):
 
         def _delete_group_sync(sync_session):
             # Importar repositorio sync dentro de la función sync
-            from app.repositories.sync import FeatureModelVersionRepositorySync
+            from app.repositories import FeatureModelVersionRepositorySync
 
             sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
 

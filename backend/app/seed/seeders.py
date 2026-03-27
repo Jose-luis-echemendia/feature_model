@@ -23,7 +23,7 @@ from app.models import (
 from app.core.security import get_password_hash
 from app.models.user import UserCreate
 from app.enums import UserRole, FeatureGroupType
-from app.repositories.sync import UserRepositorySync
+from app.repositories import UserRepositorySync
 
 # Importar datos
 from .data_settings import settings_data

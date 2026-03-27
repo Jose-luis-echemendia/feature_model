@@ -3,7 +3,7 @@ from sqlmodel import Session
 
 from app.core.config import settings
 from app.models.user import User, UserCreate, UserUpdate
-from app.repositories.sync.user import UserRepositorySync
+from app.repositories.user import UserRepositorySync
 from app.tests.utils.utils import random_email, random_lower_string
 
 

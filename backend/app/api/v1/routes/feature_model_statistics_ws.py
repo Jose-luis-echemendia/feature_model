@@ -19,8 +19,8 @@ from datetime import datetime
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status, Depends
 
 from app.api.deps import SessionDep, get_verified_user
-from app.repositories.a_sync.feature_model import FeatureModelRepository
-from app.repositories.a_sync.feature_model_version import (
+from app.repositories.feature_model import FeatureModelRepository
+from app.repositories.feature_model_version import (
     FeatureModelVersionRepository,
 )
 
