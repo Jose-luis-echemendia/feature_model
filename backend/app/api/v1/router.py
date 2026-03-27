@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.core.config import settings
 from app.api.v1.routes import (
+    health,
     user,
     login,
     private,
@@ -20,6 +21,7 @@ from app.api.v1.routes import (
 api_router = APIRouter()
 
 # Incluir cada router
+api_router.include_router(health.router)  # Health check
 api_router.include_router(utils.router)  # Root
 api_router.include_router(login.router)
 api_router.include_router(user.router)
