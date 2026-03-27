@@ -24,7 +24,7 @@ from app.models import (
     User,
 )
 from app.enums import ModelStatus, FeatureType, FeatureGroupType, FeatureRelationType
-from app.repositories.a_sync.feature_model_version import (
+from app.repositories.feature_model_version import (
     FeatureModelVersionRepository,
 )
 from app.exceptions import (
