@@ -7,6 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.models import (
     Constraint,
     ConstraintCreate,
+    ConstraintUpdate,
     User,
 )
 from app.repositories.base import BaseConstraintRepository
@@ -73,6 +74,52 @@ class ConstraintRepository(BaseConstraintRepository):
         stmt = select(Constraint).where(Constraint.id == constraint_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def update(
+        self,
+        db_constraint: Constraint,
+        data: ConstraintUpdate,
+        user: User,
+        feature_model_version_repo: "FeatureModelVersionRepository",
+    ) -> Constraint:
+        """
+        Actualiza una constraint usando estrategia copy-on-write.
+        """
+
+        def _update_constraint_sync(sync_session):
+            from app.repositories import FeatureModelVersionRepositorySync
+
+            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+
+            source_version = db_constraint.feature_model_version
+            new_version, _, _ = sync_version_repo.create_new_version_from_existing(
+                source_version=source_version,
+                user=user,
+                return_id_map=True,
+            )
+
+            statement = select(Constraint).where(
+                Constraint.feature_model_version_id == new_version.id,
+                Constraint.expr_text == db_constraint.expr_text,
+            )
+            constraint_to_update = sync_session.exec(statement).first()
+
+            if not constraint_to_update:
+                raise RuntimeError(
+                    "Could not fetch the cloned constraint from the database."
+                )
+
+            update_data = data.model_dump(exclude_unset=True)
+            constraint_to_update.sqlmodel_update(update_data)
+            constraint_to_update.updated_at = datetime.utcnow()
+            constraint_to_update.updated_by_id = user.id
+            sync_session.add(constraint_to_update)
+            sync_session.commit()
+            sync_session.refresh(constraint_to_update)
+            return constraint_to_update
+
+        result = await self.session.run_sync(_update_constraint_sync)
+        return result
 
     async def delete(
         self,
