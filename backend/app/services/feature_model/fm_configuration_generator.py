@@ -384,7 +384,9 @@ class FeatureModelConfigurationGenerator:
         base_config = partial_selection.copy() if partial_selection else {}
         root = self._find_root()
         if not root:
-            return GenerationResult(success=False, errors=["No se encontró feature raíz"])
+            return GenerationResult(
+                success=False, errors=["No se encontró feature raíz"]
+            )
         base_config[str(root["id"])] = True
         self._propagate_mandatory(base_config)
 
@@ -407,9 +409,7 @@ class FeatureModelConfigurationGenerator:
                     new_beam.append(candidate)
 
             # Rankear candidatos
-            scored = [
-                (self._score_configuration(c, feature_ids), c) for c in new_beam
-            ]
+            scored = [(self._score_configuration(c, feature_ids), c) for c in new_beam]
             scored.sort(key=lambda x: x[0], reverse=True)
             beam = [c for _, c in scored[:beam_width]]
 
@@ -559,7 +559,9 @@ class FeatureModelConfigurationGenerator:
     ) -> bool:
         """Valida una configuración con el LogicalValidator."""
         features = features or list(self.features_map.values())
-        relations = relations or [r for rels in self.relations_map.values() for r in rels]
+        relations = relations or [
+            r for rels in self.relations_map.values() for r in rels
+        ]
         constraints = constraints or self.constraints
 
         try:

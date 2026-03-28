@@ -448,7 +448,9 @@ class FeatureModelLogicalValidator:
             if parent_id not in self.var_mapping:
                 continue
             parent_var = self.var_mapping[parent_id]
-            child_vars = [self.var_mapping[cid] for cid in children_ids if cid in self.var_mapping]
+            child_vars = [
+                self.var_mapping[cid] for cid in children_ids if cid in self.var_mapping
+            ]
             if not child_vars:
                 continue
 
@@ -614,9 +616,7 @@ class FeatureModelLogicalValidator:
                         self.pysat_cnf.append([-left_var, -right_var])
                     continue
 
-            errors.append(
-                f"Constraint no soportada para CNF: '{expr_text}'"
-            )
+            errors.append(f"Constraint no soportada para CNF: '{expr_text}'")
 
         return errors
 
@@ -719,9 +719,7 @@ class FeatureModelLogicalValidator:
                         self.z3_solver.add(z3.Not(z3.And(left_var, right_var)))
                     continue
 
-            errors.append(
-                f"Constraint no soportada para Z3: '{expr_text}'"
-            )
+            errors.append(f"Constraint no soportada para Z3: '{expr_text}'")
 
         return errors
 
@@ -739,7 +737,9 @@ class FeatureModelLogicalValidator:
         group_constraints = self._encode_groups_sympy(features, relations)
         cross_tree_constraints, _ = self._encode_cross_tree_constraints(constraints)
 
-        all_constraints = hierarchy_constraints + group_constraints + cross_tree_constraints
+        all_constraints = (
+            hierarchy_constraints + group_constraints + cross_tree_constraints
+        )
 
         # 2. Agregar las decisiones del usuario como constraints
         user_decisions = []
@@ -928,9 +928,7 @@ class FeatureModelLogicalValidator:
         normalized = token.strip().lower()
         return name_to_id.get(normalized, token.strip())
 
-    def _normalize_expr_cnf(
-        self, expr_cnf: Any
-    ) -> Optional[List[List[int]]]:
+    def _normalize_expr_cnf(self, expr_cnf: Any) -> Optional[List[List[int]]]:
         """Normaliza expr_cnf a lista de cláusulas."""
         if isinstance(expr_cnf, dict):
             clauses = expr_cnf.get("clauses")
@@ -951,7 +949,9 @@ class FeatureModelLogicalValidator:
             if not group_id:
                 continue
             group = feature.get("group") or {}
-            parent_id = str(feature.get("parent_id")) if feature.get("parent_id") else None
+            parent_id = (
+                str(feature.get("parent_id")) if feature.get("parent_id") else None
+            )
             key = str(group_id)
             if key not in groups:
                 groups[key] = {
@@ -973,7 +973,9 @@ class FeatureModelLogicalValidator:
 
             candidate = group_type or relation_type
             if candidate in {"xor", "alternative", "or"}:
-                normalized_type = "alternative" if candidate in {"xor", "alternative"} else "or"
+                normalized_type = (
+                    "alternative" if candidate in {"xor", "alternative"} else "or"
+                )
                 key = str(group_id) if group_id else f"{parent_id}:{normalized_type}"
                 if key not in groups:
                     groups[key] = {
@@ -1017,9 +1019,7 @@ class FeatureModelLogicalValidator:
         if k < 0 or k >= n:
             return constraints
         for subset in combinations(vars_list, k + 1):
-            constraints.append(
-                Implies(parent_var, Or(*[Not(v) for v in subset]))
-            )
+            constraints.append(Implies(parent_var, Or(*[Not(v) for v in subset])))
         return constraints
 
     def _pysat_at_least(self, parent_var: int, vars_list: List[int], k: int) -> None:
