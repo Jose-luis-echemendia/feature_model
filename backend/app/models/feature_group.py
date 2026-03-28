@@ -77,6 +77,20 @@ class FeatureGroupCreate(SQLModel):
     max_cardinality: Optional[int] = None
 
 
+class FeatureGroupUpdate(SQLModel):
+    group_type: Optional[FeatureGroupType] = None
+    parent_feature_id: Optional[uuid.UUID] = None
+    min_cardinality: Optional[int] = None
+    max_cardinality: Optional[int] = None
+
+
+class FeatureGroupReplace(SQLModel):
+    group_type: FeatureGroupType
+    parent_feature_id: uuid.UUID
+    min_cardinality: int = 1
+    max_cardinality: Optional[int] = None
+
+
 # ========================================================================
 #    --- Modelos para Respuestas de Grupos de Características ---
 # ========================================================================
