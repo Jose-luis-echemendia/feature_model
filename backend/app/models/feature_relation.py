@@ -72,7 +72,15 @@ class FeatureRelationCreate(SQLModel):
 
 
 class FeatureRelationUpdate(SQLModel):
-    pass  # Las relaciones no se actualizan, se crean o eliminan
+    type: Optional[FeatureRelationType] = None
+    source_feature_id: Optional[uuid.UUID] = None
+    target_feature_id: Optional[uuid.UUID] = None
+
+
+class FeatureRelationReplace(SQLModel):
+    type: FeatureRelationType
+    source_feature_id: uuid.UUID
+    target_feature_id: uuid.UUID
 
 
 # ===================================================================================
