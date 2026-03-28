@@ -7,6 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.models import (
     FeatureGroup,
     FeatureGroupCreate,
+    FeatureGroupUpdate,
     User,
     Feature,
 )
@@ -86,6 +87,69 @@ class FeatureGroupRepository(BaseFeatureGroupRepository):
         stmt = select(FeatureGroup).where(FeatureGroup.id == group_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def update(
+        self,
+        db_group: FeatureGroup,
+        data: FeatureGroupUpdate,
+        user: User,
+        feature_model_version_repo: "FeatureModelVersionRepository",
+    ) -> FeatureGroup:
+        """
+        Actualiza un grupo usando estrategia copy-on-write.
+        """
+
+        def _update_group_sync(sync_session):
+            from app.repositories import FeatureModelVersionRepositorySync
+
+            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+
+            source_version = db_group.feature_model_version
+            new_version, old_to_new_id_map = (
+                sync_version_repo.create_new_version_from_existing(
+                    source_version=source_version,
+                    user=user,
+                    return_id_map=True,
+                )
+            )
+
+            original_parent_id = db_group.parent_feature_id
+            new_parent_id = old_to_new_id_map.get(original_parent_id)
+            if not new_parent_id:
+                raise RuntimeError("Could not map old parent feature ID to a new one.")
+
+            statement = select(FeatureGroup).where(
+                FeatureGroup.feature_model_version_id == new_version.id,
+                FeatureGroup.parent_feature_id == new_parent_id,
+                FeatureGroup.group_type == db_group.group_type,
+            )
+            group_to_update = sync_session.exec(statement).first()
+
+            if not group_to_update:
+                raise RuntimeError(
+                    "Could not fetch the cloned group from the database."
+                )
+
+            update_data = data.model_dump(exclude_unset=True)
+
+            if "parent_feature_id" in update_data and update_data["parent_feature_id"]:
+                mapped_parent_id = old_to_new_id_map.get(
+                    update_data["parent_feature_id"]
+                )
+                if not mapped_parent_id:
+                    raise ValueError("Parent feature not found in the source version.")
+                update_data["parent_feature_id"] = mapped_parent_id
+
+            group_to_update.sqlmodel_update(update_data)
+            group_to_update.updated_at = datetime.utcnow()
+            group_to_update.updated_by_id = user.id
+            sync_session.add(group_to_update)
+            sync_session.commit()
+            sync_session.refresh(group_to_update)
+            return group_to_update
+
+        result = await self.session.run_sync(_update_group_sync)
+        return result
 
     async def delete(
         self,
