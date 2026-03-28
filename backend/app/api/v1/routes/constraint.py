@@ -29,7 +29,14 @@ async def list_constraints(
     skip: int = 0,
     limit: int = 100,
 ) -> list[ConstraintPublic]:
-    """Listar constraints con filtros opcionales."""
+    """
+    Listar constraints con filtros opcionales.
+
+    Filtros soportados:
+    - feature_model_version_id: limitar a una versión
+    - include_inactive: incluir soft-deleted
+    - skip/limit: paginación
+    """
     stmt = select(Constraint)
     if not include_inactive:
         stmt = stmt.where(Constraint.is_active == True)
@@ -102,7 +109,11 @@ async def update_constraint(
     constraint_repo: AsyncConstraintRepoDep,
     feature_model_version_repo: AsyncFeatureModelVersionRepoDep,
 ) -> ConstraintPublic:
-    """Actualizar parcialmente una constraint (copy-on-write)."""
+    """
+    Actualizar parcialmente una constraint (copy-on-write).
+
+    Crea una nueva versión del modelo con la constraint actualizada.
+    """
     db_constraint = await constraint_repo.get(constraint_id=constraint_id)
     if not db_constraint:
         raise HTTPException(status_code=404, detail="Constraint not found.")
@@ -138,7 +149,11 @@ async def replace_constraint(
     constraint_repo: AsyncConstraintRepoDep,
     feature_model_version_repo: AsyncFeatureModelVersionRepoDep,
 ) -> ConstraintPublic:
-    """Reemplazar completamente una constraint (copy-on-write)."""
+    """
+    Reemplazar completamente una constraint (copy-on-write).
+
+    Requiere todos los campos principales de la constraint.
+    """
     db_constraint = await constraint_repo.get(constraint_id=constraint_id)
     if not db_constraint:
         raise HTTPException(status_code=404, detail="Constraint not found.")

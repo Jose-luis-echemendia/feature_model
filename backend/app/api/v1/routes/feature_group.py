@@ -33,7 +33,16 @@ async def list_feature_groups(
     skip: int = 0,
     limit: int = 100,
 ) -> list[FeatureGroupPublic]:
-    """Listar grupos con filtros opcionales."""
+    """
+    Listar grupos con filtros opcionales.
+
+    Filtros soportados:
+    - feature_model_version_id: limitar a una versión
+    - parent_feature_id: filtrar por feature padre
+    - group_type: alternative u or
+    - include_inactive: incluir soft-deleted
+    - skip/limit: paginación
+    """
     stmt = select(FeatureGroup)
     if not include_inactive:
         stmt = stmt.where(FeatureGroup.is_active == True)
@@ -117,7 +126,11 @@ async def update_feature_group(
     feature_group_repo: AsyncFeatureGroupRepoDep,
     feature_model_version_repo: AsyncFeatureModelVersionRepoDep,
 ) -> FeatureGroupPublic:
-    """Actualizar parcialmente un grupo (copy-on-write)."""
+    """
+    Actualizar parcialmente un grupo (copy-on-write).
+
+    Crea una nueva versión del modelo con el grupo actualizado.
+    """
     db_group = await feature_group_repo.get(group_id=group_id)
     if not db_group:
         raise HTTPException(status_code=404, detail="Feature group not found.")
@@ -153,7 +166,11 @@ async def replace_feature_group(
     feature_group_repo: AsyncFeatureGroupRepoDep,
     feature_model_version_repo: AsyncFeatureModelVersionRepoDep,
 ) -> FeatureGroupPublic:
-    """Reemplazar completamente un grupo (copy-on-write)."""
+    """
+    Reemplazar completamente un grupo (copy-on-write).
+
+    Requiere todos los campos principales del grupo.
+    """
     db_group = await feature_group_repo.get(group_id=group_id)
     if not db_group:
         raise HTTPException(status_code=404, detail="Feature group not found.")

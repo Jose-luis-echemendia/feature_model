@@ -33,7 +33,16 @@ async def list_feature_relations(
     skip: int = 0,
     limit: int = 100,
 ) -> list[FeatureRelationPublic]:
-    """Listar relaciones con filtros opcionales."""
+    """
+    Listar relaciones con filtros opcionales.
+
+    Filtros soportados:
+    - feature_model_version_id: limitar a una versión
+    - feature_id: filtra relaciones donde la feature es source o target
+    - relation_type: requires o excludes
+    - include_inactive: incluir soft-deleted
+    - skip/limit: paginación
+    """
     stmt = select(FeatureRelation)
     if not include_inactive:
         stmt = stmt.where(FeatureRelation.is_active == True)
@@ -121,7 +130,11 @@ async def update_feature_relation(
     feature_relation_repo: AsyncFeatureRelationRepoDep,
     feature_model_version_repo: AsyncFeatureModelVersionRepoDep,
 ) -> FeatureRelationPublic:
-    """Actualizar parcialmente una relación (copy-on-write)."""
+    """
+    Actualizar parcialmente una relación (copy-on-write).
+
+    Crea una nueva versión del modelo con la relación actualizada.
+    """
     db_relation = await feature_relation_repo.get(relation_id=relation_id)
     if not db_relation:
         raise HTTPException(status_code=404, detail="Feature relation not found.")
@@ -157,7 +170,11 @@ async def replace_feature_relation(
     feature_relation_repo: AsyncFeatureRelationRepoDep,
     feature_model_version_repo: AsyncFeatureModelVersionRepoDep,
 ) -> FeatureRelationPublic:
-    """Reemplazar completamente una relación (copy-on-write)."""
+    """
+    Reemplazar completamente una relación (copy-on-write).
+
+    Requiere todos los campos principales de la relación.
+    """
     db_relation = await feature_relation_repo.get(relation_id=relation_id)
     if not db_relation:
         raise HTTPException(status_code=404, detail="Feature relation not found.")
