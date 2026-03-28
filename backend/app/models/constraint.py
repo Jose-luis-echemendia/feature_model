@@ -21,10 +21,11 @@ if TYPE_CHECKING:
 #           --- Modelo de Restricciones base ---
 # ========================================================================
 
+
 class ConstraintBase(SQLModel):
-    
+
     # ------------------ FIELDs ----------------------------------------
-    
+
     description: Optional[str] = Field(default=None)
     expr_text: str
     expr_cnf: Optional[list[list[int]]] = Field(default=None, sa_column=Column(JSONB))
@@ -35,13 +36,13 @@ class ConstraintBase(SQLModel):
 #    --- Modelo para la tabla física de las Restricciones ---
 # ========================================================================
 
+
 class Constraint(BaseTable, ConstraintBase, table=True):
-    
+
     # ------------------ METADATA FOR TABLE ----------------------------------
 
     __tablename__ = "constraints"
-    
-    
+
     # ------------------ RELATIONSHIP ----------------------------------------
 
     feature_model_version: "FeatureModelVersion" = Relationship(
@@ -53,8 +54,19 @@ class Constraint(BaseTable, ConstraintBase, table=True):
 #           --- Modelos para Entrada de datos de las Restricciones ---
 # ========================================================================
 
+
 class ConstraintCreate(SQLModel):
     feature_model_version_id: uuid.UUID
+    description: Optional[str] = None
+    expr_text: str
+
+
+class ConstraintUpdate(SQLModel):
+    description: Optional[str] = None
+    expr_text: Optional[str] = None
+
+
+class ConstraintReplace(SQLModel):
     description: Optional[str] = None
     expr_text: str
 
@@ -62,6 +74,7 @@ class ConstraintCreate(SQLModel):
 # ========================================================================
 #           --- Modelos para Respuestas de las Restricciones ---
 # ========================================================================
+
 
 class ConstraintPublic(ConstraintBase):
     id: uuid.UUID
