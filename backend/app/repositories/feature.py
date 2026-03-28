@@ -35,10 +35,10 @@ class FeatureRepository(BaseFeatureRepository):
 
         def _create_feature_sync(sync_session):
             # Importar repositorio sync dentro de la función sync
-            from app.repositories import FeatureModelVersionRepositorySync
+            from app.repositories import FeatureModelVersionRepository
 
             # Crear instancia del repositorio sync
-            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+            sync_version_repo = FeatureModelVersionRepository(sync_session)
 
             # 1. Obtener la versión de origen
             source_version = sync_version_repo.get(
@@ -164,13 +164,13 @@ class FeatureRepository(BaseFeatureRepository):
         def _update_feature_sync(sync_session):
             # Importar repositorios sync dentro de la función sync
             from app.repositories import (
-                FeatureModelVersionRepositorySync,
-                FeatureGroupRepositorySync,
+                FeatureModelVersionRepository,
+                FeatureGroupRepository,
             )
 
             # Crear instancias de repositorios sync
-            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
-            sync_group_repo = FeatureGroupRepositorySync(sync_session)
+            sync_version_repo = FeatureModelVersionRepository(sync_session)
+            sync_group_repo = FeatureGroupRepository(sync_session)
 
             # 1. Crear una nueva versión a partir de la versión actual de la feature
             source_version = db_feature.feature_model_version
@@ -255,9 +255,9 @@ class FeatureRepository(BaseFeatureRepository):
 
         def _delete_feature_sync(sync_session):
             # Importar repositorio sync dentro de la función sync
-            from app.repositories import FeatureModelVersionRepositorySync
+            from app.repositories import FeatureModelVersionRepository
 
-            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+            sync_version_repo = FeatureModelVersionRepository(sync_session)
 
             source_version = db_feature.feature_model_version
             new_version = sync_version_repo.create_new_version_from_existing(

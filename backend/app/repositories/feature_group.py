@@ -36,9 +36,9 @@ class FeatureGroupRepository(BaseFeatureGroupRepository):
 
         def _create_group_sync(sync_session):
             # Importar repositorio sync dentro de la función sync
-            from app.repositories import FeatureModelVersionRepositorySync
+            from app.repositories import FeatureModelVersionRepository
 
-            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+            sync_version_repo = FeatureModelVersionRepository(sync_session)
 
             # 1. Validar que la feature padre existe (usando get síncrono dentro del contexto)
             stmt = select(Feature).where(
@@ -100,9 +100,9 @@ class FeatureGroupRepository(BaseFeatureGroupRepository):
         """
 
         def _update_group_sync(sync_session):
-            from app.repositories import FeatureModelVersionRepositorySync
+            from app.repositories import FeatureModelVersionRepository
 
-            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+            sync_version_repo = FeatureModelVersionRepository(sync_session)
 
             source_version = db_group.feature_model_version
             new_version, old_to_new_id_map = (
@@ -166,9 +166,9 @@ class FeatureGroupRepository(BaseFeatureGroupRepository):
 
         def _delete_group_sync(sync_session):
             # Importar repositorio sync dentro de la función sync
-            from app.repositories import FeatureModelVersionRepositorySync
+            from app.repositories import FeatureModelVersionRepository
 
-            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+            sync_version_repo = FeatureModelVersionRepository(sync_session)
 
             # 1. Crear una nueva versión a partir de la versión actual del grupo
             source_version = db_group.feature_model_version

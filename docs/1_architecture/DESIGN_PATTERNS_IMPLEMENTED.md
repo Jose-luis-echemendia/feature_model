@@ -481,7 +481,7 @@ class DomainRepository:
 
 # Estrategia 2: Repositorios Síncronos
 # backend/app/repositories/sync/domain.py
-class DomainRepositorySync:
+class DomainRepository:
     """Estrategia sync para persistencia."""
 
     def create(self, data: DomainCreate) -> Domain:
@@ -500,7 +500,7 @@ async def get_domain_repo(session: SessionDep):
 
 def get_domain_repo(session: SessionDep):
     """Usa estrategia sync."""
-    return DomainRepositorySync(session)
+    return DomainRepository(session)
 ```
 
 #### Feature Flags (Strategy Básico)
