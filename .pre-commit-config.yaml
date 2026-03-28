@@ -11,10 +11,10 @@ repos:
           - --unsafe
       - id: end-of-file-fixer
         exclude: |
-            (?x)^(
-                frontend/src/client/.*|
-                backend/app/templates/email/build/.*
-            )$
+          (?x)^(
+              frontend/src/client/.*|
+              backend/app/templates/email/build/.*
+          )$
       - id: trailing-whitespace
         exclude: ^frontend/src/client/.*
   - repo: https://github.com/charliermarsh/ruff-pre-commit
@@ -32,6 +32,11 @@ repos:
         language: system
         types: [text]
         files: "\\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\\.(ts|cts|mts)|jsonc?|css|svelte|vue|astro|graphql|gql)$"
+      - id: conventional-commit-msg
+        name: conventional commit message
+        entry: python3 scripts/commit_msg_conventional.py
+        language: system
+        stages: [commit-msg]
 
 ci:
   autofix_commit_msg: 🎨 [pre-commit.ci] Auto format from pre-commit.com hooks
