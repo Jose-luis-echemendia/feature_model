@@ -13,6 +13,7 @@ El validador selecciona automáticamente el nivel apropiado según el tamaño de
 """
 
 from typing import Dict, List, Tuple, Any, Optional
+from itertools import combinations
 from enum import Enum
 
 # Nivel 1: SymPy (Básico)
@@ -185,9 +186,11 @@ class FeatureModelLogicalValidator:
         # 1. Crear variables simbólicas para cada feature
         self._build_symbolic_variables(features)
 
-        # 2. Codificar relaciones jerárquicas
+        # 2. Codificar relaciones jerárquicas y grupos
         hierarchy_constraints = self._encode_hierarchy(features, relations)
+        group_constraints = self._encode_groups_sympy(features, relations)
         self.constraints.extend(hierarchy_constraints)
+        self.constraints.extend(group_constraints)
 
         # 3. Codificar constraints cross-tree
         cross_tree_constraints, constraint_errors = self._encode_cross_tree_constraints(
@@ -236,13 +239,48 @@ class FeatureModelLogicalValidator:
             self.pysat_var_mapping[feature_id] = idx
             self.pysat_reverse_mapping[idx] = feature_id
 
-        # 2. Codificar relaciones como cláusulas CNF
-        # TODO: Implementar encodificación completa
-        # Por ahora, delegamos a SymPy como fallback
-        warnings.append(
-            "PySAT: Usando fallback a SymPy (implementación completa pendiente)"
+        # 2. Inicializar CNF
+        if self.pysat_cnf is None:
+            self.pysat_cnf = CNF()
+        else:
+            self.pysat_cnf.clauses = []
+
+        # 3. Codificar relaciones jerárquicas
+        self._encode_hierarchy_pysat(features, relations)
+
+        # 4. Codificar grupos OR/XOR
+        self._encode_groups_pysat(features, relations)
+
+        # 5. Codificar constraints cross-tree
+        constraint_errors = self._encode_cross_tree_constraints_pysat(
+            features, constraints
         )
-        return self._validate_with_sympy(features, relations, constraints)
+        errors.extend(constraint_errors)
+
+        # 6. Resolver SAT
+        try:
+            solver = Glucose3()
+            solver.append_formula(self.pysat_cnf.clauses)
+            sat = solver.solve()
+            if not sat:
+                raise UnsatisfiableConstraintException(
+                    constraint_description="El modelo completo"
+                )
+            model = solver.get_model()
+            assignment = self._convert_pysat_assignment(model)
+            solver.delete()
+        except UnsatisfiableConstraintException:
+            raise
+        except Exception as exc:
+            errors.append(f"PySAT error: {exc}")
+            assignment = None
+
+        return FeatureModelValidationResult(
+            is_valid=len(errors) == 0,
+            errors=errors,
+            warnings=warnings,
+            satisfying_assignment=assignment,
+        )
 
     def _validate_with_z3(
         self,
@@ -259,17 +297,39 @@ class FeatureModelLogicalValidator:
         warnings = []
 
         # 1. Construir variables Z3
+        self.z3_solver = z3.Solver()
+        self.z3_var_mapping = {}
         for feature in features:
             feature_id = str(feature.get("id"))
             self.z3_var_mapping[feature_id] = z3.Bool(feature_id)
 
-        # 2. Codificar restricciones
-        # TODO: Implementar encodificación completa
-        # Por ahora, delegamos a SymPy como fallback
-        warnings.append(
-            "Z3: Usando fallback a SymPy (implementación completa pendiente)"
+        # 2. Codificar relaciones jerárquicas
+        self._encode_hierarchy_z3(features, relations)
+
+        # 3. Codificar grupos OR/XOR
+        self._encode_groups_z3(features, relations)
+
+        # 4. Codificar constraints cross-tree
+        constraint_errors = self._encode_cross_tree_constraints_z3(
+            features, constraints
         )
-        return self._validate_with_sympy(features, relations, constraints)
+        errors.extend(constraint_errors)
+
+        # 5. Resolver
+        if self.z3_solver.check() != z3.sat:
+            raise UnsatisfiableConstraintException(
+                constraint_description="El modelo completo"
+            )
+
+        model = self.z3_solver.model()
+        assignment = self._convert_z3_assignment(model)
+
+        return FeatureModelValidationResult(
+            is_valid=len(errors) == 0,
+            errors=errors,
+            warnings=warnings,
+            satisfying_assignment=assignment,
+        )
 
     def validate_configuration(
         self,
@@ -295,59 +355,31 @@ class FeatureModelLogicalValidator:
         """
         self._reset()
 
-        # 1. Construir variables y constraints del modelo
-        self._build_symbolic_variables(features)
-        hierarchy_constraints = self._encode_hierarchy(features, relations)
-        cross_tree_constraints, _ = self._encode_cross_tree_constraints(constraints)
+        # Seleccionar nivel de validación
+        level = self._select_validation_level(len(features))
 
-        all_constraints = hierarchy_constraints + cross_tree_constraints
-
-        # 2. Agregar las decisiones del usuario como constraints
-        user_decisions = []
-        for feature_id, symbol in self.var_mapping.items():
-            if feature_id in selected_features:
-                user_decisions.append(symbol)
-            else:
-                user_decisions.append(Not(symbol))
-
-        # 3. Combinar todo y verificar satisfacibilidad
-        full_formula = And(*all_constraints, *user_decisions)
-
-        try:
-            result = satisfiable(full_formula)
-            if result is False:
-                # Identificar restricciones violadas para mensaje detallado
-                violated = self._identify_violated_constraints(
-                    all_constraints, user_decisions
-                )
-                violated_msg = (
-                    "; ".join(violated) if violated else "restricciones del modelo"
-                )
-
-                # Lanzar excepción personalizada
-                raise InvalidConfigurationException(
-                    configuration_details=f"Configuración con {len(selected_features)} features seleccionadas",
-                    reason=violated_msg,
-                )
-            else:
-                return FeatureModelValidationResult(
-                    is_valid=True,
-                    satisfying_assignment=self._convert_assignment(result),
-                )
-        except InvalidConfigurationException:
-            # Re-lanzar excepciones personalizadas
-            raise
-        except Exception as e:
-            # Convertir errores inesperados a InvalidConfigurationException
-            raise InvalidConfigurationException(
-                configuration_details=f"{len(selected_features)} features seleccionadas",
-                reason=f"Error durante validación: {str(e)}",
+        if level == ValidationLevel.PYSAT and PYSAT_AVAILABLE:
+            return self._validate_configuration_with_pysat(
+                features, relations, constraints, selected_features
             )
+        if level == ValidationLevel.Z3 and Z3_AVAILABLE:
+            return self._validate_configuration_with_z3(
+                features, relations, constraints, selected_features
+            )
+
+        return self._validate_configuration_with_sympy(
+            features, relations, constraints, selected_features
+        )
 
     def _reset(self) -> None:
         """Reinicia el estado interno del validador."""
         self.var_mapping = {}
         self.constraints = []
+        self.pysat_var_mapping = {}
+        self.pysat_reverse_mapping = {}
+        self.pysat_cnf = CNF() if PYSAT_AVAILABLE else None
+        self.z3_solver = z3.Solver() if Z3_AVAILABLE else None
+        self.z3_var_mapping = {}
 
     def _build_symbolic_variables(self, features: List[Dict[str, Any]]) -> None:
         """Crea una variable booleana SymPy por cada feature."""
@@ -400,6 +432,51 @@ class FeatureModelLogicalValidator:
 
         return constraints
 
+    def _encode_groups_sympy(
+        self, features: List[Dict[str, Any]], relations: List[Dict[str, Any]]
+    ) -> List[sympy.Basic]:
+        """Codificar grupos OR/XOR con SymPy."""
+        constraints: list[sympy.Basic] = []
+        groups = self._collect_groups(features, relations)
+        for group in groups:
+            parent_id = group["parent_id"]
+            children_ids = group["children"]
+            group_type = group["group_type"]
+            min_card = group["min_cardinality"]
+            max_card = group["max_cardinality"]
+
+            if parent_id not in self.var_mapping:
+                continue
+            parent_var = self.var_mapping[parent_id]
+            child_vars = [self.var_mapping[cid] for cid in children_ids if cid in self.var_mapping]
+            if not child_vars:
+                continue
+
+            # Child -> Parent
+            for child_var in child_vars:
+                constraints.append(Implies(child_var, parent_var))
+
+            # Parent -> cardinality
+            if group_type == "alternative":
+                constraints.append(Implies(parent_var, Or(*child_vars)))
+                for c1, c2 in combinations(child_vars, 2):
+                    constraints.append(Implies(parent_var, Not(And(c1, c2))))
+            elif group_type == "or":
+                if min_card is None:
+                    min_card = 1
+                if min_card <= 1:
+                    constraints.append(Implies(parent_var, Or(*child_vars)))
+                else:
+                    constraints.extend(
+                        self._sympy_at_least(parent_var, child_vars, min_card)
+                    )
+                if max_card is not None:
+                    constraints.extend(
+                        self._sympy_at_most(parent_var, child_vars, max_card)
+                    )
+
+        return constraints
+
     def _encode_cross_tree_constraints(
         self, constraints: List[Dict[str, Any]]
     ) -> Tuple[List[sympy.Basic], List[str]]:
@@ -419,28 +496,547 @@ class FeatureModelLogicalValidator:
             expr_text = constraint.get("expr_text", "")
 
             try:
-                # Intentar parsear la expresión usando SymPy
-                # Asumiendo formato: "feature_name REQUIRES other_feature"
-                symbolic_expr = self._parse_constraint_expression(expr_text)
+                symbolic_expr = None
+                if expr_text:
+                    symbolic_expr = self._parse_constraint_expression(expr_text)
+
                 if symbolic_expr:
                     symbolic_constraints.append(symbolic_expr)
                 else:
-                    # Si no se pudo parsear, lanzar excepción
                     raise InvalidConstraintException(
-                        constraint_expression=expr_text,
+                        expression=expr_text,
                         reason="Formato de constraint no reconocido o features no encontradas",
                     )
             except InvalidConstraintException:
-                # Re-lanzar excepciones personalizadas
                 raise
             except Exception as e:
-                # Convertir otros errores a InvalidConstraintException
                 raise InvalidConstraintException(
-                    constraint_expression=expr_text,
+                    expression=expr_text,
                     reason=f"Error durante el parseo: {str(e)}",
                 )
 
         return symbolic_constraints, errors
+
+    def _encode_hierarchy_pysat(
+        self, features: List[Dict[str, Any]], relations: List[Dict[str, Any]]
+    ) -> None:
+        """Codifica jerarquía en CNF para PySAT."""
+        # Root siempre activa
+        roots = [f for f in features if f.get("parent_id") is None]
+        for root in roots:
+            root_id = str(root.get("id"))
+            var = self.pysat_var_mapping.get(root_id)
+            if var:
+                self.pysat_cnf.append([var])
+
+        for relation in relations:
+            parent_id = str(relation.get("parent_id"))
+            child_id = str(relation.get("child_id"))
+            relation_type = relation.get("relation_type")
+
+            parent_var = self.pysat_var_mapping.get(parent_id)
+            child_var = self.pysat_var_mapping.get(child_id)
+            if not parent_var or not child_var:
+                continue
+
+            if relation_type == "mandatory":
+                self.pysat_cnf.append([-parent_var, child_var])
+            elif relation_type == "optional":
+                self.pysat_cnf.append([-child_var, parent_var])
+
+    def _encode_groups_pysat(
+        self, features: List[Dict[str, Any]], relations: List[Dict[str, Any]]
+    ) -> None:
+        """Codifica grupos OR/XOR en CNF para PySAT."""
+        groups = self._collect_groups(features, relations)
+        for group in groups:
+            parent_id = group["parent_id"]
+            children_ids = group["children"]
+            group_type = group["group_type"]
+            min_card = group["min_cardinality"]
+            max_card = group["max_cardinality"]
+
+            parent_var = self.pysat_var_mapping.get(parent_id)
+            child_vars = [self.pysat_var_mapping.get(cid) for cid in children_ids]
+            child_vars = [v for v in child_vars if v]
+            if not parent_var or not child_vars:
+                continue
+
+            # Child -> Parent
+            for child_var in child_vars:
+                self.pysat_cnf.append([-child_var, parent_var])
+
+            if group_type == "alternative":
+                # Parent -> al menos uno
+                self.pysat_cnf.append([-parent_var] + child_vars)
+                # Parent -> a lo sumo uno
+                for c1, c2 in combinations(child_vars, 2):
+                    self.pysat_cnf.append([-parent_var, -c1, -c2])
+            elif group_type == "or":
+                if min_card is None:
+                    min_card = 1
+                if min_card <= 1:
+                    self.pysat_cnf.append([-parent_var] + child_vars)
+                else:
+                    self._pysat_at_least(parent_var, child_vars, min_card)
+                if max_card is not None:
+                    self._pysat_at_most(parent_var, child_vars, max_card)
+
+    def _encode_cross_tree_constraints_pysat(
+        self, features: List[Dict[str, Any]], constraints: List[Dict[str, Any]]
+    ) -> List[str]:
+        """Codifica constraints cross-tree en CNF para PySAT."""
+        errors = []
+        name_to_id = self._build_feature_name_map(features)
+
+        for constraint in constraints:
+            expr_text = constraint.get("expr_text", "")
+            expr_cnf = constraint.get("expr_cnf")
+
+            if expr_cnf:
+                clauses = self._normalize_expr_cnf(expr_cnf)
+                if clauses:
+                    for clause in clauses:
+                        self.pysat_cnf.append(clause)
+                    continue
+
+            if expr_text:
+                parsed = self._parse_binary_constraint(expr_text, name_to_id)
+                if parsed:
+                    ctype, left_id, right_id = parsed
+                    left_var = self.pysat_var_mapping.get(left_id)
+                    right_var = self.pysat_var_mapping.get(right_id)
+                    if not left_var or not right_var:
+                        continue
+                    if ctype == "requires" or ctype == "implies":
+                        self.pysat_cnf.append([-left_var, right_var])
+                    elif ctype == "excludes":
+                        self.pysat_cnf.append([-left_var, -right_var])
+                    continue
+
+            errors.append(
+                f"Constraint no soportada para CNF: '{expr_text}'"
+            )
+
+        return errors
+
+    def _encode_hierarchy_z3(
+        self, features: List[Dict[str, Any]], relations: List[Dict[str, Any]]
+    ) -> None:
+        """Codifica jerarquía con Z3."""
+        # Root siempre activa
+        roots = [f for f in features if f.get("parent_id") is None]
+        for root in roots:
+            root_id = str(root.get("id"))
+            root_var = self.z3_var_mapping.get(root_id)
+            if root_var is not None:
+                self.z3_solver.add(root_var)
+
+        for relation in relations:
+            parent_id = str(relation.get("parent_id"))
+            child_id = str(relation.get("child_id"))
+            relation_type = relation.get("relation_type")
+
+            parent_var = self.z3_var_mapping.get(parent_id)
+            child_var = self.z3_var_mapping.get(child_id)
+            if parent_var is None or child_var is None:
+                continue
+
+            if relation_type == "mandatory":
+                self.z3_solver.add(z3.Implies(parent_var, child_var))
+            elif relation_type == "optional":
+                self.z3_solver.add(z3.Implies(child_var, parent_var))
+
+    def _encode_groups_z3(
+        self, features: List[Dict[str, Any]], relations: List[Dict[str, Any]]
+    ) -> None:
+        """Codifica grupos OR/XOR con Z3."""
+        groups = self._collect_groups(features, relations)
+        for group in groups:
+            parent_id = group["parent_id"]
+            children_ids = group["children"]
+            group_type = group["group_type"]
+            min_card = group["min_cardinality"]
+            max_card = group["max_cardinality"]
+
+            parent_var = self.z3_var_mapping.get(parent_id)
+            child_vars = [self.z3_var_mapping.get(cid) for cid in children_ids]
+            child_vars = [v for v in child_vars if v is not None]
+            if parent_var is None or not child_vars:
+                continue
+
+            # Child -> Parent
+            for child_var in child_vars:
+                self.z3_solver.add(z3.Implies(child_var, parent_var))
+
+            if group_type == "alternative":
+                self.z3_solver.add(z3.Implies(parent_var, z3.Or(*child_vars)))
+                self.z3_solver.add(
+                    z3.Implies(
+                        parent_var,
+                        z3.PbEq([(c, 1) for c in child_vars], 1),
+                    )
+                )
+            elif group_type == "or":
+                if min_card is None:
+                    min_card = 1
+                if min_card > 0:
+                    self.z3_solver.add(
+                        z3.Implies(
+                            parent_var,
+                            z3.PbGe([(c, 1) for c in child_vars], min_card),
+                        )
+                    )
+                if max_card is not None:
+                    self.z3_solver.add(
+                        z3.Implies(
+                            parent_var,
+                            z3.PbLe([(c, 1) for c in child_vars], max_card),
+                        )
+                    )
+
+    def _encode_cross_tree_constraints_z3(
+        self, features: List[Dict[str, Any]], constraints: List[Dict[str, Any]]
+    ) -> List[str]:
+        """Codifica constraints cross-tree con Z3."""
+        errors = []
+        name_to_id = self._build_feature_name_map(features)
+
+        for constraint in constraints:
+            expr_text = constraint.get("expr_text", "")
+
+            if expr_text:
+                parsed = self._parse_binary_constraint(expr_text, name_to_id)
+                if parsed:
+                    ctype, left_id, right_id = parsed
+                    left_var = self.z3_var_mapping.get(left_id)
+                    right_var = self.z3_var_mapping.get(right_id)
+                    if left_var is None or right_var is None:
+                        continue
+                    if ctype == "requires" or ctype == "implies":
+                        self.z3_solver.add(z3.Implies(left_var, right_var))
+                    elif ctype == "excludes":
+                        self.z3_solver.add(z3.Not(z3.And(left_var, right_var)))
+                    continue
+
+            errors.append(
+                f"Constraint no soportada para Z3: '{expr_text}'"
+            )
+
+        return errors
+
+    def _validate_configuration_with_sympy(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        selected_features: List[str],
+    ) -> FeatureModelValidationResult:
+        """Validación de configuración con SymPy."""
+        # 1. Construir variables y constraints del modelo
+        self._build_symbolic_variables(features)
+        hierarchy_constraints = self._encode_hierarchy(features, relations)
+        group_constraints = self._encode_groups_sympy(features, relations)
+        cross_tree_constraints, _ = self._encode_cross_tree_constraints(constraints)
+
+        all_constraints = hierarchy_constraints + group_constraints + cross_tree_constraints
+
+        # 2. Agregar las decisiones del usuario como constraints
+        user_decisions = []
+        for feature_id, symbol in self.var_mapping.items():
+            if feature_id in selected_features:
+                user_decisions.append(symbol)
+            else:
+                user_decisions.append(Not(symbol))
+
+        # 3. Combinar todo y verificar satisfacibilidad
+        full_formula = And(*all_constraints, *user_decisions)
+
+        try:
+            result = satisfiable(full_formula)
+            if result is False:
+                violated = self._identify_violated_constraints(
+                    all_constraints, user_decisions
+                )
+                violated_msg = (
+                    "; ".join(violated) if violated else "restricciones del modelo"
+                )
+                raise InvalidConfigurationException(
+                    configuration_details=f"Configuración con {len(selected_features)} features seleccionadas",
+                    reason=violated_msg,
+                )
+            return FeatureModelValidationResult(
+                is_valid=True,
+                satisfying_assignment=self._convert_assignment(result),
+            )
+        except InvalidConfigurationException:
+            raise
+        except Exception as e:
+            raise InvalidConfigurationException(
+                configuration_details=f"{len(selected_features)} features seleccionadas",
+                reason=f"Error durante validación: {str(e)}",
+            )
+
+    def _validate_configuration_with_pysat(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        selected_features: List[str],
+    ) -> FeatureModelValidationResult:
+        """Validación de configuración con PySAT."""
+        # Construir CNF base
+        for idx, feature in enumerate(features, start=1):
+            feature_id = str(feature.get("id"))
+            self.pysat_var_mapping[feature_id] = idx
+            self.pysat_reverse_mapping[idx] = feature_id
+
+        if self.pysat_cnf is None:
+            self.pysat_cnf = CNF()
+        else:
+            self.pysat_cnf.clauses = []
+
+        self._encode_hierarchy_pysat(features, relations)
+        self._encode_groups_pysat(features, relations)
+        self._encode_cross_tree_constraints_pysat(features, constraints)
+
+        # Aplicar decisiones del usuario
+        for feature_id, var in self.pysat_var_mapping.items():
+            if feature_id in selected_features:
+                self.pysat_cnf.append([var])
+            else:
+                self.pysat_cnf.append([-var])
+
+        solver = Minisat22()
+        solver.append_formula(self.pysat_cnf.clauses)
+        if not solver.solve():
+            raise InvalidConfigurationException(
+                configuration_details=f"Configuración con {len(selected_features)} features seleccionadas",
+                reason="restricciones del modelo",
+            )
+        model = solver.get_model()
+        assignment = self._convert_pysat_assignment(model)
+        solver.delete()
+
+        return FeatureModelValidationResult(
+            is_valid=True, satisfying_assignment=assignment
+        )
+
+    def _validate_configuration_with_z3(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        selected_features: List[str],
+    ) -> FeatureModelValidationResult:
+        """Validación de configuración con Z3."""
+        self.z3_solver = z3.Solver()
+        self.z3_var_mapping = {}
+        for feature in features:
+            feature_id = str(feature.get("id"))
+            self.z3_var_mapping[feature_id] = z3.Bool(feature_id)
+
+        self._encode_hierarchy_z3(features, relations)
+        self._encode_groups_z3(features, relations)
+        self._encode_cross_tree_constraints_z3(features, constraints)
+
+        for feature_id, var in self.z3_var_mapping.items():
+            if feature_id in selected_features:
+                self.z3_solver.add(var)
+            else:
+                self.z3_solver.add(z3.Not(var))
+
+        if self.z3_solver.check() != z3.sat:
+            raise InvalidConfigurationException(
+                configuration_details=f"Configuración con {len(selected_features)} features seleccionadas",
+                reason="restricciones del modelo",
+            )
+        model = self.z3_solver.model()
+        assignment = self._convert_z3_assignment(model)
+
+        return FeatureModelValidationResult(
+            is_valid=True, satisfying_assignment=assignment
+        )
+
+    def _convert_pysat_assignment(self, model: List[int]) -> Dict[str, bool]:
+        """Convierte asignación de PySAT a dict feature_id -> bool."""
+        assignment = {}
+        if not model:
+            return assignment
+        for lit in model:
+            var_id = abs(lit)
+            feature_id = self.pysat_reverse_mapping.get(var_id)
+            if feature_id:
+                assignment[feature_id] = lit > 0
+        return assignment
+
+    def _convert_z3_assignment(self, model: "z3.ModelRef") -> Dict[str, bool]:
+        """Convierte modelo Z3 a dict feature_id -> bool."""
+        assignment = {}
+        for feature_id, var in self.z3_var_mapping.items():
+            val = model.evaluate(var, model_completion=True)
+            assignment[feature_id] = bool(z3.is_true(val))
+        return assignment
+
+    def _build_feature_name_map(self, features: List[Dict[str, Any]]) -> Dict[str, str]:
+        """Mapea nombres normalizados a feature_id."""
+        name_to_id = {}
+        for feature in features:
+            feature_id = str(feature.get("id"))
+            name = feature.get("name", feature_id)
+            normalized = name.strip().lower()
+            name_to_id[normalized] = feature_id
+        return name_to_id
+
+    def _parse_binary_constraint(
+        self, expr_text: str, name_to_id: Dict[str, str]
+    ) -> Optional[Tuple[str, str, str]]:
+        """Parsea constraints binarias REQUIRES/EXCLUDES/IMPLIES."""
+        expr_upper = expr_text.upper()
+        if "REQUIRES" in expr_upper:
+            parts = expr_upper.split("REQUIRES", 1)
+            idx = expr_upper.index("REQUIRES")
+            left = expr_text[:idx]
+            right = expr_text[idx + len("REQUIRES") :]
+            return (
+                "requires",
+                self._resolve_feature_id(left, name_to_id),
+                self._resolve_feature_id(right, name_to_id),
+            )
+        if "EXCLUDES" in expr_upper:
+            idx = expr_upper.index("EXCLUDES")
+            left = expr_text[:idx]
+            right = expr_text[idx + len("EXCLUDES") :]
+            return (
+                "excludes",
+                self._resolve_feature_id(left, name_to_id),
+                self._resolve_feature_id(right, name_to_id),
+            )
+        if "IMPLIES" in expr_upper:
+            idx = expr_upper.index("IMPLIES")
+            left = expr_text[:idx]
+            right = expr_text[idx + len("IMPLIES") :]
+            return (
+                "implies",
+                self._resolve_feature_id(left, name_to_id),
+                self._resolve_feature_id(right, name_to_id),
+            )
+        return None
+
+    def _resolve_feature_id(self, token: str, name_to_id: Dict[str, str]) -> str:
+        """Resuelve ID desde nombre o token."""
+        normalized = token.strip().lower()
+        return name_to_id.get(normalized, token.strip())
+
+    def _normalize_expr_cnf(
+        self, expr_cnf: Any
+    ) -> Optional[List[List[int]]]:
+        """Normaliza expr_cnf a lista de cláusulas."""
+        if isinstance(expr_cnf, dict):
+            clauses = expr_cnf.get("clauses")
+            return clauses if isinstance(clauses, list) else None
+        if isinstance(expr_cnf, list):
+            return expr_cnf
+        return None
+
+    def _collect_groups(
+        self, features: List[Dict[str, Any]], relations: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Recolecta definición de grupos OR/XOR desde features/relaciones."""
+        groups: Dict[str, Dict[str, Any]] = {}
+
+        # Grupos inferidos desde features con group_id y group info
+        for feature in features:
+            group_id = feature.get("group_id")
+            if not group_id:
+                continue
+            group = feature.get("group") or {}
+            parent_id = str(feature.get("parent_id")) if feature.get("parent_id") else None
+            key = str(group_id)
+            if key not in groups:
+                groups[key] = {
+                    "parent_id": parent_id,
+                    "children": [],
+                    "group_type": group.get("group_type"),
+                    "min_cardinality": group.get("min_cardinality", 1),
+                    "max_cardinality": group.get("max_cardinality"),
+                }
+            groups[key]["children"].append(str(feature.get("id")))
+
+        # Grupos inferidos desde relaciones con group_type o relation_type
+        for relation in relations:
+            parent_id = str(relation.get("parent_id"))
+            child_id = str(relation.get("child_id"))
+            relation_type = (relation.get("relation_type") or "").lower()
+            group_type = (relation.get("group_type") or "").lower()
+            group_id = relation.get("group_id")
+
+            candidate = group_type or relation_type
+            if candidate in {"xor", "alternative", "or"}:
+                normalized_type = "alternative" if candidate in {"xor", "alternative"} else "or"
+                key = str(group_id) if group_id else f"{parent_id}:{normalized_type}"
+                if key not in groups:
+                    groups[key] = {
+                        "parent_id": parent_id,
+                        "children": [],
+                        "group_type": normalized_type,
+                        "min_cardinality": relation.get("min_cardinality", 1),
+                        "max_cardinality": relation.get("max_cardinality"),
+                    }
+                groups[key]["children"].append(child_id)
+
+        # Normalizar grupos
+        normalized = []
+        for group in groups.values():
+            if not group.get("group_type"):
+                continue
+            if not group.get("parent_id"):
+                continue
+            normalized.append(group)
+        return normalized
+
+    def _sympy_at_least(
+        self, parent_var: sympy.Symbol, vars_list: List[sympy.Symbol], k: int
+    ) -> List[sympy.Basic]:
+        """Codifica al menos k con SymPy (CNF directa)."""
+        constraints = []
+        n = len(vars_list)
+        if k <= 0 or k > n:
+            return constraints
+        subset_size = n - k + 1
+        for subset in combinations(vars_list, subset_size):
+            constraints.append(Implies(parent_var, Or(*subset)))
+        return constraints
+
+    def _sympy_at_most(
+        self, parent_var: sympy.Symbol, vars_list: List[sympy.Symbol], k: int
+    ) -> List[sympy.Basic]:
+        """Codifica a lo sumo k con SymPy (CNF directa)."""
+        constraints = []
+        n = len(vars_list)
+        if k < 0 or k >= n:
+            return constraints
+        for subset in combinations(vars_list, k + 1):
+            constraints.append(
+                Implies(parent_var, Or(*[Not(v) for v in subset]))
+            )
+        return constraints
+
+    def _pysat_at_least(self, parent_var: int, vars_list: List[int], k: int) -> None:
+        n = len(vars_list)
+        if k <= 0 or k > n:
+            return
+        subset_size = n - k + 1
+        for subset in combinations(vars_list, subset_size):
+            self.pysat_cnf.append([-parent_var] + list(subset))
+
+    def _pysat_at_most(self, parent_var: int, vars_list: List[int], k: int) -> None:
+        n = len(vars_list)
+        if k < 0 or k >= n:
+            return
+        for subset in combinations(vars_list, k + 1):
+            clause = [-parent_var] + [-v for v in subset]
+            self.pysat_cnf.append(clause)
 
     def _parse_constraint_expression(self, expr_text: str) -> Optional[sympy.Basic]:
         """
@@ -460,28 +1056,31 @@ class FeatureModelLogicalValidator:
         # Extraer nombres de features (esto es un ejemplo simplificado)
         # En producción, deberías parsear correctamente
         if "REQUIRES" in expr_upper:
-            parts = expr_text.split(" REQUIRES ")
-            if len(parts) == 2:
-                left = self._find_var_by_name(parts[0].strip())
-                right = self._find_var_by_name(parts[1].strip())
-                if left and right:
-                    return Implies(left, right)
+            idx = expr_upper.index("REQUIRES")
+            left_text = expr_text[:idx].strip()
+            right_text = expr_text[idx + len("REQUIRES") :].strip()
+            left = self._find_var_by_name(left_text)
+            right = self._find_var_by_name(right_text)
+            if left and right:
+                return Implies(left, right)
 
         elif "EXCLUDES" in expr_upper:
-            parts = expr_text.split(" EXCLUDES ")
-            if len(parts) == 2:
-                left = self._find_var_by_name(parts[0].strip())
-                right = self._find_var_by_name(parts[1].strip())
-                if left and right:
-                    return Or(Not(left), Not(right))
+            idx = expr_upper.index("EXCLUDES")
+            left_text = expr_text[:idx].strip()
+            right_text = expr_text[idx + len("EXCLUDES") :].strip()
+            left = self._find_var_by_name(left_text)
+            right = self._find_var_by_name(right_text)
+            if left and right:
+                return Or(Not(left), Not(right))
 
         elif "IMPLIES" in expr_upper:
-            parts = expr_text.split(" IMPLIES ")
-            if len(parts) == 2:
-                left = self._find_var_by_name(parts[0].strip())
-                right = self._find_var_by_name(parts[1].strip())
-                if left and right:
-                    return Implies(left, right)
+            idx = expr_upper.index("IMPLIES")
+            left_text = expr_text[:idx].strip()
+            right_text = expr_text[idx + len("IMPLIES") :].strip()
+            left = self._find_var_by_name(left_text)
+            right = self._find_var_by_name(right_text)
+            if left and right:
+                return Implies(left, right)
 
         return None
 

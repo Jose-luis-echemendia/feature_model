@@ -29,6 +29,7 @@ from app.enums import (
     FeatureGroupType,
     FeatureRelationType,
 )
+from app.exceptions import MissingRootFeatureException, MultipleRootFeaturesException
 from .fm_export import FeatureModelExportService
 
 
@@ -139,19 +140,13 @@ class FeatureModelTreeBuilder:
         features = self.version.features
 
         # Encontrar la feature raíz (parent_id = None)
-        root_feature = next((f for f in features if f.parent_id is None), None)
+        roots = [f for f in features if f.parent_id is None]
+        if not roots:
+            raise MissingRootFeatureException()
+        if len(roots) > 1:
+            raise MultipleRootFeaturesException(count=len(roots))
 
-        if not root_feature:
-            # Si no hay raíz, crear un nodo vacío
-            return FeatureTreeNode(
-                id=uuid.uuid4(),
-                name="Empty Model",
-                type="MANDATORY",
-                properties={},
-                children=[],
-                depth=0,
-                is_leaf=True,
-            )
+        root_feature = roots[0]
 
         # Construir el árbol recursivamente
         return self._build_tree_node(root_feature, features, depth=0)
