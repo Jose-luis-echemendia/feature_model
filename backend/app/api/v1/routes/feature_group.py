@@ -57,7 +57,7 @@ async def create_feature_group(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.delete("/{group_id}/", response_model=Message)
+@router.delete("/{group_id}", response_model=Message)
 async def delete_feature_group(
     *,
     group_id: uuid.UUID,

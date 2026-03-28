@@ -51,7 +51,7 @@ router = APIRouter(
     )
 )
 @router.get(
-    "/{model_id}/versions/latest/complete/",
+    "/{model_id}/versions/latest/complete",
     response_model=FeatureModelCompleteResponse,
     summary="Get complete structure of the latest published version",
     description="""
@@ -115,7 +115,7 @@ async def get_latest_complete_feature_model(
     )
 )
 @router.get(
-    "/{model_id}/versions/{version_id}/complete/",
+    "/{model_id}/versions/{version_id}/complete",
     response_model=FeatureModelCompleteResponse,
     summary="Get complete feature model structure for tree rendering",
     description="""

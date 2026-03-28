@@ -137,7 +137,11 @@ async def protect_internal_docs_middleware(request: Request, call_next):
 
         try:
             # Decodificar y validar el token JWT
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(
+                token,
+                settings.SECRET_KEY.get_secret_value(),
+                algorithms=[ALGORITHM],
+            )
 
             # Extraer el rol del usuario del payload
             user_role = payload.get("role")

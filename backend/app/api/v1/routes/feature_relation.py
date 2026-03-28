@@ -58,7 +58,7 @@ async def create_feature_relation(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.delete("/{relation_id}/", response_model=Message)
+@router.delete("/{relation_id}", response_model=Message)
 async def delete_feature_relation(
     *,
     relation_id: uuid.UUID,
