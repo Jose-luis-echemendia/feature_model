@@ -96,7 +96,7 @@ async def create_feature(
 
 
 @router.get(
-    "/{feature_id}/", dependencies=[Depends(VerifiedUser)], response_model=FeaturePublic
+    "/{feature_id}", dependencies=[Depends(VerifiedUser)], response_model=FeaturePublic
 )
 @cache(expire=300)  # Cache por 5 minutos
 async def read_feature(
@@ -111,7 +111,7 @@ async def read_feature(
     return feature
 
 
-@router.patch("/{feature_id}/", response_model=FeaturePublic)
+@router.patch("/{feature_id}", response_model=FeaturePublic)
 async def update_feature(
     *,
     feature_id: uuid.UUID,
@@ -155,7 +155,7 @@ async def update_feature(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.delete("/{feature_id}/", response_model=Message)
+@router.delete("/{feature_id}", response_model=Message)
 async def delete_feature(
     *,
     feature_id: uuid.UUID,

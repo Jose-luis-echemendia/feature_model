@@ -21,12 +21,10 @@ router = APIRouter(prefix="/utils", tags=["utils"])
 # ===========================================================================
 
 
-
-
 # ---------------------------------------------------------------------------
 #   --- Endpoint de ayuda para acceder a la documentación del sistema ---
 # ---------------------------------------------------------------------------
-@router.get("/docs-access/")
+@router.get("/docs-access")
 @cache(expire=86400)
 async def get_docs_access_info():
     """
@@ -84,7 +82,7 @@ async def get_docs_access_info():
 # ===========================================================================
 
 
-@router.get("/test/internal-error/")
+@router.get("/test/internal-error")
 async def get_internal_error():
     """
     Este endpoint simula un error inesperado.
@@ -100,7 +98,7 @@ async def get_internal_error():
 
 
 @router.post(
-    "/test-email/",
+    "/test-email",
     dependencies=[Depends(get_current_active_superuser)],
     status_code=201,
 )
@@ -122,7 +120,7 @@ def test_email(email_to: EmailStr) -> Message:
 # ================================================================================
 
 
-@router.get("/test/setting/")
+@router.get("/test/setting")
 async def get_example_with_dynamic_setting(
     settings_service: SettingsService = Depends(get_settings_service),
 ):
@@ -144,7 +142,7 @@ async def get_example_with_dynamic_setting(
 #          --- Endpoint para obtener los roles del sistema. ---
 # ===========================================================================
 @router.get(
-    "/roles/",
+    "/roles",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=list[str],
 )
@@ -163,7 +161,7 @@ def get_roles() -> list[str]:
 
 
 @router.get(
-    "/options/",
+    "/options",
     response_model=AllEnumsResponse,
     summary="Obtener todas las opciones (enums) para los selectores del frontend",
 )
@@ -193,7 +191,7 @@ def read_enums():
 # ===========================================================================
 
 
-@router.post("/clear-cache/", dependencies=[Depends(get_current_active_superuser)])
+@router.post("/clear-cache", dependencies=[Depends(get_current_active_superuser)])
 async def clear_cache():
     """
     Limpia toda la caché de la aplicación.

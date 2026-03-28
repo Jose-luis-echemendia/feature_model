@@ -53,7 +53,9 @@ async def require_api_key(
     Lanza HTTP 403 si la clave está ausente o es incorrecta.
     Usa ``secrets.compare_digest`` para evitar ataques de timing.
     """
-    if not api_key or not secrets.compare_digest(api_key, settings.SECRET_KEY):
+    if not api_key or not secrets.compare_digest(
+        api_key, settings.SECRET_KEY.get_secret_value()
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid or missing API key. Include 'X-API-Key' header.",
@@ -69,7 +71,9 @@ async def require_admin_key(
 
     Lanza HTTP 403 si la clave está ausente o es incorrecta.
     """
-    if not admin_key or not secrets.compare_digest(admin_key, settings.SECRET_KEY):
+    if not admin_key or not secrets.compare_digest(
+        admin_key, settings.SECRET_KEY.get_secret_value()
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid or missing admin key. Include 'X-Admin-Key' header.",
@@ -84,7 +88,9 @@ def create_access_token(
     to_encode = {"exp": expire, "sub": str(subject)}
     if role:
         to_encode["role"] = role
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.SECRET_KEY.get_secret_value(), algorithm=ALGORITHM
+    )
     return encoded_jwt
 
 

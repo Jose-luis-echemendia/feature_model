@@ -91,7 +91,7 @@ async def read_domains(
 # Endpoint para obtener un dominio por ID (solo admin)
 # ---------------------------------------------------------------------------
 @router.get(
-    "/{domain_id}/",
+    "/{domain_id}",
     dependencies=[Depends(get_verified_user)],
     response_model=DomainPublic,
 )
@@ -166,7 +166,7 @@ async def create_domain(
 
 
 @router.patch(
-    "/{domain_id}/", dependencies=[Depends(get_admin_user)], response_model=DomainPublic
+    "/{domain_id}", dependencies=[Depends(get_admin_user)], response_model=DomainPublic
 )
 async def update_domain(
     *,
@@ -216,7 +216,7 @@ async def update_domain(
 # Endpoint para eliminar un dominio (solo admin)
 # ---------------------------------------------------------------------------
 @router.delete(
-    "/{domain_id}/", dependencies=[Depends(get_admin_user)], response_model=Message
+    "/{domain_id}", dependencies=[Depends(get_admin_user)], response_model=Message
 )
 async def delete_domain(
     *,
@@ -284,7 +284,7 @@ async def delete_domain(
 # Endpoint para buscar dominios por nombre (solo admin)
 # ---------------------------------------------------------------------------
 @router.get(
-    "/search/",
+    "/search",
     dependencies=[Depends(get_verified_user)],
     response_model=DomainListResponse,
 )
@@ -338,7 +338,7 @@ async def search_domains(
 # Endpoint para obtener dominio con sus feature models (solo admin)
 # ---------------------------------------------------------------------------
 @router.get(
-    "/{domain_id}/with-feature-models/",
+    "/{domain_id}/with-feature-models",
     dependencies=[Depends(get_admin_user)],
     response_model=DomainPublicWithFeatureModels,
 )
@@ -375,7 +375,7 @@ async def read_domain_with_feature_models(
 
 
 @router.patch(
-    "/{domain_id}/activate/",
+    "/{domain_id}/activate",
     dependencies=[Depends(get_admin_user)],
     response_model=DomainPublic,
 )
@@ -432,7 +432,7 @@ async def activate_domain(
 
 
 @router.patch(
-    "/{domain_id}/deactivate/",
+    "/{domain_id}/deactivate",
     dependencies=[Depends(get_admin_user)],
     response_model=DomainPublic,
 )

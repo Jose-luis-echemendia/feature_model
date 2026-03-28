@@ -183,7 +183,7 @@ async def create_user(
 # ===========================================================================
 
 
-@router.patch("/me/", response_model=UserPublic)
+@router.patch("/me", response_model=UserPublic)
 async def update_user_me_(
     *, user_repo: AsyncUserRepoDep, user_in: UserUpdateMe, current_user: CurrentUser
 ) -> UserPublic:
@@ -210,7 +210,7 @@ async def update_user_me_(
 # ===========================================================================
 
 
-@router.patch("/me/password/", response_model=Message)
+@router.patch("/me/password", response_model=Message)
 async def update_password_me(
     *, user_repo: AsyncUserRepoDep, body: UpdatePassword, current_user: CurrentUser
 ) -> Message:
@@ -242,7 +242,7 @@ async def update_password_me(
 # ===========================================================================
 
 
-@router.get("/me/", response_model=UserPublic)
+@router.get("/me", response_model=UserPublic)
 async def read_user_me(*, current_user: CurrentUser) -> UserPublic:
     """
     Get current user.
@@ -256,7 +256,7 @@ async def read_user_me(*, current_user: CurrentUser) -> UserPublic:
 # ===========================================================================
 
 
-@router.delete("/me/", response_model=Message)
+@router.delete("/me", response_model=Message)
 async def delete_user_me(
     *, user_repo: AsyncUserRepoDep, current_user: CurrentUser
 ) -> Message:
@@ -281,7 +281,7 @@ async def delete_user_me(
 # ===========================================================================
 
 
-@router.post("/signup/", response_model=UserPublic)
+@router.post("/signup", response_model=UserPublic)
 async def register_user(
     *,
     user_repo: AsyncUserRepoDep,
@@ -325,7 +325,7 @@ async def register_user(
 # ===========================================================================
 
 
-@router.get("/{user_id}/", response_model=UserPublic)
+@router.get("/{user_id}", response_model=UserPublic)
 @cache(expire=300)  # Cache por 5 minutos
 async def read_user_by_id(
     *, user_id: uuid.UUID, user_repo: AsyncUserRepoDep, current_user: CurrentUser
@@ -369,7 +369,7 @@ async def read_user_by_id(
 
 
 @router.patch(
-    "/{user_id}/",
+    "/{user_id}",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UserPublic,
 )
@@ -407,7 +407,7 @@ async def update_user(
 # ===========================================================================
 
 
-@router.put("/{user_id}/role/", response_model=UserPublic)
+@router.put("/{user_id}/role", response_model=UserPublic)
 async def update_user_role(
     *,
     user_id: uuid.UUID,
@@ -448,7 +448,7 @@ async def update_user_role(
 # ===========================================================================
 
 
-@router.delete("/{user_id}/", dependencies=[Depends(get_current_active_superuser)])
+@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
 async def delete_user(
     *, user_repo: AsyncUserRepoDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> Message:
@@ -481,7 +481,7 @@ async def delete_user(
 # ===========================================================================
 
 
-@router.get("/search/{search_term}/", response_model=UserListResponse)
+@router.get("/search/{search_term}", response_model=UserListResponse)
 @cache(expire=300)  # Cache por 5 minutos
 async def search_users(
     *, user_repo: AsyncUserRepoDep, search_term: str, skip: int = 0, limit: int = 100
@@ -513,7 +513,7 @@ async def search_users(
 # ===========================================================================
 
 
-@router.patch("/{user_id}/activate/", response_model=UserPublic)
+@router.patch("/{user_id}/activate", response_model=UserPublic)
 async def activate_user(
     *, user_id: uuid.UUID, user_repo: AsyncUserRepoDep, current_user: CurrentUser
 ) -> UserPublic:
@@ -538,7 +538,7 @@ async def activate_user(
     return activated_user
 
 
-@router.patch("/{user_id}/deactivate/", response_model=UserPublic)
+@router.patch("/{user_id}/deactivate", response_model=UserPublic)
 async def deactivate_user(
     *, user_id: uuid.UUID, user_repo: AsyncUserRepoDep, current_user: CurrentUser
 ) -> UserPublic:

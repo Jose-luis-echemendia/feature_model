@@ -108,7 +108,7 @@ def generate_password_reset_token(email: str) -> str:
     exp = expires.timestamp()
     encoded_jwt = jwt.encode(
         {"exp": exp, "nbf": now, "sub": email},
-        settings.SECRET_KEY,
+        settings.SECRET_KEY.get_secret_value(),
         algorithm=security.ALGORITHM,
     )
     return encoded_jwt
@@ -117,7 +117,9 @@ def generate_password_reset_token(email: str) -> str:
 def verify_password_reset_token(token: str) -> str | None:
     try:
         decoded_token = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+            token,
+            settings.SECRET_KEY.get_secret_value(),
+            algorithms=[security.ALGORITHM],
         )
         return str(decoded_token["sub"])
     except InvalidTokenError:

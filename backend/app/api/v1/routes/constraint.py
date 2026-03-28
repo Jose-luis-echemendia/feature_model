@@ -50,7 +50,7 @@ async def create_constraint(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.delete("/{constraint_id}/", response_model=Message)
+@router.delete("/{constraint_id}", response_model=Message)
 async def delete_constraint(
     *,
     constraint_id: uuid.UUID,

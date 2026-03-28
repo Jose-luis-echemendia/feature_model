@@ -247,7 +247,7 @@ async def create_feature_model(
 
 
 @router.get(
-    "/{model_id}/",
+    "/{model_id}",
     dependencies=[Depends(get_verified_user)],
     response_model=FeatureModelPublic,
 )
@@ -323,7 +323,7 @@ async def read_feature_model(
     )
 
 
-@router.patch("/{model_id}/", response_model=FeatureModelPublic)
+@router.patch("/{model_id}", response_model=FeatureModelPublic)
 async def update_feature_model(
     *,
     model_id: uuid.UUID,
@@ -421,7 +421,7 @@ async def update_feature_model(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.patch("/{model_id}/activate/", response_model=FeatureModelPublic)
+@router.patch("/{model_id}/activate", response_model=FeatureModelPublic)
 async def activate_feature_model(
     *,
     model_id: uuid.UUID,
@@ -506,7 +506,7 @@ async def activate_feature_model(
     )
 
 
-@router.patch("/{model_id}/deactivate/", response_model=FeatureModelPublic)
+@router.patch("/{model_id}/deactivate", response_model=FeatureModelPublic)
 async def deactivate_feature_model(
     *,
     model_id: uuid.UUID,
@@ -596,7 +596,7 @@ async def deactivate_feature_model(
     )
 
 
-@router.delete("/{model_id}/", response_model=Message)
+@router.delete("/{model_id}", response_model=Message)
 async def delete_feature_model(
     *,
     model_id: uuid.UUID,
