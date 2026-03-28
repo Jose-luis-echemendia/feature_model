@@ -19,9 +19,13 @@ Estrategias disponibles:
 """
 
 import random
-from typing import Dict, List, Any, Optional, Set
+from typing import Dict, List, Any, Optional, Set, Callable
 
 from app.enums import GenerationStrategy
+from app.services.feature_model.fm_logical_validator import (
+    FeatureModelLogicalValidator,
+)
+from app.exceptions import InvalidConfigurationException
 
 # DEAP para algoritmos genéticos
 try:
@@ -104,21 +108,54 @@ class FeatureModelConfigurationGenerator:
         self._initialize(features, relations, constraints)
 
         if strategy == GenerationStrategy.GREEDY:
-            return self._generate_greedy(partial_selection, max_iterations)
+            return self._generate_with_validation(
+                self._generate_greedy,
+                features,
+                relations,
+                constraints,
+                partial_selection,
+                max_iterations,
+            )
         elif strategy == GenerationStrategy.RANDOM:
-            return self._generate_random(partial_selection, max_iterations)
+            return self._generate_with_validation(
+                self._generate_random,
+                features,
+                relations,
+                constraints,
+                partial_selection,
+                max_iterations,
+            )
         elif strategy == GenerationStrategy.BEAM_SEARCH:
-            return self._generate_beam_search(partial_selection, max_iterations)
+            return self._generate_with_validation(
+                self._generate_beam_search,
+                features,
+                relations,
+                constraints,
+                partial_selection,
+                max_iterations,
+            )
         elif strategy == GenerationStrategy.GENETIC:
             if DEAP_AVAILABLE:
-                return self._generate_genetic(partial_selection, max_iterations)
-            else:
-                # Fallback a RANDOM si DEAP no está disponible
-                return self._generate_random(partial_selection, max_iterations)
-        else:
-            return GenerationResult(
-                success=False, errors=[f"Estrategia no soportada: {strategy}"]
+                return self._generate_with_validation(
+                    self._generate_genetic,
+                    features,
+                    relations,
+                    constraints,
+                    partial_selection,
+                    max_iterations,
+                )
+            return self._generate_with_validation(
+                self._generate_random,
+                features,
+                relations,
+                constraints,
+                partial_selection,
+                max_iterations,
             )
+
+        return GenerationResult(
+            success=False, errors=[f"Estrategia no soportada: {strategy}"]
+        )
 
     def complete_partial_configuration(
         self,
@@ -267,9 +304,6 @@ class FeatureModelConfigurationGenerator:
                     if should_include:
                         queue.append(child_id)
 
-        # Verificar que no se violen constraints (simplificado)
-        # En producción, usar el LogicalValidator aquí
-
         selected = [fid for fid, selected in configuration.items() if selected]
 
         return GenerationResult(
@@ -342,9 +376,53 @@ class FeatureModelConfigurationGenerator:
 
         Más sofisticado que greedy, explora múltiples caminos en paralelo.
         """
-        # TODO: Implementación completa futura
-        # Por ahora, delegar a greedy
-        return self._generate_greedy(partial_selection, max_iterations)
+        beam_width = 5
+        feature_ids = list(self.features_map.keys())
+        optional_ids = self._get_optional_features()
+
+        # Config inicial
+        base_config = partial_selection.copy() if partial_selection else {}
+        root = self._find_root()
+        if not root:
+            return GenerationResult(success=False, errors=["No se encontró feature raíz"])
+        base_config[str(root["id"])] = True
+        self._propagate_mandatory(base_config)
+
+        beam: List[Dict[str, bool]] = [base_config]
+        iterations = 0
+
+        for fid in optional_ids:
+            iterations += 1
+            if iterations > max_iterations:
+                break
+            new_beam: List[Dict[str, bool]] = []
+            for config in beam:
+                if fid in config:
+                    new_beam.append(config)
+                    continue
+                for value in (False, True):
+                    candidate = config.copy()
+                    candidate[fid] = value
+                    self._propagate_mandatory(candidate)
+                    new_beam.append(candidate)
+
+            # Rankear candidatos
+            scored = [
+                (self._score_configuration(c, feature_ids), c) for c in new_beam
+            ]
+            scored.sort(key=lambda x: x[0], reverse=True)
+            beam = [c for _, c in scored[:beam_width]]
+
+        best_config = beam[0] if beam else base_config
+        selected = [fid for fid, sel in best_config.items() if sel]
+
+        return GenerationResult(
+            success=True,
+            configuration=best_config,
+            selected_features=selected,
+            iterations=iterations,
+            score=self._score_configuration(best_config, feature_ids),
+        )
 
     def _generate_genetic(
         self, partial_selection: Optional[Dict[str, bool]], max_iterations: int
@@ -404,6 +482,10 @@ class FeatureModelConfigurationGenerator:
             if len(selected) == 0:
                 return (0.0,)
 
+            # Validar restricciones
+            if not self._is_valid_configuration(selected):
+                return (0.0,)
+
             # Score: número de features / total
             score = len(selected) / n_features
             return (score,)
@@ -440,6 +522,89 @@ class FeatureModelConfigurationGenerator:
             iterations=self.num_generations,
             score=best_individual.fitness.values[0],
         )
+
+    def _generate_with_validation(
+        self,
+        generator: Callable[[Optional[Dict[str, bool]], int], GenerationResult],
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        partial_selection: Optional[Dict[str, bool]],
+        max_iterations: int,
+    ) -> GenerationResult:
+        """Envuelve estrategias con validación SAT/SMT."""
+        self._validator = FeatureModelLogicalValidator()
+        attempts = min(20, max_iterations)
+
+        for _ in range(attempts):
+            result = generator(partial_selection, max_iterations)
+            if not result.success:
+                continue
+            if self._is_valid_configuration(
+                result.selected_features, features, relations, constraints
+            ):
+                return result
+
+        return GenerationResult(
+            success=False,
+            errors=["No se encontró configuración válida bajo las restricciones"],
+        )
+
+    def _is_valid_configuration(
+        self,
+        selected_features: List[str],
+        features: Optional[List[Dict[str, Any]]] = None,
+        relations: Optional[List[Dict[str, Any]]] = None,
+        constraints: Optional[List[Dict[str, Any]]] = None,
+    ) -> bool:
+        """Valida una configuración con el LogicalValidator."""
+        features = features or list(self.features_map.values())
+        relations = relations or [r for rels in self.relations_map.values() for r in rels]
+        constraints = constraints or self.constraints
+
+        try:
+            validator = FeatureModelLogicalValidator()
+            validator.validate_configuration(
+                features, relations, constraints, selected_features
+            )
+            return True
+        except InvalidConfigurationException:
+            return False
+        except Exception:
+            return False
+
+    def _get_optional_features(self) -> List[str]:
+        """Obtiene ids de features optional basadas en relaciones."""
+        optional_ids = []
+        for rels in self.relations_map.values():
+            for relation in rels:
+                if relation.get("relation_type") == "optional":
+                    optional_ids.append(str(relation.get("child_id")))
+        return optional_ids
+
+    def _propagate_mandatory(self, configuration: Dict[str, bool]) -> None:
+        """Propaga selección de mandatory desde parents seleccionados."""
+        changed = True
+        while changed:
+            changed = False
+            for rels in self.relations_map.values():
+                for relation in rels:
+                    if relation.get("relation_type") != "mandatory":
+                        continue
+                    parent_id = str(relation.get("parent_id"))
+                    child_id = str(relation.get("child_id"))
+                    if configuration.get(parent_id) and not configuration.get(child_id):
+                        configuration[child_id] = True
+                        changed = True
+
+    def _score_configuration(
+        self, configuration: Dict[str, bool], feature_ids: List[str]
+    ) -> float:
+        """Score heurístico simple basado en completitud."""
+        selected = [fid for fid, sel in configuration.items() if sel]
+        if not feature_ids:
+            return 0.0
+        return len(selected) / len(feature_ids)
 
     def _find_root(self) -> Optional[Dict[str, Any]]:
         """Encuentra la feature raíz (sin parent)."""

@@ -24,7 +24,13 @@ from typing import Dict, List, Any, Set, Tuple, Optional
 from collections import defaultdict
 
 # NetworkX para análisis avanzado de grafos
-import networkx as nx
+try:
+    import networkx as nx
+
+    NETWORKX_AVAILABLE = True
+except ImportError:
+    nx = None
+    NETWORKX_AVAILABLE = False
 
 from app.enums import AnalysisType
 from app.exceptions import (
@@ -84,11 +90,9 @@ class FeatureModelStructuralAnalyzer:
     def __init__(self):
         """Inicializa el analizador estructural."""
         self.features_map: Dict[str, Dict[str, Any]] = {}
-        self.graph: nx.DiGraph = nx.DiGraph()  # Grafo dirigido principal
-        self.tree_graph: nx.DiGraph = nx.DiGraph()  # Árbol jerárquico
-        self.dependency_graph: nx.DiGraph = (
-            nx.DiGraph()
-        )  # Grafo de dependencias cross-tree
+        self.nx_graph = nx.DiGraph() if NETWORKX_AVAILABLE else None
+        self.nx_tree_graph = nx.DiGraph() if NETWORKX_AVAILABLE else None
+        self.nx_dependency_graph = nx.DiGraph() if NETWORKX_AVAILABLE else None
         self.relations: List[Dict[str, Any]] = []
         self.constraints: List[Dict[str, Any]] = []
         self.graph: Dict[str, List[str]] = {}  # Grafo de dependencias
@@ -203,12 +207,35 @@ class FeatureModelStructuralAnalyzer:
         self.graph = defaultdict(list)
         self.reverse_graph = defaultdict(list)
 
+        if NETWORKX_AVAILABLE:
+            self.nx_graph = nx.DiGraph()
+            self.nx_tree_graph = nx.DiGraph()
+            self.nx_dependency_graph = nx.DiGraph()
+
         for relation in relations:
             parent_id = str(relation.get("parent_id"))
             child_id = str(relation.get("child_id"))
 
             self.graph[parent_id].append(child_id)
             self.reverse_graph[child_id].append(parent_id)
+
+            if NETWORKX_AVAILABLE:
+                self.nx_graph.add_edge(parent_id, child_id)
+                self.nx_tree_graph.add_edge(parent_id, child_id)
+
+        # Agregar dependencias derivadas de constraints (requires)
+        name_to_id = self._build_feature_name_map(features)
+        for constraint in constraints:
+            expr_text = constraint.get("expr_text", "")
+            parsed = self._parse_binary_constraint(expr_text, name_to_id)
+            if not parsed:
+                continue
+            ctype, left_id, right_id = parsed
+            if ctype == "requires":
+                self.graph[left_id].append(right_id)
+                self.reverse_graph[right_id].append(left_id)
+                if NETWORKX_AVAILABLE:
+                    self.nx_dependency_graph.add_edge(left_id, right_id)
 
     def _analyze_dead_features(self) -> StructuralAnalysisResult:
         """
@@ -321,8 +348,39 @@ class FeatureModelStructuralAnalyzer:
         """
         issues = []
 
-        # TODO: Parsear constraints y extraer dependencias implícitas
-        # Por ahora, retornar placeholder
+        name_to_id = self._build_feature_name_map(list(self.features_map.values()))
+        explicit_pairs = {
+            (str(rel.get("parent_id")), str(rel.get("child_id")))
+            for rel in self.relations
+        }
+
+        for constraint in self.constraints:
+            expr_text = constraint.get("expr_text", "")
+            parsed = self._parse_binary_constraint(expr_text, name_to_id)
+            if not parsed:
+                continue
+            ctype, left_id, right_id = parsed
+
+            if ctype == "requires" and (left_id, right_id) not in explicit_pairs:
+                issues.append(
+                    StructuralIssue(
+                        issue_type="implicit_requires",
+                        severity="minor",
+                        feature_id=left_id,
+                        description=f"Relación implícita: {left_id} requiere {right_id}",
+                        recommendation="Considerar documentar esta relación en la jerarquía",
+                    )
+                )
+            if ctype == "excludes":
+                issues.append(
+                    StructuralIssue(
+                        issue_type="implicit_excludes",
+                        severity="minor",
+                        feature_id=left_id,
+                        description=f"Relación implícita: {left_id} excluye {right_id}",
+                        recommendation="Considerar documentar esta relación como cross-tree",
+                    )
+                )
 
         return StructuralAnalysisResult(
             analysis_type=AnalysisType.IMPLICIT_RELATIONS,
@@ -376,9 +434,11 @@ class FeatureModelStructuralAnalyzer:
         """
         issues = []
 
-        # Implementación simplificada de Tarjan's SCC
-        # En producción, usar NetworkX
-        sccs = self._tarjan_scc()
+        # Usar NetworkX si está disponible
+        if NETWORKX_AVAILABLE and self.nx_dependency_graph is not None:
+            sccs = list(nx.strongly_connected_components(self.nx_dependency_graph))
+        else:
+            sccs = self._tarjan_scc()
 
         # SCCs con más de 1 elemento son ciclos
         for scc in sccs:
@@ -530,9 +590,67 @@ class FeatureModelStructuralAnalyzer:
 
         Implementación simplificada.
         """
-        # TODO: Implementación completa de Tarjan
-        # Por ahora, retornar cada nodo como su propio componente
-        return [[fid] for fid in self.features_map.keys()]
+        index = 0
+        stack: list[str] = []
+        indices: Dict[str, int] = {}
+        lowlink: Dict[str, int] = {}
+        on_stack: Set[str] = set()
+        result: List[List[str]] = []
+
+        def strongconnect(node: str) -> None:
+            nonlocal index
+            indices[node] = index
+            lowlink[node] = index
+            index += 1
+            stack.append(node)
+            on_stack.add(node)
+
+            for neighbor in self.graph.get(node, []):
+                if neighbor not in indices:
+                    strongconnect(neighbor)
+                    lowlink[node] = min(lowlink[node], lowlink[neighbor])
+                elif neighbor in on_stack:
+                    lowlink[node] = min(lowlink[node], indices[neighbor])
+
+            if lowlink[node] == indices[node]:
+                scc = []
+                while True:
+                    w = stack.pop()
+                    on_stack.remove(w)
+                    scc.append(w)
+                    if w == node:
+                        break
+                result.append(scc)
+
+        for node in self.features_map.keys():
+            if node not in indices:
+                strongconnect(node)
+
+        return result
+
+    def _build_feature_name_map(self, features: List[Dict[str, Any]]) -> Dict[str, str]:
+        name_to_id = {}
+        for feature in features:
+            feature_id = str(feature.get("id"))
+            name = feature.get("name", feature_id)
+            name_to_id[name.strip().lower()] = feature_id
+        return name_to_id
+
+    def _parse_binary_constraint(
+        self, expr_text: str, name_to_id: Dict[str, str]
+    ) -> Optional[Tuple[str, str, str]]:
+        expr_upper = expr_text.upper()
+        if "REQUIRES" in expr_upper:
+            idx = expr_upper.index("REQUIRES")
+            left = expr_text[:idx].strip().lower()
+            right = expr_text[idx + len("REQUIRES") :].strip().lower()
+            return "requires", name_to_id.get(left, left), name_to_id.get(right, right)
+        if "EXCLUDES" in expr_upper:
+            idx = expr_upper.index("EXCLUDES")
+            left = expr_text[:idx].strip().lower()
+            right = expr_text[idx + len("EXCLUDES") :].strip().lower()
+            return "excludes", name_to_id.get(left, left), name_to_id.get(right, right)
+        return None
 
     def validate_tree_structure(
         self, features: List[Dict[str, Any]], relations: List[Dict[str, Any]]
