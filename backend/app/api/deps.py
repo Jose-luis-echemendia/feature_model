@@ -1,12 +1,10 @@
-from collections.abc import Generator
-from typing import Annotated, Callable, AsyncGenerator
+from typing import Annotated, AsyncGenerator, Awaitable, Callable
 
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 from pydantic import ValidationError
-from sqlmodel import Session
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
@@ -137,92 +135,8 @@ AsyncFeatureModelVersionRepoDep = Annotated[
 
 
 # ========================================================================
-#     --- DEPENDENCIAS PARA USUARIOS AUTENTICADOS ---
+#     --- DEPENDENCIAS ASÍNCRONAS PARA USUARIOS AUTENTICADOS ---
 # ========================================================================
-
-
-def get_current_user(session: SessionDep, token: TokenDep) -> User:
-    """
-    Obtener usuario actual basado en el token JWT.
-
-    Args:
-        session: Sesión de base de datos
-        token: Token JWT
-
-    Returns:
-        User: Usuario autenticado
-
-    Raises:
-        HTTPException: Si el token es inválido, expirado o el usuario no existe/inactivo
-    """
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    try:
-        payload = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[security.ALGORITHM],
-            options={"verify_exp": True},  # Asegurar verificación de expiración
-        )
-        token_data = TokenPayload(**payload)
-
-    except ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except (InvalidTokenError, ValidationError) as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # Usar el repositorio para obtener el usuario
-    user_repo = UserRepository(session)
-    user = user_repo.get(user_id=token_data.sub)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-        )
-
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Inactive user",
-        )
-
-    return user
-
-
-def get_optional_user(
-    session: SessionDep, token: OptionalTokenDep = None
-) -> User | None:
-    """
-    Obtener usuario actual si existe token, sino retornar None.
-    Útil para endpoints que funcionan tanto para usuarios autenticados como anónimos.
-    """
-    if not token:
-        return None
-
-    try:
-        return get_current_user(token=token)
-    except HTTPException:
-        return None
-
-
-CurrentUser = Annotated[User, Depends(get_current_user)]
-OptionalUser = Annotated[User | None, Depends(get_optional_user)]
-
-
-# --- VERSIONES ASÍNCRONAS DE AUTENTICACIÓN ---
 
 
 async def get_current_user(user_repo: AsyncUserRepoDep, token: TokenDep) -> User:
@@ -249,7 +163,7 @@ async def get_current_user(user_repo: AsyncUserRepoDep, token: TokenDep) -> User
     try:
         payload = jwt.decode(
             token,
-            settings.SECRET_KEY,
+            settings.SECRET_KEY.get_secret_value(),
             algorithms=[security.ALGORITHM],
             options={"verify_exp": True},
         )
@@ -300,8 +214,12 @@ async def get_optional_user(
         return None
 
 
-AsyncCurrentUser = Annotated[User, Depends(get_current_user)]
-AsyncOptionalUser = Annotated[User | None, Depends(get_optional_user)]
+CurrentUser = Annotated[User, Depends(get_current_user)]
+OptionalUser = Annotated[User | None, Depends(get_optional_user)]
+
+# Alias de compatibilidad
+AsyncCurrentUser = CurrentUser
+AsyncOptionalUser = OptionalUser
 
 
 # ========================================================================
@@ -309,7 +227,7 @@ AsyncOptionalUser = Annotated[User | None, Depends(get_optional_user)]
 # ========================================================================
 
 
-def get_current_active_superuser(current_user: CurrentUser) -> User:
+async def get_current_active_superuser(current_user: CurrentUser) -> User:
     """
     Verificar que el usuario actual sea superusuario activo.
 
@@ -338,7 +256,9 @@ CurrentSuperUser = Annotated[User, Depends(get_current_active_superuser)]
 # ========================================================================
 
 
-def role_required(allowed_roles: list[UserRole]) -> Callable[[CurrentUser], User]:
+def role_required(
+    allowed_roles: list[UserRole],
+) -> Callable[[CurrentUser], Awaitable[User]]:
     """
     Factory para crear dependencias de verificación de roles.
 
@@ -349,7 +269,7 @@ def role_required(allowed_roles: list[UserRole]) -> Callable[[CurrentUser], User
         Callable: Dependencia que verifica los roles
     """
 
-    def dependency(current_user: CurrentUser) -> User:
+    async def dependency(current_user: CurrentUser) -> User:
         """
         Verificar si el usuario tiene uno de los roles permitidos.
 
@@ -380,7 +300,7 @@ def role_required(allowed_roles: list[UserRole]) -> Callable[[CurrentUser], User
 # Dependencias predefinidas para roles comunes
 
 
-def get_developer_user(current_user: CurrentUser) -> User:
+async def get_developer_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios desarrolladores (máximo nivel de acceso)."""
     if current_user.role != UserRole.DEVELOPER:
         raise HTTPException(
@@ -390,7 +310,7 @@ def get_developer_user(current_user: CurrentUser) -> User:
     return current_user
 
 
-def get_admin_user(current_user: CurrentUser) -> User:
+async def get_admin_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios administradores."""
     if current_user.role not in [UserRole.ADMIN, UserRole.DEVELOPER]:
         raise HTTPException(
@@ -400,7 +320,7 @@ def get_admin_user(current_user: CurrentUser) -> User:
     return current_user
 
 
-def get_model_designer_user(current_user: CurrentUser) -> User:
+async def get_model_designer_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios diseñadores de modelos."""
     if current_user.role not in [
         UserRole.MODEL_DESIGNER,
@@ -414,7 +334,7 @@ def get_model_designer_user(current_user: CurrentUser) -> User:
     return current_user
 
 
-def get_editor_user(current_user: CurrentUser) -> User:
+async def get_editor_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios editores"""
     if current_user.role not in [
         UserRole.MODEL_EDITOR,
@@ -428,7 +348,7 @@ def get_editor_user(current_user: CurrentUser) -> User:
     return current_user
 
 
-def get_configurator_user(current_user: CurrentUser) -> User:
+async def get_configurator_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios configuradores"""
     if current_user.role not in [
         UserRole.CONFIGURATOR,
@@ -442,7 +362,7 @@ def get_configurator_user(current_user: CurrentUser) -> User:
     return current_user
 
 
-def get_viewer_user(current_user: CurrentUser) -> User:
+async def get_viewer_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios observadores"""
     if current_user.role not in [UserRole.VIEWER, UserRole.ADMIN, UserRole.DEVELOPER]:
         raise HTTPException(
@@ -452,7 +372,7 @@ def get_viewer_user(current_user: CurrentUser) -> User:
     return current_user
 
 
-def get_reviewer_user(current_user: CurrentUser) -> User:
+async def get_reviewer_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios revisores"""
     if current_user.role not in [UserRole.REVIEWER, UserRole.ADMIN, UserRole.DEVELOPER]:
         raise HTTPException(
@@ -462,7 +382,7 @@ def get_reviewer_user(current_user: CurrentUser) -> User:
     return current_user
 
 
-def get_verified_user(current_user: CurrentUser) -> User:
+async def get_verified_user(current_user: CurrentUser) -> User:
     """Dependencia para usuarios verificados (no guests)."""
     allowed_roles = [
         UserRole.DEVELOPER,
@@ -497,7 +417,7 @@ VerifiedUser = Annotated[User, Depends(get_verified_user)]
 from app.services.settings import SettingsService
 
 
-def get_settings_service(session: SessionDep) -> SettingsService:
+async def get_settings_service(session: SessionDep) -> SettingsService:
     return SettingsService(session=session)
 
 
