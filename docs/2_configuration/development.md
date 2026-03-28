@@ -141,6 +141,13 @@ Using `uv`, you could do it with:
 pre-commit installed at .git/hooks/pre-commit
 ```
 
+Para activar también la validación de mensajes de commit (Conventional Commits), instala el hook de commit-msg:
+
+```bash
+❯ uv run pre-commit install --hook-type commit-msg
+pre-commit installed at .git/hooks/commit-msg
+```
+
 Now whenever you try to commit, e.g. with:
 
 ```bash
@@ -150,6 +157,23 @@ git commit
 ...pre-commit will run and check and format the code you are about to commit, and will ask you to add that code (stage it) with git again before committing.
 
 Then you can `git add` the modified/fixed files again and now you can commit.
+
+#### Convenciones de commit
+
+El proyecto exige mensajes de commit con el formato Conventional Commits para mantener un historial limpio y profesional.
+
+Formato:
+
+`tipo(ámbito opcional)!: descripción`
+
+Tipos permitidos:
+build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test.
+
+Ejemplos:
+
+- feat(api): agregar endpoint de reportes
+- fix: corregir validación de email
+- refactor(auth)!: simplificar flujo de login
 
 #### Running pre-commit hooks manually
 
