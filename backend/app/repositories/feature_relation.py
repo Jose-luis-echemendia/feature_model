@@ -7,6 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.models import (
     FeatureRelation,
     FeatureRelationCreate,
+    FeatureRelationUpdate,
     User,
 )
 from app.repositories.base import BaseFeatureRelationRepository
@@ -92,6 +93,74 @@ class FeatureRelationRepository(BaseFeatureRelationRepository):
         stmt = select(FeatureRelation).where(FeatureRelation.id == relation_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def update(
+        self,
+        db_relation: FeatureRelation,
+        data: FeatureRelationUpdate,
+        user: User,
+        feature_model_version_repo: "FeatureModelVersionRepository",
+    ) -> FeatureRelation:
+        """
+        Actualiza una relación usando estrategia copy-on-write.
+        """
+
+        def _update_relation_sync(sync_session):
+            from app.repositories import FeatureModelVersionRepositorySync
+
+            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+
+            source_version = db_relation.feature_model_version
+            new_version, old_to_new_id_map = (
+                sync_version_repo.create_new_version_from_existing(
+                    source_version=source_version,
+                    user=user,
+                    return_id_map=True,
+                )
+            )
+
+            new_source_id = old_to_new_id_map.get(db_relation.source_feature_id)
+            new_target_id = old_to_new_id_map.get(db_relation.target_feature_id)
+            if not new_source_id or not new_target_id:
+                raise RuntimeError("Could not map old feature IDs to new ones.")
+
+            statement = select(FeatureRelation).where(
+                FeatureRelation.feature_model_version_id == new_version.id,
+                FeatureRelation.source_feature_id == new_source_id,
+                FeatureRelation.target_feature_id == new_target_id,
+                FeatureRelation.type == db_relation.type,
+            )
+            relation_to_update = sync_session.exec(statement).first()
+
+            if not relation_to_update:
+                raise RuntimeError(
+                    "Could not fetch the cloned relation from the database."
+                )
+
+            update_data = data.model_dump(exclude_unset=True)
+
+            if "source_feature_id" in update_data and update_data["source_feature_id"]:
+                mapped_source = old_to_new_id_map.get(update_data["source_feature_id"])
+                if not mapped_source:
+                    raise ValueError("Source feature not found in the source version.")
+                update_data["source_feature_id"] = mapped_source
+
+            if "target_feature_id" in update_data and update_data["target_feature_id"]:
+                mapped_target = old_to_new_id_map.get(update_data["target_feature_id"])
+                if not mapped_target:
+                    raise ValueError("Target feature not found in the source version.")
+                update_data["target_feature_id"] = mapped_target
+
+            relation_to_update.sqlmodel_update(update_data)
+            relation_to_update.updated_at = datetime.utcnow()
+            relation_to_update.updated_by_id = user.id
+            sync_session.add(relation_to_update)
+            sync_session.commit()
+            sync_session.refresh(relation_to_update)
+            return relation_to_update
+
+        result = await self.session.run_sync(_update_relation_sync)
+        return result
 
     async def delete(
         self,
