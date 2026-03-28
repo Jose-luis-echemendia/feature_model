@@ -35,6 +35,7 @@ class FeatureModelVersionBase(SQLModel):
 
     version_number: int = Field(default=1, index=True)
     snapshot: Optional[dict[str, Any]] = Field(default=None, sa_column=Column(JSONB))
+    uvl_content: Optional[str] = Field(default=None)
     feature_model_id: uuid.UUID = Field(foreign_key="feature_model.id")
     status: ModelStatus = Field(default=ModelStatus.DRAFT)
 
@@ -81,6 +82,17 @@ class FeatureModelVersionCreate(SQLModel):
 
 class FeatureModelVersionUpdate(SQLModel):
     is_active: Optional[bool] = None
+
+
+class FeatureModelVersionUVLUpdate(SQLModel):
+    uvl_content: str
+
+
+class FeatureModelVersionUVLPublic(SQLModel):
+    version_id: uuid.UUID
+    feature_model_id: uuid.UUID
+    uvl_content: str
+    source: str
 
 
 # ========================================================================================

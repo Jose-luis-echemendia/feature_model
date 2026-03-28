@@ -228,6 +228,7 @@ class FeatureModelVersionInfo(BaseModel):
     version_number: int
     status: ModelStatus
     snapshot: Optional[dict[str, Any]] = None
+    uvl_content: Optional[str] = None
     created_at: datetime
 
 
@@ -251,6 +252,10 @@ class FeatureModelCompleteResponse(BaseModel):
     )
     constraints: list[ConstraintInfo] = Field(
         default_factory=list, description="Restricciones formales del modelo"
+    )
+    uvl: Optional[str] = Field(
+        None,
+        description="Representación UVL efectiva de la versión (guardada o generada desde la estructura).",
     )
     statistics: Optional[FeatureModelStatistics] = Field(
         None, description="Estadísticas pre-computadas (opcional)"
@@ -278,6 +283,7 @@ class FeatureModelCompleteResponse(BaseModel):
                     "version_number": 1,
                     "status": "PUBLISHED",
                     "snapshot": {},
+                    "uvl_content": "namespace Ingenieria_en_Ciencias_Informaticas\n\nfeatures\n    Plan_de_Estudios_ICI",
                     "created_at": "2025-11-24T06:36:26.897923",
                 },
                 "tree": {
@@ -294,6 +300,7 @@ class FeatureModelCompleteResponse(BaseModel):
                 },
                 "relations": [],
                 "constraints": [],
+                "uvl": "namespace Ingenieria_en_Ciencias_Informaticas\n\nfeatures\n    Plan_de_Estudios_ICI",
                 "statistics": {
                     "total_features": 45,
                     "mandatory_features": 32,
