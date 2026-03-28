@@ -90,7 +90,10 @@ async def save_feature_model_version_uvl(
         raise FeatureModelVersionNotFoundException(version_id=str(version_id))
 
     # Solo owner del modelo o superuser pueden persistir cambios de UVL
-    if version.feature_model.owner_id != current_user.id and not current_user.is_superuser:
+    if (
+        version.feature_model.owner_id != current_user.id
+        and not current_user.is_superuser
+    ):
         raise ForbiddenException(detail="Not enough permissions to update UVL")
 
     try:
@@ -129,7 +132,10 @@ async def sync_feature_model_version_uvl_from_structure(
     if not version or version.feature_model_id != model_id:
         raise FeatureModelVersionNotFoundException(version_id=str(version_id))
 
-    if version.feature_model.owner_id != current_user.id and not current_user.is_superuser:
+    if (
+        version.feature_model.owner_id != current_user.id
+        and not current_user.is_superuser
+    ):
         raise ForbiddenException(detail="Not enough permissions to sync UVL")
 
     version.uvl_content = FeatureModelExportService(version).export_to_uvl()

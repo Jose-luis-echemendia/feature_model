@@ -22,15 +22,15 @@ if TYPE_CHECKING:
     from .feature_relation import FeatureRelation
     from .constraint import Constraint
     from .configuration import Configuration
-    
-    
+
+
 # ========================================================================
 #  --- Modelo base para el versionado de los Modelos Característicos ---
 # ========================================================================
 
 
 class FeatureModelVersionBase(SQLModel):
-    
+
     # ------------------ FIELDs ----------------------------------------
 
     version_number: int = Field(default=1, index=True)
@@ -40,18 +40,17 @@ class FeatureModelVersionBase(SQLModel):
     status: ModelStatus = Field(default=ModelStatus.DRAFT)
 
 
-
 # =======================================================================================
 #  --- Modelo para la tabla física de las versiones de los Modelos Característicos ---
 # =======================================================================================
+
 
 class FeatureModelVersion(BaseTable, FeatureModelVersionBase, table=True):
 
     # ------------------ METADATA FOR TABLE ----------------------------------
 
     __tablename__ = "feature_model_versions"
-    
-    
+
     # ------------------ RELATIONSHIP ----------------------------------------
 
     feature_model: "FeatureModel" = Relationship(back_populates="versions")
@@ -76,6 +75,7 @@ class FeatureModelVersion(BaseTable, FeatureModelVersionBase, table=True):
 #  --- Modelos para Entrada de datos de las versiones de los Modelos Característicos ---
 # ===========================================================================================
 
+
 class FeatureModelVersionCreate(SQLModel):
     feature_model_id: uuid.UUID
 
@@ -98,6 +98,7 @@ class FeatureModelVersionUVLPublic(SQLModel):
 # ========================================================================================
 #  --- Modelos para Respuestas de las versiones de los Modelos Característicos ---
 # ========================================================================================
+
 
 class FeatureModelVersionPublic(FeatureModelVersionBase):
     id: uuid.UUID
