@@ -887,9 +887,9 @@ from app.repositories import (
     FeatureModelRepository,
 )
 from app.repositories import (
-    DomainRepositorySync,
-    FeatureRepositorySync,
-    FeatureModelRepositorySync,
+    DomainRepository,
+    FeatureRepository,
+    FeatureModelRepository,
 )
 
 class RepositoryFactory(ABC):
@@ -929,13 +929,13 @@ class SyncRepositoryFactory(RepositoryFactory):
         self.session = session
 
     def create_domain_repo(self):
-        return DomainRepositorySync(self.session)
+        return DomainRepository(self.session)
 
     def create_feature_repo(self):
-        return FeatureRepositorySync(self.session)
+        return FeatureRepository(self.session)
 
     def create_feature_model_repo(self):
-        return FeatureModelRepositorySync(self.session)
+        return FeatureModelRepository(self.session)
 
 # Uso en deps.py
 def get_async_repo_factory(session: SessionDep) -> AsyncRepositoryFactory:

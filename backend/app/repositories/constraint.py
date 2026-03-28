@@ -34,9 +34,9 @@ class ConstraintRepository(BaseConstraintRepository):
 
         def _create_constraint_sync(sync_session):
             # Importar repositorio sync dentro de la función sync
-            from app.repositories import FeatureModelVersionRepositorySync
+            from app.repositories import FeatureModelVersionRepository
 
-            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+            sync_version_repo = FeatureModelVersionRepository(sync_session)
 
             # 1. Obtener la versión de origen
             source_version = sync_version_repo.get(
@@ -87,9 +87,9 @@ class ConstraintRepository(BaseConstraintRepository):
         """
 
         def _update_constraint_sync(sync_session):
-            from app.repositories import FeatureModelVersionRepositorySync
+            from app.repositories import FeatureModelVersionRepository
 
-            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+            sync_version_repo = FeatureModelVersionRepository(sync_session)
 
             source_version = db_constraint.feature_model_version
             new_version, _, _ = sync_version_repo.create_new_version_from_existing(
@@ -136,9 +136,9 @@ class ConstraintRepository(BaseConstraintRepository):
 
         def _delete_constraint_sync(sync_session):
             # Importar repositorio sync dentro de la función sync
-            from app.repositories import FeatureModelVersionRepositorySync
+            from app.repositories import FeatureModelVersionRepository
 
-            sync_version_repo = FeatureModelVersionRepositorySync(sync_session)
+            sync_version_repo = FeatureModelVersionRepository(sync_session)
 
             # 1. Crear una nueva versión a partir de la versión actual de la constraint
             source_version = db_constraint.feature_model_version

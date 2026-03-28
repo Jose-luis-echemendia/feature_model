@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.models.domain import Domain, DomainCreate, DomainUpdate
-from app.repositories.domain import DomainRepositorySync
+from app.repositories.domain import DomainRepository
 from app.tests.utils.utils import random_lower_string
 
 
@@ -34,7 +34,7 @@ def test_create_domain(
     assert "id" in created_domain
 
     # Verificar en base de datos
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.get_by_name(name=domain_name)
     assert domain
     assert domain.name == domain_name
@@ -46,7 +46,7 @@ def test_create_domain_duplicate_name(
     """Test crear dominio con nombre duplicado devuelve error."""
     domain_name = random_domain_name()
     domain_in = DomainCreate(name=domain_name, description="Test")
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain_repo.create(domain_in)
 
     # Intentar crear otro con el mismo nombre
@@ -114,7 +114,7 @@ def test_read_domain(
     """Test obtener un dominio por ID."""
     domain_name = random_domain_name()
     domain_in = DomainCreate(name=domain_name, description="Test domain")
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(domain_in)
 
     r = client.get(
@@ -144,7 +144,7 @@ def test_read_domains(
 ) -> None:
     """Test listar dominios con paginación."""
     # Crear algunos dominios de prueba
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain1 = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test 1")
     )
@@ -183,7 +183,7 @@ def test_read_domains_by_normal_user(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test usuario normal puede listar dominios (solo activos)."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
 
     # Crear dominio activo
     active_domain = domain_repo.create(
@@ -216,7 +216,7 @@ def test_update_domain(
     """Test actualizar un dominio."""
     domain_name = random_domain_name()
     domain_in = DomainCreate(name=domain_name, description="Original description")
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(domain_in)
 
     new_name = random_domain_name()
@@ -257,7 +257,7 @@ def test_update_domain_duplicate_name(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test actualizar dominio con nombre ya existente devuelve error."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain1 = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Domain 1")
     )
@@ -279,7 +279,7 @@ def test_update_domain_only_name(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test actualizar solo el nombre de un dominio."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     original_description = "Original description"
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description=original_description)
@@ -304,7 +304,7 @@ def test_update_domain_only_description(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test actualizar solo la descripción de un dominio."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     original_name = random_domain_name()
     domain = domain_repo.create(
         DomainCreate(name=original_name, description="Original description")
@@ -329,7 +329,7 @@ def test_update_domain_by_normal_user(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test usuario normal no puede actualizar dominios."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test")
     )
@@ -347,7 +347,7 @@ def test_delete_domain(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test eliminar un dominio."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test")
     )
@@ -386,7 +386,7 @@ def test_delete_domain_with_feature_models(
     Se puede implementar cuando esté disponible el módulo de feature models.
     """
     # TODO: Implementar cuando feature models esté disponible
-    # domain_repo = DomainRepositorySync(db)
+    # domain_repo = DomainRepository(db)
     # domain = domain_repo.create(
     #     DomainCreate(name=random_domain_name(), description="Test")
     # )
@@ -407,7 +407,7 @@ def test_delete_domain_by_normal_user(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test usuario normal no puede eliminar dominios."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test")
     )
@@ -424,7 +424,7 @@ def test_search_domains(
 ) -> None:
     """Test buscar dominios por nombre o descripción."""
     search_term = f"searchable_{random_lower_string()}"
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
 
     # Crear dominio con término de búsqueda en el nombre
     domain1 = domain_repo.create(
@@ -474,7 +474,7 @@ def test_search_domains_by_normal_user(
 ) -> None:
     """Test usuario normal puede buscar dominios (solo activos)."""
     search_term = f"searchable_{random_lower_string()}"
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
 
     # Crear dominio activo
     domain_repo.create(
@@ -494,7 +494,7 @@ def test_read_domain_with_feature_models(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test obtener dominio con sus feature models."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test")
     )
@@ -529,7 +529,7 @@ def test_read_domain_with_feature_models_by_normal_user(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test usuario normal no puede obtener dominio con feature models."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test")
     )
@@ -545,7 +545,7 @@ def test_activate_domain(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test activar un dominio desactivado."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test")
     )
@@ -585,7 +585,7 @@ def test_activate_domain_by_normal_user(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test usuario normal no puede activar dominios."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test")
     )
@@ -601,7 +601,7 @@ def test_activate_already_active_domain(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test activar un dominio ya activo no genera error."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test")
     )
@@ -623,7 +623,7 @@ def test_deactivate_domain(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test desactivar un dominio activo."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test")
     )
@@ -660,7 +660,7 @@ def test_deactivate_domain_by_normal_user(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test usuario normal no puede desactivar dominios."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test")
     )
@@ -676,7 +676,7 @@ def test_deactivate_already_inactive_domain(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test desactivar un dominio ya inactivo no genera error."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test")
     )
@@ -700,7 +700,7 @@ def test_activate_then_deactivate_domain(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     """Test flujo completo de activar y desactivar dominio."""
-    domain_repo = DomainRepositorySync(db)
+    domain_repo = DomainRepository(db)
     domain = domain_repo.create(
         DomainCreate(name=random_domain_name(), description="Test")
     )
