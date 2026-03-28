@@ -109,6 +109,40 @@ class FeatureRepository(BaseFeatureRepository):
         )
         return self.build_feature_tree(features_list)
 
+    async def get_filtered(
+        self,
+        *,
+        feature_model_version_id: Optional[UUID] = None,
+        name: Optional[str] = None,
+        feature_type: Optional[str] = None,
+        parent_id: Optional[UUID] = None,
+        group_id: Optional[UUID] = None,
+        include_inactive: bool = False,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> list[Feature]:
+        """Obtener features con filtros avanzados."""
+        stmt = select(Feature)
+        if not include_inactive:
+            stmt = stmt.where(Feature.is_active == True)
+
+        if feature_model_version_id:
+            stmt = stmt.where(
+                Feature.feature_model_version_id == feature_model_version_id
+            )
+        if name:
+            stmt = stmt.where(Feature.name.ilike(f"%{name}%"))
+        if feature_type:
+            stmt = stmt.where(Feature.type == feature_type)
+        if parent_id:
+            stmt = stmt.where(Feature.parent_id == parent_id)
+        if group_id:
+            stmt = stmt.where(Feature.group_id == group_id)
+
+        stmt = stmt.offset(skip).limit(limit)
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
+
     async def update(
         self,
         db_feature: Feature,

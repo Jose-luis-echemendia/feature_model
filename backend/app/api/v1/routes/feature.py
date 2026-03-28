@@ -1,11 +1,15 @@
 import uuid
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_cache.decorator import cache
+from pydantic import BaseModel
+from sqlmodel import select
 
 from app.api.deps import (
     AsyncFeatureRepoDep,
     AsyncFeatureModelRepoDep,
     AsyncCurrentUser,
+    AsyncFeatureRelationRepoDep,
     VerifiedUser,
 )
 from app.models import (
@@ -13,11 +17,25 @@ from app.models import (
     FeaturePublic,
     FeatureUpdate,
     FeaturePublicWithChildren,
+    FeatureRelationPublic,
     Message,
 )
+from app.enums import FeatureType
+from app.models.feature_relation import FeatureRelation
 
 
 router = APIRouter(prefix="/features", tags=["features"])
+
+
+class FeatureMove(BaseModel):
+    parent_id: Optional[uuid.UUID] = None
+
+
+class FeatureReplace(BaseModel):
+    name: str
+    type: FeatureType
+    parent_id: Optional[uuid.UUID] = None
+    group_id: Optional[uuid.UUID] = None
 
 
 @router.get(
@@ -29,19 +47,49 @@ router = APIRouter(prefix="/features", tags=["features"])
 async def read_features_by_model(
     *,
     feature_repo: AsyncFeatureRepoDep,
-    feature_model_version_id: uuid.UUID,
+    feature_model_version_id: Optional[uuid.UUID] = None,
+    name: Optional[str] = None,
+    feature_type: Optional[FeatureType] = None,
+    parent_id: Optional[uuid.UUID] = None,
+    group_id: Optional[uuid.UUID] = None,
+    include_inactive: bool = False,
     skip: int = 0,
     limit: int = 100,
 ) -> list[FeaturePublicWithChildren]:
     """
-    Retrieve all features for a specific feature model version, structured as a tree.
+    Retrieve features with optional filters.
+
+    Modos de uso:
+    - Con feature_model_version_id: devuelve el árbol de la versión (root nodes).
+    - Sin feature_model_version_id: devuelve lista plana con filtros avanzados.
+
+    Filtros soportados:
+    - name: búsqueda parcial por nombre
+    - feature_type: mandatory u optional
+    - parent_id: filtra por parent específico
+    - group_id: filtra por grupo
+    - include_inactive: incluye soft-deleted
+    - skip/limit: paginación
     """
-    root_features = await feature_repo.get_as_tree(
-        feature_model_version_id=feature_model_version_id,
+    if feature_model_version_id:
+        root_features = await feature_repo.get_as_tree(
+            feature_model_version_id=feature_model_version_id,
+            skip=skip,
+            limit=limit,
+        )
+        return root_features
+
+    features = await feature_repo.get_filtered(
+        feature_model_version_id=None,
+        name=name,
+        feature_type=feature_type.value if feature_type else None,
+        parent_id=parent_id,
+        group_id=group_id,
+        include_inactive=include_inactive,
         skip=skip,
         limit=limit,
     )
-    return root_features
+    return [FeaturePublicWithChildren.model_validate(f) for f in features]
 
 
 @router.post("/", response_model=FeaturePublic, status_code=status.HTTP_201_CREATED)
@@ -111,6 +159,72 @@ async def read_feature(
     return feature
 
 
+@router.get(
+    "/{feature_id}/children",
+    dependencies=[Depends(VerifiedUser)],
+    response_model=FeaturePublicWithChildren,
+)
+@cache(expire=300)
+async def read_feature_children(
+    *,
+    feature_id: uuid.UUID,
+    feature_repo: AsyncFeatureRepoDep,
+) -> FeaturePublicWithChildren:
+    """
+    Obtiene el subárbol de una feature específica.
+
+    Retorna el nodo con todos sus hijos recursivos.
+    """
+    feature = await feature_repo.get(feature_id)
+    if not feature:
+        raise HTTPException(status_code=404, detail="Feature not found")
+
+    tree = await feature_repo.get_as_tree(
+        feature_model_version_id=feature.feature_model_version_id
+    )
+
+    def find_node(
+        nodes: list[FeaturePublicWithChildren],
+    ) -> Optional[FeaturePublicWithChildren]:
+        for node in nodes:
+            if node.id == feature_id:
+                return node
+            found = find_node(node.children)
+            if found:
+                return found
+        return None
+
+    subtree = find_node(tree)
+    if not subtree:
+        raise HTTPException(status_code=404, detail="Feature subtree not found")
+    return subtree
+
+
+@router.get(
+    "/{feature_id}/relations",
+    dependencies=[Depends(VerifiedUser)],
+    response_model=list[FeatureRelationPublic],
+)
+@cache(expire=300)
+async def read_feature_relations(
+    *,
+    feature_id: uuid.UUID,
+    feature_relation_repo: AsyncFeatureRelationRepoDep,
+) -> list[FeatureRelationPublic]:
+    """
+    Obtiene relaciones cross-tree donde la feature participa.
+
+    Incluye relaciones donde la feature es source o target.
+    """
+    stmt = select(FeatureRelation).where(
+        FeatureRelation.is_active == True,
+        (FeatureRelation.source_feature_id == feature_id)
+        | (FeatureRelation.target_feature_id == feature_id),
+    )
+    result = await feature_relation_repo.session.execute(stmt)
+    return result.scalars().all()
+
+
 @router.patch("/{feature_id}", response_model=FeaturePublic)
 async def update_feature(
     *,
@@ -148,6 +262,117 @@ async def update_feature(
         new_feature = await feature_repo.update(
             db_feature=db_feature,
             data=feature_in,
+            user=current_user,
+        )
+        return new_feature
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.put("/{feature_id}", response_model=FeaturePublic)
+async def replace_feature(
+    *,
+    feature_id: uuid.UUID,
+    feature_repo: AsyncFeatureRepoDep,
+    feature_in: FeatureReplace,
+    current_user: AsyncCurrentUser,
+) -> FeaturePublic:
+    """
+    Reemplaza completamente una feature (campos principales).
+
+    Equivale a un update full: name, type, parent_id, group_id.
+    """
+    from app.enums import UserRole
+
+    if current_user.role not in [
+        UserRole.MODEL_DESIGNER,
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+    ]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions. Only Model Designers and Admins can update features.",
+        )
+
+    db_feature = await feature_repo.get(feature_id)
+    if not db_feature:
+        raise HTTPException(status_code=404, detail="Feature not found")
+
+    if feature_in.parent_id:
+        parent_feature = await feature_repo.get(feature_in.parent_id)
+        if (
+            not parent_feature
+            or parent_feature.feature_model_version_id
+            != db_feature.feature_model_version_id
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="Parent feature not found or does not belong to the same model.",
+            )
+
+    update_data = FeatureUpdate(
+        name=feature_in.name,
+        type=feature_in.type,
+        parent_id=feature_in.parent_id,
+        group_id=feature_in.group_id,
+    )
+
+    try:
+        new_feature = await feature_repo.update(
+            db_feature=db_feature,
+            data=update_data,
+            user=current_user,
+        )
+        return new_feature
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.patch("/{feature_id}/move", response_model=FeaturePublic)
+async def move_feature(
+    *,
+    feature_id: uuid.UUID,
+    payload: FeatureMove,
+    feature_repo: AsyncFeatureRepoDep,
+    current_user: AsyncCurrentUser,
+) -> FeaturePublic:
+    """
+    Reparenting explícito de una feature.
+
+    Cambia únicamente el parent_id.
+    """
+    from app.enums import UserRole
+
+    if current_user.role not in [
+        UserRole.MODEL_DESIGNER,
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+    ]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions. Only Model Designers and Admins can update features.",
+        )
+
+    db_feature = await feature_repo.get(feature_id)
+    if not db_feature:
+        raise HTTPException(status_code=404, detail="Feature not found")
+
+    if payload.parent_id:
+        parent_feature = await feature_repo.get(payload.parent_id)
+        if (
+            not parent_feature
+            or parent_feature.feature_model_version_id
+            != db_feature.feature_model_version_id
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="Parent feature not found or does not belong to the same model.",
+            )
+
+    try:
+        new_feature = await feature_repo.update(
+            db_feature=db_feature,
+            data=FeatureUpdate(parent_id=payload.parent_id),
             user=current_user,
         )
         return new_feature
