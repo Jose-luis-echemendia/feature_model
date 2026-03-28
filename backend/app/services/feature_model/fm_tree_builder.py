@@ -29,6 +29,7 @@ from app.enums import (
     FeatureGroupType,
     FeatureRelationType,
 )
+from .fm_export import FeatureModelExportService
 
 
 class FeatureModelTreeBuilder:
@@ -58,6 +59,7 @@ class FeatureModelTreeBuilder:
         feature_model_info = self._build_feature_model_info()
 
         # 2. Información de la versión
+        effective_uvl = self._get_effective_uvl()
         version_info = self._build_version_info()
 
         # 3. Construir árbol jerárquico
@@ -88,6 +90,7 @@ class FeatureModelTreeBuilder:
             tree=tree,
             relations=relations,
             constraints=constraints,
+            uvl=effective_uvl,
             statistics=statistics,
             metadata=metadata,
         )
@@ -114,8 +117,16 @@ class FeatureModelTreeBuilder:
             version_number=self.version.version_number,
             status=self.version.status,
             snapshot=self.version.snapshot,
+            uvl_content=self.version.uvl_content,
             created_at=self.version.created_at,
         )
+
+    def _get_effective_uvl(self) -> str:
+        """Retornar UVL guardado o generarlo desde la estructura actual."""
+        if self.version.uvl_content and self.version.uvl_content.strip():
+            return self.version.uvl_content
+
+        return FeatureModelExportService(self.version).export_to_uvl()
 
     def _build_tree(self) -> FeatureTreeNode:
         """

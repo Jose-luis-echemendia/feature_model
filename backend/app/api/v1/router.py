@@ -13,6 +13,7 @@ from app.api.v1.routes import (
     feature_model_statistics,
     feature_model_statistics_ws,
     feature_model_export,
+    feature_model_uvl,
 )
 
 # ========================================================================
@@ -31,6 +32,7 @@ api_router.include_router(feature_model_complete.router)
 api_router.include_router(feature_model_statistics.router)
 api_router.include_router(feature_model_statistics_ws.router)  # WebSocket
 api_router.include_router(feature_model_export.router)  # Export
+api_router.include_router(feature_model_uvl.router)  # UVL sync/edit
 
 if settings.ENVIRONMENT == "local":
     api_router.include_router(private.router)

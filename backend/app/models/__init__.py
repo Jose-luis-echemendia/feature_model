@@ -24,7 +24,11 @@ from .feature_model import (
     FeatureModelPublic,
     FeatureModelUpdate,
 )
-from .feature_model_version import FeatureModelVersion
+from .feature_model_version import (
+    FeatureModelVersion,
+    FeatureModelVersionUVLUpdate,
+    FeatureModelVersionUVLPublic,
+)
 from .feature import (
     Feature,
     FeatureCreate,
