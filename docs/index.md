@@ -8,7 +8,7 @@ Bienvenido a la documentación técnica completa del proyecto **Feature Model**.
 
 ### :fontawesome-brands-git-alt: Repositorio
 
-[:fontawesome-brands-github: **Repositorio GitHub**](https://github.com/Jose-luis-echemendia/characteristic_model){ .md-button .md-button--primary }
+[:fontawesome-brands-github: **Repositorio GitHub**](https://github.com/Jose-luis-echemendia/feature_model){ .md-button .md-button--primary }
 
 ---
 
@@ -158,7 +158,7 @@ Si encuentras algún problema o tienes sugerencias:
 
 ## 📌 Enlaces Útiles
 
-- [:fontawesome-brands-github: Repositorio GitHub](https://github.com/Jose-luis-echemendia/characteristic_model)
+- [:fontawesome-brands-github: Repositorio GitHub](https://github.com/Jose-luis-echemendia/feature_model)
 
 **Servicios de la Aplicación:**
 

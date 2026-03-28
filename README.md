@@ -191,8 +191,8 @@ A continuación se listan las variables de entorno clave necesarias para el func
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/Jose-luis-echemendia/characteristic_model.git
-cd characteristic_model
+git clone https://github.com/Jose-luis-echemendia/feature_model.git
+cd feature_model
 
 # 2. Ejecutar script de inicio rápido
 ./scripts/dev-start.sh
@@ -212,8 +212,8 @@ cd characteristic_model
 
 ```bash
 # 1. Clonar y configurar
-git clone https://github.com/Jose-luis-echemendia/characteristic_model.git
-cd characteristic_model
+git clone https://github.com/Jose-luis-echemendia/feature_model.git
+cd feature_model
 
 # 2. Crear archivo de entorno
 cp .env.example .env
@@ -596,7 +596,7 @@ Si encuentras algún problema:
 
 ## 🔗 Enlaces Útiles
 
-- **Repositorio**: https://github.com/Jose-luis-echemendia/characteristic_model
+- **Repositorio**: https://github.com/Jose-luis-echemendia/feature_model
 - **Documentación FastAPI**: https://fastapi.tiangolo.com/
 - **Documentación Next.js**: https://nextjs.org/docs
 - **Documentación Docker**: https://docs.docker.com/

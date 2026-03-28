@@ -111,7 +111,7 @@ markdown_extensions:
   - pymdownx.magiclink:
       repo_url_shorthand: true
       user: Jose-luis-echemendia
-      repo: characteristic_model
+      repo: feature_model
   - pymdownx.smartsymbols
   - pymdownx.superfences:
       custom_fences:
