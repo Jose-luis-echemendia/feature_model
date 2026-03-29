@@ -5,7 +5,7 @@ origen y una feature destino dentro de una misma versión del modelo.
 """
 
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
