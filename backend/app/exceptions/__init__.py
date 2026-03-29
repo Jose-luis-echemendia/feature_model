@@ -80,6 +80,58 @@ from .domain_exceptions import (
     DomainAccessDeniedException,
 )
 
+from .feature_group_exceptions import (
+    FeatureGroupNotFoundException,
+    FeatureGroupAccessDeniedException,
+    InvalidFeatureGroupException,
+)
+
+from .feature_relation_exceptions import (
+    FeatureRelationNotFoundException,
+    FeatureRelationAccessDeniedException,
+    InvalidFeatureRelationException,
+)
+
+from .constraint_exceptions import (
+    ConstraintNotFoundException,
+    ConstraintAccessDeniedException,
+    InvalidConstraintOperationException,
+)
+
+from .configuration_exceptions import (
+    ConfigurationNotFoundException,
+    ConfigurationAccessDeniedException,
+    InvalidConfigurationOperationException,
+)
+
+from .resource_exceptions import (
+    ResourceNotFoundException,
+    ResourceAccessDeniedException,
+    InvalidResourceOperationException,
+)
+
+from .tag_exceptions import (
+    TagNotFoundException,
+    TagAlreadyExistsException,
+    TagAccessDeniedException,
+)
+
+from .user_exceptions import (
+    UserNotFoundException,
+    UserAlreadyExistsException,
+    UserAccessDeniedException,
+)
+
+from .app_setting_exceptions import (
+    AppSettingNotFoundException,
+    AppSettingConflictException,
+)
+
+from .feature_exceptions import (
+    FeatureAccessDeniedException,
+    FeatureAlreadyExistsException,
+)
+
 __all__ = [
     # FastAPI exceptions
     "RequestValidationError",
@@ -138,4 +190,38 @@ __all__ = [
     "DomainInactiveException",
     "InvalidDomainDescriptionException",
     "DomainAccessDeniedException",
+    # Feature group exceptions
+    "FeatureGroupNotFoundException",
+    "FeatureGroupAccessDeniedException",
+    "InvalidFeatureGroupException",
+    # Feature relation exceptions
+    "FeatureRelationNotFoundException",
+    "FeatureRelationAccessDeniedException",
+    "InvalidFeatureRelationException",
+    # Constraint exceptions
+    "ConstraintNotFoundException",
+    "ConstraintAccessDeniedException",
+    "InvalidConstraintOperationException",
+    # Configuration exceptions
+    "ConfigurationNotFoundException",
+    "ConfigurationAccessDeniedException",
+    "InvalidConfigurationOperationException",
+    # Resource exceptions
+    "ResourceNotFoundException",
+    "ResourceAccessDeniedException",
+    "InvalidResourceOperationException",
+    # Tag exceptions
+    "TagNotFoundException",
+    "TagAlreadyExistsException",
+    "TagAccessDeniedException",
+    # User exceptions
+    "UserNotFoundException",
+    "UserAlreadyExistsException",
+    "UserAccessDeniedException",
+    # App setting exceptions
+    "AppSettingNotFoundException",
+    "AppSettingConflictException",
+    # Feature exceptions
+    "FeatureAccessDeniedException",
+    "FeatureAlreadyExistsException",
 ]

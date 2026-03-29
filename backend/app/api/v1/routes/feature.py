@@ -22,6 +22,7 @@ from app.models import (
 )
 from app.enums import FeatureType
 from app.models.feature_relation import FeatureRelation
+from app.exceptions import FeatureNotFoundException, FeatureAccessDeniedException
 
 
 router = APIRouter(prefix="/features", tags=["features"])
@@ -112,10 +113,7 @@ async def create_feature(
         UserRole.ADMIN,
         UserRole.DEVELOPER,
     ]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Only Model Designers and Admins can create features.",
-        )
+        raise FeatureAccessDeniedException()
 
     # 1. Verificar que la versión del modelo existe
     # Primero obtenemos el feature model para verificar la versión
@@ -155,7 +153,7 @@ async def read_feature(
     """
     feature = await feature_repo.get(feature_id)
     if not feature:
-        raise HTTPException(status_code=404, detail="Feature not found")
+        raise FeatureNotFoundException(feature_id=str(feature_id))
     return feature
 
 
@@ -177,7 +175,7 @@ async def read_feature_children(
     """
     feature = await feature_repo.get(feature_id)
     if not feature:
-        raise HTTPException(status_code=404, detail="Feature not found")
+        raise FeatureNotFoundException(feature_id=str(feature_id))
 
     tree = await feature_repo.get_as_tree(
         feature_model_version_id=feature.feature_model_version_id
@@ -196,7 +194,7 @@ async def read_feature_children(
 
     subtree = find_node(tree)
     if not subtree:
-        raise HTTPException(status_code=404, detail="Feature subtree not found")
+        raise FeatureNotFoundException(feature_id=str(feature_id))
     return subtree
 
 
@@ -244,14 +242,11 @@ async def update_feature(
         UserRole.ADMIN,
         UserRole.DEVELOPER,
     ]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Only Model Designers and Admins can update features.",
-        )
+        raise FeatureAccessDeniedException(feature_id=str(feature_id))
 
     db_feature = await feature_repo.get(feature_id)
     if not db_feature:
-        raise HTTPException(status_code=404, detail="Feature not found")
+        raise FeatureNotFoundException(feature_id=str(feature_id))
 
     # Nota: Las validaciones de group_id se podrían mover al repositorio
     # Por ahora, mantenemos la validación básica aquí
@@ -289,14 +284,11 @@ async def replace_feature(
         UserRole.ADMIN,
         UserRole.DEVELOPER,
     ]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Only Model Designers and Admins can update features.",
-        )
+        raise FeatureAccessDeniedException(feature_id=str(feature_id))
 
     db_feature = await feature_repo.get(feature_id)
     if not db_feature:
-        raise HTTPException(status_code=404, detail="Feature not found")
+        raise FeatureNotFoundException(feature_id=str(feature_id))
 
     if feature_in.parent_id:
         parent_feature = await feature_repo.get(feature_in.parent_id)
@@ -348,14 +340,11 @@ async def move_feature(
         UserRole.ADMIN,
         UserRole.DEVELOPER,
     ]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Only Model Designers and Admins can update features.",
-        )
+        raise FeatureAccessDeniedException(feature_id=str(feature_id))
 
     db_feature = await feature_repo.get(feature_id)
     if not db_feature:
-        raise HTTPException(status_code=404, detail="Feature not found")
+        raise FeatureNotFoundException(feature_id=str(feature_id))
 
     if payload.parent_id:
         parent_feature = await feature_repo.get(payload.parent_id)
@@ -398,14 +387,11 @@ async def delete_feature(
         UserRole.ADMIN,
         UserRole.DEVELOPER,
     ]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Only Model Designers and Admins can delete features.",
-        )
+        raise FeatureAccessDeniedException(feature_id=str(feature_id))
 
     db_feature = await feature_repo.get(feature_id)
     if not db_feature:
-        raise HTTPException(status_code=404, detail="Feature not found")
+        raise FeatureNotFoundException(feature_id=str(feature_id))
 
     await feature_repo.delete(db_feature=db_feature, user=current_user)
     return Message(message="Feature deleted in new model version created successfully.")

@@ -16,6 +16,11 @@ from app.models.constraint import (
     ConstraintUpdate,
     ConstraintReplace,
 )
+from app.exceptions import (
+    ConstraintNotFoundException,
+    ConstraintAccessDeniedException,
+    InvalidConstraintOperationException,
+)
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
 
@@ -58,7 +63,7 @@ async def read_constraint(
     """Obtener una constraint por ID."""
     constraint = await constraint_repo.get(constraint_id=constraint_id)
     if not constraint:
-        raise HTTPException(status_code=404, detail="Constraint not found.")
+        raise ConstraintNotFoundException(constraint_id=str(constraint_id))
     return constraint
 
 
@@ -87,7 +92,9 @@ async def create_constraint(
         version.feature_model.owner_id != current_user.id
         and not current_user.is_superuser
     ):
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+        raise ConstraintAccessDeniedException(
+            constraint_id=str(constraint_in.feature_model_version_id)
+        )
 
     try:
         constraint = await constraint_repo.create(
@@ -97,7 +104,7 @@ async def create_constraint(
         )
         return constraint
     except (ValueError, RuntimeError) as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise InvalidConstraintOperationException(reason=str(e))
 
 
 @router.patch("/{constraint_id}", response_model=ConstraintPublic)
@@ -116,7 +123,7 @@ async def update_constraint(
     """
     db_constraint = await constraint_repo.get(constraint_id=constraint_id)
     if not db_constraint:
-        raise HTTPException(status_code=404, detail="Constraint not found.")
+        raise ConstraintNotFoundException(constraint_id=str(constraint_id))
 
     await constraint_repo.session.refresh(db_constraint, ["feature_model_version"])
     await constraint_repo.session.refresh(
@@ -127,7 +134,7 @@ async def update_constraint(
         db_constraint.feature_model_version.feature_model.owner_id != current_user.id
         and not current_user.is_superuser
     ):
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+        raise ConstraintAccessDeniedException(constraint_id=str(constraint_id))
 
     try:
         return await constraint_repo.update(
@@ -137,7 +144,7 @@ async def update_constraint(
             feature_model_version_repo=feature_model_version_repo,
         )
     except (ValueError, RuntimeError) as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise InvalidConstraintOperationException(reason=str(e))
 
 
 @router.put("/{constraint_id}", response_model=ConstraintPublic)
@@ -156,7 +163,7 @@ async def replace_constraint(
     """
     db_constraint = await constraint_repo.get(constraint_id=constraint_id)
     if not db_constraint:
-        raise HTTPException(status_code=404, detail="Constraint not found.")
+        raise ConstraintNotFoundException(constraint_id=str(constraint_id))
 
     await constraint_repo.session.refresh(db_constraint, ["feature_model_version"])
     await constraint_repo.session.refresh(
@@ -167,7 +174,7 @@ async def replace_constraint(
         db_constraint.feature_model_version.feature_model.owner_id != current_user.id
         and not current_user.is_superuser
     ):
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+        raise ConstraintAccessDeniedException(constraint_id=str(constraint_id))
 
     try:
         update_data = ConstraintUpdate(
@@ -181,7 +188,7 @@ async def replace_constraint(
             feature_model_version_repo=feature_model_version_repo,
         )
     except (ValueError, RuntimeError) as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise InvalidConstraintOperationException(reason=str(e))
 
 
 @router.delete("/{constraint_id}", response_model=Message)
@@ -197,7 +204,7 @@ async def delete_constraint(
     """
     db_constraint = await constraint_repo.get(constraint_id=constraint_id)
     if not db_constraint:
-        raise HTTPException(status_code=404, detail="Constraint not found.")
+        raise ConstraintNotFoundException(constraint_id=str(constraint_id))
 
     # Cargar las relaciones necesarias para la verificación de permisos
     await constraint_repo.session.refresh(db_constraint, ["feature_model_version"])
@@ -209,7 +216,7 @@ async def delete_constraint(
         db_constraint.feature_model_version.feature_model.owner_id != current_user.id
         and not current_user.is_superuser
     ):
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+        raise ConstraintAccessDeniedException(constraint_id=str(constraint_id))
 
     await constraint_repo.delete(
         db_constraint=db_constraint,

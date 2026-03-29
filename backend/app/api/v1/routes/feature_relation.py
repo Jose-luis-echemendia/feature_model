@@ -18,6 +18,11 @@ from app.models.feature_relation import (
     FeatureRelationReplace,
 )
 from app.enums import FeatureRelationType
+from app.exceptions import (
+    FeatureRelationNotFoundException,
+    FeatureRelationAccessDeniedException,
+    InvalidFeatureRelationException,
+)
 
 router = APIRouter(prefix="/feature-relations", tags=["feature-relations"])
 
@@ -72,7 +77,7 @@ async def read_feature_relation(
     """Obtener una relación por ID."""
     relation = await feature_relation_repo.get(relation_id=relation_id)
     if not relation:
-        raise HTTPException(status_code=404, detail="Feature relation not found.")
+        raise FeatureRelationNotFoundException(relation_id=str(relation_id))
     return relation
 
 
@@ -107,7 +112,7 @@ async def create_feature_relation(
         source_feature.feature_model_version.feature_model.owner_id != current_user.id
         and not current_user.is_superuser
     ):
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+        raise FeatureRelationAccessDeniedException()
 
     try:
         relation = await feature_relation_repo.create(
@@ -118,7 +123,7 @@ async def create_feature_relation(
         )
         return relation
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise InvalidFeatureRelationException(reason=str(e))
 
 
 @router.patch("/{relation_id}", response_model=FeatureRelationPublic)
@@ -137,7 +142,7 @@ async def update_feature_relation(
     """
     db_relation = await feature_relation_repo.get(relation_id=relation_id)
     if not db_relation:
-        raise HTTPException(status_code=404, detail="Feature relation not found.")
+        raise FeatureRelationNotFoundException(relation_id=str(relation_id))
 
     await feature_relation_repo.session.refresh(db_relation, ["feature_model_version"])
     await feature_relation_repo.session.refresh(
@@ -148,7 +153,7 @@ async def update_feature_relation(
         db_relation.feature_model_version.feature_model.owner_id != current_user.id
         and not current_user.is_superuser
     ):
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+        raise FeatureRelationAccessDeniedException(relation_id=str(relation_id))
 
     try:
         return await feature_relation_repo.update(
@@ -158,7 +163,7 @@ async def update_feature_relation(
             feature_model_version_repo=feature_model_version_repo,
         )
     except (ValueError, RuntimeError) as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise InvalidFeatureRelationException(reason=str(e))
 
 
 @router.put("/{relation_id}", response_model=FeatureRelationPublic)
@@ -177,7 +182,7 @@ async def replace_feature_relation(
     """
     db_relation = await feature_relation_repo.get(relation_id=relation_id)
     if not db_relation:
-        raise HTTPException(status_code=404, detail="Feature relation not found.")
+        raise FeatureRelationNotFoundException(relation_id=str(relation_id))
 
     await feature_relation_repo.session.refresh(db_relation, ["feature_model_version"])
     await feature_relation_repo.session.refresh(
@@ -188,7 +193,7 @@ async def replace_feature_relation(
         db_relation.feature_model_version.feature_model.owner_id != current_user.id
         and not current_user.is_superuser
     ):
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+        raise FeatureRelationAccessDeniedException(relation_id=str(relation_id))
 
     try:
         update_data = FeatureRelationUpdate(
@@ -203,7 +208,7 @@ async def replace_feature_relation(
             feature_model_version_repo=feature_model_version_repo,
         )
     except (ValueError, RuntimeError) as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise InvalidFeatureRelationException(reason=str(e))
 
 
 @router.delete("/{relation_id}", response_model=Message)
@@ -219,7 +224,7 @@ async def delete_feature_relation(
     """
     db_relation = await feature_relation_repo.get(relation_id=relation_id)
     if not db_relation:
-        raise HTTPException(status_code=404, detail="Feature relation not found.")
+        raise FeatureRelationNotFoundException(relation_id=str(relation_id))
 
     # Cargar las relaciones necesarias para la verificación de permisos
     await feature_relation_repo.session.refresh(db_relation, ["feature_model_version"])
@@ -231,7 +236,7 @@ async def delete_feature_relation(
         db_relation.feature_model_version.feature_model.owner_id != current_user.id
         and not current_user.is_superuser
     ):
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+        raise FeatureRelationAccessDeniedException(relation_id=str(relation_id))
 
     await feature_relation_repo.delete(
         db_relation=db_relation,
