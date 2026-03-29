@@ -9,6 +9,7 @@ from app.api.v1.routes import (
     utils,
     domain,
     feature_model,
+    feature_model_version,
     feature_model_complete,
     feature_model_statistics,
     feature_model_statistics_ws,
@@ -28,6 +29,7 @@ api_router.include_router(login.router)
 api_router.include_router(user.router)
 api_router.include_router(domain.router)
 api_router.include_router(feature_model.router)
+api_router.include_router(feature_model_version.router)
 api_router.include_router(feature_model_complete.router)
 api_router.include_router(feature_model_statistics.router)
 api_router.include_router(feature_model_statistics_ws.router)  # WebSocket

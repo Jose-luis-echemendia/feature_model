@@ -13,6 +13,10 @@ from app.api.deps import (
     get_verified_user,
 )
 from app.schemas.feature_model_complete import FeatureModelStatistics
+from app.exceptions import (
+    FeatureModelNotFoundException,
+    FeatureModelVersionNotFoundException,
+)
 
 router = APIRouter(
     prefix="/feature-models",
@@ -78,10 +82,7 @@ async def get_latest_feature_model_statistics(
     # Verificar que el feature model existe
     feature_model = await feature_model_repo.get(model_id)
     if not feature_model:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Feature Model not found",
-        )
+        raise FeatureModelNotFoundException(model_id=str(model_id))
 
     # Buscar la última versión publicada
     latest_version = None
@@ -94,19 +95,13 @@ async def get_latest_feature_model_statistics(
                 latest_version = version
 
     if latest_version is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No published version found for this Feature Model",
-        )
+        raise FeatureModelVersionNotFoundException(version_id="latest")
 
     # Calcular estadísticas
     stats = await version_repo.get_statistics(latest_version.id)
 
     if stats is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Could not calculate statistics for this version",
-        )
+        raise FeatureModelVersionNotFoundException(version_id=str(latest_version.id))
 
     return FeatureModelStatistics(**stats)
 
@@ -200,10 +195,7 @@ async def get_feature_model_statistics(
     # Verificar que el feature model existe y está activo
     feature_model = await feature_model_repo.get(model_id)
     if not feature_model:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Feature Model not found",
-        )
+        raise FeatureModelNotFoundException(model_id=str(model_id))
 
     if not feature_model.is_active:
         raise HTTPException(
@@ -214,10 +206,7 @@ async def get_feature_model_statistics(
     # Verificar que la versión existe y pertenece al modelo
     version = await version_repo.get(version_id)
     if not version:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Feature Model Version not found",
-        )
+        raise FeatureModelVersionNotFoundException(version_id=str(version_id))
 
     if version.feature_model_id != model_id:
         raise HTTPException(
@@ -229,9 +218,6 @@ async def get_feature_model_statistics(
     stats = await version_repo.get_statistics(version_id)
 
     if stats is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Could not calculate statistics for this version",
-        )
+        raise FeatureModelVersionNotFoundException(version_id=str(version_id))
 
     return FeatureModelStatistics(**stats)
