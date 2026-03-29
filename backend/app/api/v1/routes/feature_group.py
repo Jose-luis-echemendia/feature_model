@@ -18,6 +18,11 @@ from app.models.feature_group import (
     FeatureGroupReplace,
 )
 from app.enums import FeatureGroupType
+from app.exceptions import (
+    FeatureGroupNotFoundException,
+    FeatureGroupAccessDeniedException,
+    InvalidFeatureGroupException,
+)
 
 router = APIRouter(prefix="/feature-groups", tags=["feature-groups"])
 
@@ -69,7 +74,7 @@ async def read_feature_group(
     """Obtener un grupo por ID."""
     group = await feature_group_repo.get(group_id=group_id)
     if not group:
-        raise HTTPException(status_code=404, detail="Feature group not found.")
+        raise FeatureGroupNotFoundException(group_id=str(group_id))
     return group
 
 
@@ -103,7 +108,9 @@ async def create_feature_group(
         parent_feature.feature_model_version.feature_model.owner_id != current_user.id
         and not current_user.is_superuser
     ):
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+        raise FeatureGroupAccessDeniedException(
+            group_id=str(group_in.parent_feature_id)
+        )
 
     try:
         group = await feature_group_repo.create(
@@ -114,7 +121,7 @@ async def create_feature_group(
         )
         return group
     except (ValueError, RuntimeError) as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise InvalidFeatureGroupException(reason=str(e))
 
 
 @router.patch("/{group_id}", response_model=FeatureGroupPublic)
@@ -133,7 +140,7 @@ async def update_feature_group(
     """
     db_group = await feature_group_repo.get(group_id=group_id)
     if not db_group:
-        raise HTTPException(status_code=404, detail="Feature group not found.")
+        raise FeatureGroupNotFoundException(group_id=str(group_id))
 
     await feature_group_repo.session.refresh(db_group, ["feature_model_version"])
     await feature_group_repo.session.refresh(
@@ -144,7 +151,7 @@ async def update_feature_group(
         db_group.feature_model_version.feature_model.owner_id != current_user.id
         and not current_user.is_superuser
     ):
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+        raise FeatureGroupAccessDeniedException(group_id=str(group_id))
 
     try:
         return await feature_group_repo.update(
@@ -154,7 +161,7 @@ async def update_feature_group(
             feature_model_version_repo=feature_model_version_repo,
         )
     except (ValueError, RuntimeError) as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise InvalidFeatureGroupException(reason=str(e))
 
 
 @router.put("/{group_id}", response_model=FeatureGroupPublic)
@@ -173,7 +180,7 @@ async def replace_feature_group(
     """
     db_group = await feature_group_repo.get(group_id=group_id)
     if not db_group:
-        raise HTTPException(status_code=404, detail="Feature group not found.")
+        raise FeatureGroupNotFoundException(group_id=str(group_id))
 
     await feature_group_repo.session.refresh(db_group, ["feature_model_version"])
     await feature_group_repo.session.refresh(
@@ -184,7 +191,7 @@ async def replace_feature_group(
         db_group.feature_model_version.feature_model.owner_id != current_user.id
         and not current_user.is_superuser
     ):
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+        raise FeatureGroupAccessDeniedException(group_id=str(group_id))
 
     try:
         update_data = FeatureGroupUpdate(
@@ -200,7 +207,7 @@ async def replace_feature_group(
             feature_model_version_repo=feature_model_version_repo,
         )
     except (ValueError, RuntimeError) as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise InvalidFeatureGroupException(reason=str(e))
 
 
 @router.delete("/{group_id}", response_model=Message)
@@ -216,7 +223,7 @@ async def delete_feature_group(
     """
     db_group = await feature_group_repo.get(group_id=group_id)
     if not db_group:
-        raise HTTPException(status_code=404, detail="Feature group not found.")
+        raise FeatureGroupNotFoundException(group_id=str(group_id))
 
     # Cargar las relaciones necesarias para la verificación de permisos
     await feature_group_repo.session.refresh(db_group, ["feature_model_version"])
@@ -228,7 +235,7 @@ async def delete_feature_group(
         db_group.feature_model_version.feature_model.owner_id != current_user.id
         and not current_user.is_superuser
     ):
-        raise HTTPException(status_code=403, detail="Not enough permissions.")
+        raise FeatureGroupAccessDeniedException(group_id=str(group_id))
 
     await feature_group_repo.delete(
         db_group=db_group,
