@@ -18,6 +18,7 @@ from .fm_structural_analyzer import FeatureModelStructuralAnalyzer
 from .fm_tree_builder import FeatureModelTreeBuilder
 from .fm_export import FeatureModelExportService
 from .fm_version_manager import FeatureModelVersionManager
+from .fm_uvl_importer import FeatureModelUVLImporter
 
 __all__ = [
     "FeatureModelLogicalValidator",
@@ -26,4 +27,5 @@ __all__ = [
     "FeatureModelTreeBuilder",
     "FeatureModelExportService",
     "FeatureModelVersionManager",
+    "FeatureModelUVLImporter",
 ]
