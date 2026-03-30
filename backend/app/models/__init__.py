@@ -26,6 +26,9 @@ from .feature_model import (
 )
 from .feature_model_version import (
     FeatureModelVersion,
+    FeatureModelVersionPublic,
+    FeatureModelVersionCreate,
+    FeatureModelVersionUpdate,
     FeatureModelVersionUVLUpdate,
     FeatureModelVersionUVLPublic,
 )
@@ -41,13 +44,22 @@ from .feature_relation import (
     FeatureRelationCreate,
     FeatureRelationPublic,
     FeatureRelationUpdate,
+    FeatureRelationReplace,
 )
 from .feature_group import (
     FeatureGroup,
     FeatureGroupCreate,
     FeatureGroupPublic,
+    FeatureGroupUpdate,
+    FeatureGroupReplace,
 )
-from .constraint import Constraint, ConstraintCreate, ConstraintPublic
+from .constraint import (
+    Constraint,
+    ConstraintCreate,
+    ConstraintPublic,
+    ConstraintUpdate,
+    ConstraintReplace,
+)
 from .configuration import (
     Configuration,
     ConfigurationCreate,
