@@ -19,6 +19,7 @@ Estrategias disponibles:
 """
 
 import random
+from itertools import combinations
 from typing import Dict, List, Any, Optional, Set, Callable
 
 from app.enums import GenerationStrategy
@@ -159,6 +160,20 @@ class FeatureModelConfigurationGenerator:
                 constraints,
                 partial_selection,
             )
+        elif strategy == GenerationStrategy.PAIRWISE:
+            results = self._generate_pairwise_configurations(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                count=1,
+                partial_selection=partial_selection,
+            )
+            if results:
+                return results[0]
+            return GenerationResult(
+                success=False,
+                errors=["No se pudo generar configuración pairwise"],
+            )
 
         return GenerationResult(
             success=False, errors=[f"Estrategia no soportada: {strategy}"]
@@ -254,6 +269,15 @@ class FeatureModelConfigurationGenerator:
 
             return results
 
+        if strategy == GenerationStrategy.PAIRWISE:
+            return self._generate_pairwise_configurations(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                count=count,
+                partial_selection=partial_selection,
+            )
+
         for i in range(count * 3):  # Intentar más veces para asegurar diversidad
             if len(results) >= count:
                 break
@@ -273,6 +297,74 @@ class FeatureModelConfigurationGenerator:
                 if not diverse or config_set not in generated_configs:
                     results.append(result)
                     generated_configs.add(config_set)
+
+        return results
+
+    def _generate_pairwise_configurations(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        count: int,
+        partial_selection: Optional[Dict[str, bool]] = None,
+        max_attempts: int = 2000,
+    ) -> List[GenerationResult]:
+        """
+        Genera configuraciones para cubrir pares (pairwise).
+        """
+        self._initialize(features, relations, constraints)
+
+        feature_ids = list(self.features_map.keys())
+        if len(feature_ids) < 2:
+            return [
+                GenerationResult(
+                    success=True,
+                    configuration={fid: True for fid in feature_ids},
+                    selected_features=feature_ids,
+                    score=1.0 if feature_ids else 0.0,
+                    iterations=0,
+                )
+            ]
+
+        def _pair(a: str, b: str) -> tuple[str, str]:
+            return tuple(sorted((a, b)))
+
+        uncovered = {_pair(a, b) for a, b in combinations(feature_ids, 2)}
+        results: list[GenerationResult] = []
+        seen_configs: set[frozenset[str]] = set()
+        attempts = 0
+
+        while uncovered and len(results) < count and attempts < max_attempts:
+            attempts += 1
+            pair = next(iter(uncovered))
+            pair_selection: Dict[str, bool] = {pair[0]: True, pair[1]: True}
+            if partial_selection:
+                pair_selection.update({str(k): v for k, v in partial_selection.items()})
+
+            result = self.generate_valid_configuration(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                strategy=GenerationStrategy.GREEDY,
+                partial_selection=pair_selection,
+            )
+
+            if not result.success:
+                uncovered.discard(pair)
+                continue
+
+            selected_set = frozenset(result.selected_features)
+            if selected_set in seen_configs:
+                if pair[0] in selected_set and pair[1] in selected_set:
+                    uncovered.discard(pair)
+                continue
+
+            seen_configs.add(selected_set)
+            results.append(result)
+
+            selected_sorted = sorted(result.selected_features)
+            for a, b in combinations(selected_sorted, 2):
+                uncovered.discard(_pair(a, b))
 
         return results
 
