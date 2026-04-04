@@ -128,3 +128,4 @@ class GenerationStrategy(str, Enum):
     STRATIFIED = "stratified"  # Muestreo estratificado (aprox.)
     CP_SAT = "cp_sat"  # CSP/CP-SAT con OR-Tools
     BDD = "bdd"  # BDD/ROBDD para conteo/muestreo
+    NSGA2 = "nsga2"  # Multiobjetivo (NSGA-II/MOEA)
