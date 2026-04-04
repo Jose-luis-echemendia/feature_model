@@ -341,7 +341,7 @@ async def validate_configuration(
     summary="Generar configuraciones",
     description=(
         "Genera una o varias configuraciones válidas usando una estrategia "
-        "(greedy, random, beam_search, genetic, sat_enum)."
+        "(greedy, random, beam_search, genetic, sat_enum, pairwise)."
     ),
 )
 async def generate_configuration(

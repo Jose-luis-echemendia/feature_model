@@ -123,3 +123,4 @@ class GenerationStrategy(str, Enum):
     BEAM_SEARCH = "beam_search"  # Búsqueda en haz
     GENETIC = "genetic"  # Algoritmos genéticos (futuro)
     SAT_ENUM = "sat_enum"  # Enumeración exacta con SAT/SMT
+    PAIRWISE = "pairwise"  # T-wise (pairwise) para cobertura combinatoria
