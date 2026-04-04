@@ -44,6 +44,7 @@ Documentación técnica del backend del sistema de Feature Models para gestión 
 - **[commands.md](./backend_commands.md)** - Comandos útiles del proyecto
 - **[DEPENDENCIES_SUMMARY.md](./DEPENDENCIES_SUMMARY.md)** - 📦 **Resumen de dependencias de servicios** - Estado de SymPy y NetworkX
 - **[DEPENDENCIES_SERVICES.md](./DEPENDENCIES_SERVICES.md)** - 📦 **Dependencias detalladas** - Guía completa de instalación y configuración
+- **[CONFIGURATION_QUALITY_CRITERIA.md](./CONFIGURATION_QUALITY_CRITERIA.md)** - Criterios de calidad para configuraciones
 
 ### 📝 Implementación y Sumarios
 
