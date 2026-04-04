@@ -111,6 +111,8 @@ class FeatureModelLogicalValidator:
         # Z3 solver
         self.z3_solver: z3.Solver | None = None if not Z3_AVAILABLE else z3.Solver()
         self.z3_var_mapping: Dict[str, z3.Bool] = {}
+        self._partial_cache: dict[tuple, bool] = {}
+        self._partial_cache_max = 2000
 
     def _select_validation_level(self, num_features: int) -> ValidationLevel:
         """
@@ -381,6 +383,11 @@ class FeatureModelLogicalValidator:
         """
         Verifica si una selección parcial es satisfacible.
         """
+        signature = self._compute_model_signature(features, relations, constraints)
+        cache_key = (signature, tuple(sorted(partial_selection.items())))
+        if cache_key in self._partial_cache:
+            return self._partial_cache[cache_key]
+
         self._reset()
 
         if Z3_AVAILABLE:
@@ -400,7 +407,9 @@ class FeatureModelLogicalValidator:
                     continue
                 self.z3_solver.add(var if selected else z3.Not(var))
 
-            return self.z3_solver.check() == z3.sat
+            result = self.z3_solver.check() == z3.sat
+            self._store_partial_cache(cache_key, result)
+            return result
 
         # Fallback a SymPy
         self._build_symbolic_variables(features)
@@ -421,9 +430,45 @@ class FeatureModelLogicalValidator:
         full_formula = And(*all_constraints, *user_decisions)
         try:
             result = satisfiable(full_formula)
-            return result is not False
+            ok = result is not False
+            self._store_partial_cache(cache_key, ok)
+            return ok
         except Exception:
+            self._store_partial_cache(cache_key, False)
             return False
+
+    def _compute_model_signature(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+    ) -> tuple:
+        return (
+            tuple(sorted(str(f.get("id")) for f in features)),
+            tuple(
+                sorted(
+                    (
+                        str(r.get("parent_id")),
+                        str(r.get("child_id")),
+                        str(r.get("relation_type")),
+                        str(r.get("group_id")),
+                    )
+                    for r in relations
+                )
+            ),
+            tuple(
+                sorted(
+                    (str(c.get("id")), str(c.get("expr_text")))
+                    for c in constraints
+                )
+            ),
+        )
+
+    def _store_partial_cache(self, key: tuple, value: bool) -> None:
+        if len(self._partial_cache) >= self._partial_cache_max:
+            first_key = next(iter(self._partial_cache))
+            self._partial_cache.pop(first_key, None)
+        self._partial_cache[key] = value
 
     def enumerate_configurations(
         self,

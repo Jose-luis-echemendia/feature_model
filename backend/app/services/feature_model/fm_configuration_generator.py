@@ -77,6 +77,7 @@ class FeatureModelConfigurationGenerator:
         self.features_map: Dict[str, Dict[str, Any]] = {}
         self.relations_map: Dict[str, List[Dict[str, Any]]] = {}
         self.constraints: List[Dict[str, Any]] = []
+        self._model_signature: Optional[tuple] = None
 
         # Configuración para algoritmos genéticos (DEAP)
         self.deap_toolbox: tools.Toolbox | None = None
@@ -416,6 +417,31 @@ class FeatureModelConfigurationGenerator:
         constraints: List[Dict[str, Any]],
     ) -> None:
         """Inicializa estructuras internas."""
+        signature = (
+            tuple(sorted(str(f.get("id")) for f in features)),
+            tuple(
+                sorted(
+                    (
+                        str(r.get("parent_id")),
+                        str(r.get("child_id")),
+                        str(r.get("relation_type")),
+                        str(r.get("group_id")),
+                    )
+                    for r in relations
+                )
+            ),
+            tuple(
+                sorted(
+                    (str(c.get("id")), str(c.get("expr_text")))
+                    for c in constraints
+                )
+            ),
+        )
+
+        if self._model_signature == signature:
+            return
+
+        self._model_signature = signature
         self.features_map = {str(f["id"]): f for f in features}
         self.constraints = constraints
 
