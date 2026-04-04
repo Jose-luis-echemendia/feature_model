@@ -126,3 +126,4 @@ class GenerationStrategy(str, Enum):
     PAIRWISE = "pairwise"  # T-wise (pairwise) para cobertura combinatoria
     UNIFORM = "uniform"  # Muestreo uniforme (aprox.)
     STRATIFIED = "stratified"  # Muestreo estratificado (aprox.)
+    CP_SAT = "cp_sat"  # CSP/CP-SAT con OR-Tools
