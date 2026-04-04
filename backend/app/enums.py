@@ -124,3 +124,5 @@ class GenerationStrategy(str, Enum):
     GENETIC = "genetic"  # Algoritmos genéticos (futuro)
     SAT_ENUM = "sat_enum"  # Enumeración exacta con SAT/SMT
     PAIRWISE = "pairwise"  # T-wise (pairwise) para cobertura combinatoria
+    UNIFORM = "uniform"  # Muestreo uniforme (aprox.)
+    STRATIFIED = "stratified"  # Muestreo estratificado (aprox.)

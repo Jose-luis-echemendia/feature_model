@@ -175,6 +175,34 @@ class FeatureModelConfigurationGenerator:
                 success=False,
                 errors=["No se pudo generar configuración pairwise"],
             )
+        elif strategy == GenerationStrategy.UNIFORM:
+            results = self._generate_uniform_sample(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                count=1,
+                partial_selection=partial_selection,
+            )
+            if results:
+                return results[0]
+            return GenerationResult(
+                success=False,
+                errors=["No se pudo generar configuración uniforme"],
+            )
+        elif strategy == GenerationStrategy.STRATIFIED:
+            results = self._generate_stratified_sample(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                count=1,
+                partial_selection=partial_selection,
+            )
+            if results:
+                return results[0]
+            return GenerationResult(
+                success=False,
+                errors=["No se pudo generar configuración estratificada"],
+            )
 
         return GenerationResult(
             success=False, errors=[f"Estrategia no soportada: {strategy}"]
@@ -279,6 +307,24 @@ class FeatureModelConfigurationGenerator:
                 partial_selection=partial_selection,
             )
 
+        if strategy == GenerationStrategy.UNIFORM:
+            return self._generate_uniform_sample(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                count=count,
+                partial_selection=partial_selection,
+            )
+
+        if strategy == GenerationStrategy.STRATIFIED:
+            return self._generate_stratified_sample(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                count=count,
+                partial_selection=partial_selection,
+            )
+
         for i in range(count * 3):  # Intentar más veces para asegurar diversidad
             if len(results) >= count:
                 break
@@ -369,6 +415,148 @@ class FeatureModelConfigurationGenerator:
 
         return results
 
+    def _generate_uniform_sample(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        count: int,
+        partial_selection: Optional[Dict[str, bool]] = None,
+        max_pool: int | None = None,
+    ) -> List[GenerationResult]:
+        """
+        Muestreo uniforme aproximado a partir de enumeración SAT.
+        """
+        validator = FeatureModelLogicalValidator()
+        pool_size = max_pool or max(count * 10, 20)
+        try:
+            solutions = validator.enumerate_configurations(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                max_solutions=pool_size,
+                partial_selection=partial_selection,
+            )
+        except Exception as exc:
+            return [GenerationResult(success=False, errors=[str(exc)])]
+
+        if not solutions:
+            return [
+                GenerationResult(
+                    success=False,
+                    errors=["No se encontró configuración válida"],
+                )
+            ]
+
+        sample = (
+            random.sample(solutions, k=min(count, len(solutions)))
+            if len(solutions) > count
+            else solutions
+        )
+
+        results: list[GenerationResult] = []
+        for selected in sample:
+            configuration = {
+                str(feature.get("id")): str(feature.get("id")) in selected
+                for feature in features
+            }
+            results.append(
+                GenerationResult(
+                    success=True,
+                    configuration=configuration,
+                    selected_features=selected,
+                    score=self._score_configuration(
+                        configuration, list(configuration.keys())
+                    ),
+                    iterations=0,
+                )
+            )
+
+        return results
+
+    def _generate_stratified_sample(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        count: int,
+        partial_selection: Optional[Dict[str, bool]] = None,
+        bins: int = 3,
+    ) -> List[GenerationResult]:
+        """
+        Muestreo estratificado aproximado por tamaño de selección.
+        """
+        validator = FeatureModelLogicalValidator()
+        pool_size = max(count * 15, 30)
+        try:
+            solutions = validator.enumerate_configurations(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                max_solutions=pool_size,
+                partial_selection=partial_selection,
+            )
+        except Exception as exc:
+            return [GenerationResult(success=False, errors=[str(exc)])]
+
+        if not solutions:
+            return [
+                GenerationResult(
+                    success=False,
+                    errors=["No se encontró configuración válida"],
+                )
+            ]
+
+        sizes = sorted({len(s) for s in solutions})
+        if len(sizes) <= bins:
+            bin_edges = sizes
+        else:
+            step = max(len(sizes) // bins, 1)
+            bin_edges = sizes[::step][:bins]
+
+        buckets: dict[int, list[list[str]]] = {i: [] for i in range(len(bin_edges))}
+        for sol in solutions:
+            size = len(sol)
+            idx = 0
+            for i, edge in enumerate(bin_edges):
+                if size >= edge:
+                    idx = i
+            buckets[idx].append(sol)
+
+        per_bucket = max(count // max(len(buckets), 1), 1)
+        selected_solutions: list[list[str]] = []
+        for i in buckets:
+            bucket = buckets[i]
+            if not bucket:
+                continue
+            pick = min(per_bucket, len(bucket))
+            selected_solutions.extend(random.sample(bucket, k=pick))
+
+        while len(selected_solutions) < min(count, len(solutions)):
+            selected_solutions.append(random.choice(solutions))
+
+        selected_solutions = selected_solutions[: min(count, len(solutions))]
+
+        results: list[GenerationResult] = []
+        for selected in selected_solutions:
+            configuration = {
+                str(feature.get("id")): str(feature.get("id")) in selected
+                for feature in features
+            }
+            results.append(
+                GenerationResult(
+                    success=True,
+                    configuration=configuration,
+                    selected_features=selected,
+                    score=self._score_configuration(
+                        configuration, list(configuration.keys())
+                    ),
+                    iterations=0,
+                )
+            )
+
+        return results
+
     def _generate_sat_enumeration(
         self,
         features: List[Dict[str, Any]],
@@ -431,10 +619,7 @@ class FeatureModelConfigurationGenerator:
                 )
             ),
             tuple(
-                sorted(
-                    (str(c.get("id")), str(c.get("expr_text")))
-                    for c in constraints
-                )
+                sorted((str(c.get("id")), str(c.get("expr_text"))) for c in constraints)
             ),
         )
 
