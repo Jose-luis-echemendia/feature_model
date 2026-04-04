@@ -371,6 +371,66 @@ class FeatureModelLogicalValidator:
             features, relations, constraints, selected_features
         )
 
+    def enumerate_configurations(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        max_solutions: int = 10,
+        partial_selection: Optional[Dict[str, bool]] = None,
+    ) -> List[List[str]]:
+        """
+        Enumera configuraciones válidas usando Z3 (SAT/SMT) con bloqueo de modelos.
+
+        Args:
+            features: Lista de features del modelo
+            relations: Lista de relaciones
+            constraints: Lista de restricciones
+            max_solutions: Número máximo de configuraciones a devolver
+            partial_selection: Decisiones parciales a fijar (feature_id -> bool)
+
+        Returns:
+            Lista de configuraciones, cada una como lista de feature_ids seleccionadas
+        """
+        if not Z3_AVAILABLE:
+            raise InvalidConfigurationException(
+                configuration_details="enumeration",
+                reason="Z3 no disponible para enumeración",
+            )
+
+        self.z3_solver = z3.Solver()
+        self.z3_var_mapping = {}
+        for feature in features:
+            feature_id = str(feature.get("id"))
+            self.z3_var_mapping[feature_id] = z3.Bool(feature_id)
+
+        self._encode_hierarchy_z3(features, relations)
+        self._encode_groups_z3(features, relations)
+        self._encode_cross_tree_constraints_z3(features, constraints)
+
+        if partial_selection:
+            for feature_id, selected in partial_selection.items():
+                var = self.z3_var_mapping.get(str(feature_id))
+                if var is None:
+                    continue
+                self.z3_solver.add(var if selected else z3.Not(var))
+
+        solutions: List[List[str]] = []
+        while len(solutions) < max_solutions and self.z3_solver.check() == z3.sat:
+            model = self.z3_solver.model()
+            assignment = self._convert_z3_assignment(model)
+            selected = [fid for fid, val in assignment.items() if val]
+            solutions.append(selected)
+
+            # Bloquear modelo actual
+            blocking_clause = []
+            for feature_id, var in self.z3_var_mapping.items():
+                val = assignment.get(feature_id, False)
+                blocking_clause.append(z3.Not(var) if val else var)
+            self.z3_solver.add(z3.Or(blocking_clause))
+
+        return solutions
+
     def _reset(self) -> None:
         """Reinicia el estado interno del validador."""
         self.var_mapping = {}

@@ -3,8 +3,8 @@ from enum import Enum, StrEnum
 
 class Environment(StrEnum):
     DEVELOPMENT = "development"
-    STAGING     = "staging"
-    PRODUCTION  = "production"
+    STAGING = "staging"
+    PRODUCTION = "production"
 
 
 class UserRole(str, Enum):
@@ -113,7 +113,7 @@ class AnalysisType(str, Enum):
     TRANSITIVE_DEPENDENCIES = "transitive_dependencies"
     STRONGLY_CONNECTED = "strongly_connected"
     COMPLEXITY_METRICS = "complexity_metrics"
-    
+
 
 class GenerationStrategy(str, Enum):
     """Estrategias de generación disponibles."""
@@ -122,5 +122,4 @@ class GenerationStrategy(str, Enum):
     RANDOM = "random"  # Selección aleatoria válida
     BEAM_SEARCH = "beam_search"  # Búsqueda en haz
     GENETIC = "genetic"  # Algoritmos genéticos (futuro)
-    
-    
+    SAT_ENUM = "sat_enum"  # Enumeración exacta con SAT/SMT

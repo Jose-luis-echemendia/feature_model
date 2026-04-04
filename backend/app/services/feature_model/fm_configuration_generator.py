@@ -152,6 +152,13 @@ class FeatureModelConfigurationGenerator:
                 partial_selection,
                 max_iterations,
             )
+        elif strategy == GenerationStrategy.SAT_ENUM:
+            return self._generate_sat_enumeration(
+                features,
+                relations,
+                constraints,
+                partial_selection,
+            )
 
         return GenerationResult(
             success=False, errors=[f"Estrategia no soportada: {strategy}"]
@@ -191,6 +198,8 @@ class FeatureModelConfigurationGenerator:
         constraints: List[Dict[str, Any]],
         count: int = 10,
         diverse: bool = True,
+        strategy: GenerationStrategy = GenerationStrategy.RANDOM,
+        partial_selection: Optional[Dict[str, bool]] = None,
     ) -> List[GenerationResult]:
         """
         Genera múltiples configuraciones válidas diferentes.
@@ -208,6 +217,43 @@ class FeatureModelConfigurationGenerator:
         results = []
         generated_configs: Set[frozenset] = set()
 
+        if strategy == GenerationStrategy.SAT_ENUM:
+            validator = FeatureModelLogicalValidator()
+            try:
+                solutions = validator.enumerate_configurations(
+                    features=features,
+                    relations=relations,
+                    constraints=constraints,
+                    max_solutions=count,
+                    partial_selection=partial_selection,
+                )
+            except Exception as exc:
+                return [
+                    GenerationResult(
+                        success=False,
+                        errors=[str(exc)],
+                    )
+                ]
+
+            for selected in solutions:
+                configuration = {
+                    str(feature.get("id")): str(feature.get("id")) in selected
+                    for feature in features
+                }
+                results.append(
+                    GenerationResult(
+                        success=True,
+                        configuration=configuration,
+                        selected_features=selected,
+                        score=self._score_configuration(
+                            configuration, list(configuration.keys())
+                        ),
+                        iterations=0,
+                    )
+                )
+
+            return results
+
         for i in range(count * 3):  # Intentar más veces para asegurar diversidad
             if len(results) >= count:
                 break
@@ -217,7 +263,8 @@ class FeatureModelConfigurationGenerator:
                 features=features,
                 relations=relations,
                 constraints=constraints,
-                strategy=GenerationStrategy.RANDOM,
+                strategy=strategy,
+                partial_selection=partial_selection,
             )
 
             if result.success:
@@ -228,6 +275,47 @@ class FeatureModelConfigurationGenerator:
                     generated_configs.add(config_set)
 
         return results
+
+    def _generate_sat_enumeration(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        partial_selection: Optional[Dict[str, bool]] = None,
+    ) -> GenerationResult:
+        """
+        Genera una configuración válida usando enumeración SAT/SMT (Z3).
+        """
+        validator = FeatureModelLogicalValidator()
+        try:
+            solutions = validator.enumerate_configurations(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                max_solutions=1,
+                partial_selection=partial_selection,
+            )
+        except Exception as exc:
+            return GenerationResult(success=False, errors=[str(exc)])
+
+        if not solutions:
+            return GenerationResult(
+                success=False,
+                errors=["No se encontró configuración válida"],
+            )
+
+        selected = solutions[0]
+        configuration = {
+            str(feature.get("id")): str(feature.get("id")) in selected
+            for feature in features
+        }
+        return GenerationResult(
+            success=True,
+            configuration=configuration,
+            selected_features=selected,
+            score=self._score_configuration(configuration, list(configuration.keys())),
+            iterations=0,
+        )
 
     def _initialize(
         self,
