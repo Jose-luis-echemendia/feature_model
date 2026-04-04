@@ -17,6 +17,7 @@ Documentación técnica del backend del sistema de Feature Models para gestión 
 - **[tree.md](./tree.md)** - 📋 **Estructura de respuesta del endpoint `/complete/`** - Documentación detallada de cada campo del JSON de respuesta
 - **[COMPLETE_STRUCTURE_API.md](./COMPLETE_STRUCTURE_API.md)** - API para obtener estructura completa del Feature Model
 - **[STATISTICS_API.md](./STATISTICS_API.md)** - API de estadísticas (REST + WebSocket)
+- **[CONFIGURATIONS_API.md](./CONFIGURATIONS_API.md)** - API de configuraciones y estrategias de generación
 - **[FEATURE_MODEL_UVL.md](./FEATURE_MODEL_UVL.md)** - API UVL (edición paralela, diff y aplicación a estructura)
 - **[REST_VS_WEBSOCKET.md](./REST_VS_WEBSOCKET.md)** - Comparación y casos de uso REST vs WebSocket
 - **[FEATURE_MODEL_VERSIONS_INFO.md](./FEATURE_MODEL_VERSIONS_INFO.md)** - Información sobre versionado de Feature Models
