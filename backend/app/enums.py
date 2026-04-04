@@ -127,3 +127,4 @@ class GenerationStrategy(str, Enum):
     UNIFORM = "uniform"  # Muestreo uniforme (aprox.)
     STRATIFIED = "stratified"  # Muestreo estratificado (aprox.)
     CP_SAT = "cp_sat"  # CSP/CP-SAT con OR-Tools
+    BDD = "bdd"  # BDD/ROBDD para conteo/muestreo

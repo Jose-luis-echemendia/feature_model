@@ -39,6 +39,7 @@ dependencies = [
     "python-sat (>=0.1.8.dev13)",
     "z3-solver (>=4.12.2.0)",
     "ortools (>=9.9.3963,<10.0.0)",
+    "dd (>=0.6.0,<0.7.0)",
     "deap (>=1.4.1)",
     "structlog>=24.4.0",
     "psutil (>=7.2.2,<8.0.0)"

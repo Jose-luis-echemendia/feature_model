@@ -457,10 +457,7 @@ class FeatureModelLogicalValidator:
                 )
             ),
             tuple(
-                sorted(
-                    (str(c.get("id")), str(c.get("expr_text")))
-                    for c in constraints
-                )
+                sorted((str(c.get("id")), str(c.get("expr_text"))) for c in constraints)
             ),
         )
 
@@ -980,6 +977,43 @@ class FeatureModelLogicalValidator:
         return FeatureModelValidationResult(
             is_valid=True, satisfying_assignment=assignment
         )
+
+    def build_cnf(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+    ) -> tuple[Dict[str, int], List[List[int]]]:
+        """
+        Construye una CNF (lista de cláusulas) usando el mismo encoding que PySAT.
+
+        Returns:
+            (feature_id -> var_id, clauses)
+        """
+        if not PYSAT_AVAILABLE:
+            raise InvalidConfigurationException(
+                configuration_details="cnf",
+                reason="PySAT no disponible para construir CNF",
+            )
+
+        self.pysat_var_mapping = {}
+        self.pysat_reverse_mapping = {}
+
+        for idx, feature in enumerate(features, start=1):
+            feature_id = str(feature.get("id"))
+            self.pysat_var_mapping[feature_id] = idx
+            self.pysat_reverse_mapping[idx] = feature_id
+
+        if self.pysat_cnf is None:
+            self.pysat_cnf = CNF()
+        else:
+            self.pysat_cnf.clauses = []
+
+        self._encode_hierarchy_pysat(features, relations)
+        self._encode_groups_pysat(features, relations)
+        self._encode_cross_tree_constraints_pysat(features, constraints)
+
+        return self.pysat_var_mapping, list(self.pysat_cnf.clauses)
 
     def _validate_configuration_with_z3(
         self,
