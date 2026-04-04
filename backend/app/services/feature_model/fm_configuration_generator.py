@@ -37,6 +37,14 @@ try:
 except ImportError:
     DEAP_AVAILABLE = False
 
+# OR-Tools CP-SAT
+try:
+    from ortools.sat.python import cp_model
+
+    CP_SAT_AVAILABLE = True
+except ImportError:
+    CP_SAT_AVAILABLE = False
+
 
 class GenerationResult:
     """Resultado de una generación de configuración."""
@@ -203,6 +211,13 @@ class FeatureModelConfigurationGenerator:
                 success=False,
                 errors=["No se pudo generar configuración estratificada"],
             )
+        elif strategy == GenerationStrategy.CP_SAT:
+            return self._generate_cp_sat(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                partial_selection=partial_selection,
+            )
 
         return GenerationResult(
             success=False, errors=[f"Estrategia no soportada: {strategy}"]
@@ -318,6 +333,15 @@ class FeatureModelConfigurationGenerator:
 
         if strategy == GenerationStrategy.STRATIFIED:
             return self._generate_stratified_sample(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                count=count,
+                partial_selection=partial_selection,
+            )
+
+        if strategy == GenerationStrategy.CP_SAT:
+            return self._generate_cp_sat_multiple(
                 features=features,
                 relations=relations,
                 constraints=constraints,
@@ -556,6 +580,318 @@ class FeatureModelConfigurationGenerator:
             )
 
         return results
+
+    def _generate_cp_sat(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        partial_selection: Optional[Dict[str, bool]] = None,
+    ) -> GenerationResult:
+        """
+        Genera una configuración usando CP-SAT (OR-Tools).
+        """
+        if not CP_SAT_AVAILABLE:
+            return GenerationResult(
+                success=False,
+                errors=["OR-Tools no disponible (instalar ortools)"],
+            )
+
+        self._initialize(features, relations, constraints)
+        model = cp_model.CpModel()
+
+        vars_map = {
+            fid: model.NewBoolVar(f"f_{fid}") for fid in self.features_map.keys()
+        }
+
+        # Root siempre activa
+        for feature in features:
+            if feature.get("parent_id") is None:
+                fid = str(feature.get("id"))
+                if fid in vars_map:
+                    model.Add(vars_map[fid] == 1)
+
+        # Jerarquía
+        for relation in relations:
+            parent_id = str(relation.get("parent_id"))
+            child_id = str(relation.get("child_id"))
+            relation_type = relation.get("relation_type")
+            if parent_id not in vars_map or child_id not in vars_map:
+                continue
+            if relation_type == "mandatory":
+                model.AddImplication(vars_map[parent_id], vars_map[child_id])
+            elif relation_type == "optional":
+                model.AddImplication(vars_map[child_id], vars_map[parent_id])
+
+        # Grupos
+        groups = self._build_groups_from_relations(relations)
+        for group in groups:
+            parent_id = group["parent_id"]
+            child_ids = group["children"]
+            group_type = group["group_type"]
+            min_card = group["min_cardinality"]
+            max_card = group["max_cardinality"]
+
+            if parent_id not in vars_map:
+                continue
+            parent_var = vars_map[parent_id]
+            child_vars = [vars_map[cid] for cid in child_ids if cid in vars_map]
+            if not child_vars:
+                continue
+
+            for child_var in child_vars:
+                model.AddImplication(child_var, parent_var)
+
+            if group_type == "alternative":
+                model.Add(sum(child_vars) >= 1).OnlyEnforceIf(parent_var)
+                model.Add(sum(child_vars) <= 1).OnlyEnforceIf(parent_var)
+            elif group_type == "or":
+                if min_card is None:
+                    min_card = 1
+                if min_card > 0:
+                    model.Add(sum(child_vars) >= min_card).OnlyEnforceIf(parent_var)
+                if max_card is not None:
+                    model.Add(sum(child_vars) <= max_card).OnlyEnforceIf(parent_var)
+
+        # Constraints binarias
+        name_to_id = self._build_feature_name_map(features)
+        for constraint in constraints:
+            expr_text = constraint.get("expr_text", "")
+            parsed = self._parse_binary_constraint(expr_text, name_to_id)
+            if not parsed:
+                continue
+            ctype, left_id, right_id = parsed
+            left_id = self._resolve_feature_id(left_id, name_to_id)
+            right_id = self._resolve_feature_id(right_id, name_to_id)
+            if left_id not in vars_map or right_id not in vars_map:
+                continue
+            if ctype in {"requires", "implies"}:
+                model.AddImplication(vars_map[left_id], vars_map[right_id])
+            elif ctype == "excludes":
+                model.Add(vars_map[left_id] + vars_map[right_id] <= 1)
+
+        # Decisiones parciales
+        if partial_selection:
+            for fid, selected in partial_selection.items():
+                fid_str = str(fid)
+                if fid_str in vars_map:
+                    model.Add(vars_map[fid_str] == (1 if selected else 0))
+
+        model.Maximize(sum(vars_map.values()))
+        solver = cp_model.CpSolver()
+        status = solver.Solve(model)
+        if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+            return GenerationResult(
+                success=False,
+                errors=["No se encontró configuración válida"],
+            )
+
+        selected = [fid for fid, var in vars_map.items() if solver.Value(var) == 1]
+        configuration = {fid: fid in selected for fid in vars_map.keys()}
+        return GenerationResult(
+            success=True,
+            configuration=configuration,
+            selected_features=selected,
+            score=self._score_configuration(configuration, list(configuration.keys())),
+            iterations=0,
+        )
+
+    def _generate_cp_sat_multiple(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        count: int,
+        partial_selection: Optional[Dict[str, bool]] = None,
+    ) -> List[GenerationResult]:
+        """
+        Genera múltiples configuraciones usando CP-SAT (OR-Tools).
+        """
+        if not CP_SAT_AVAILABLE:
+            return [
+                GenerationResult(
+                    success=False,
+                    errors=["OR-Tools no disponible (instalar ortools)"],
+                )
+            ]
+
+        self._initialize(features, relations, constraints)
+        model = cp_model.CpModel()
+        vars_map = {
+            fid: model.NewBoolVar(f"f_{fid}") for fid in self.features_map.keys()
+        }
+
+        for feature in features:
+            if feature.get("parent_id") is None:
+                fid = str(feature.get("id"))
+                if fid in vars_map:
+                    model.Add(vars_map[fid] == 1)
+
+        for relation in relations:
+            parent_id = str(relation.get("parent_id"))
+            child_id = str(relation.get("child_id"))
+            relation_type = relation.get("relation_type")
+            if parent_id not in vars_map or child_id not in vars_map:
+                continue
+            if relation_type == "mandatory":
+                model.AddImplication(vars_map[parent_id], vars_map[child_id])
+            elif relation_type == "optional":
+                model.AddImplication(vars_map[child_id], vars_map[parent_id])
+
+        groups = self._build_groups_from_relations(relations)
+        for group in groups:
+            parent_id = group["parent_id"]
+            child_ids = group["children"]
+            group_type = group["group_type"]
+            min_card = group["min_cardinality"]
+            max_card = group["max_cardinality"]
+
+            if parent_id not in vars_map:
+                continue
+            parent_var = vars_map[parent_id]
+            child_vars = [vars_map[cid] for cid in child_ids if cid in vars_map]
+            if not child_vars:
+                continue
+
+            for child_var in child_vars:
+                model.AddImplication(child_var, parent_var)
+
+            if group_type == "alternative":
+                model.Add(sum(child_vars) >= 1).OnlyEnforceIf(parent_var)
+                model.Add(sum(child_vars) <= 1).OnlyEnforceIf(parent_var)
+            elif group_type == "or":
+                if min_card is None:
+                    min_card = 1
+                if min_card > 0:
+                    model.Add(sum(child_vars) >= min_card).OnlyEnforceIf(parent_var)
+                if max_card is not None:
+                    model.Add(sum(child_vars) <= max_card).OnlyEnforceIf(parent_var)
+
+        name_to_id = self._build_feature_name_map(features)
+        for constraint in constraints:
+            expr_text = constraint.get("expr_text", "")
+            parsed = self._parse_binary_constraint(expr_text, name_to_id)
+            if not parsed:
+                continue
+            ctype, left_id, right_id = parsed
+            left_id = self._resolve_feature_id(left_id, name_to_id)
+            right_id = self._resolve_feature_id(right_id, name_to_id)
+            if left_id not in vars_map or right_id not in vars_map:
+                continue
+            if ctype in {"requires", "implies"}:
+                model.AddImplication(vars_map[left_id], vars_map[right_id])
+            elif ctype == "excludes":
+                model.Add(vars_map[left_id] + vars_map[right_id] <= 1)
+
+        if partial_selection:
+            for fid, selected in partial_selection.items():
+                fid_str = str(fid)
+                if fid_str in vars_map:
+                    model.Add(vars_map[fid_str] == (1 if selected else 0))
+
+        class _SolutionCollector(cp_model.CpSolverSolutionCallback):
+            def __init__(self, variables: dict[str, "cp_model.BoolVar"], limit: int):
+                super().__init__()
+                self.variables = variables
+                self.limit = limit
+                self.solutions: list[list[str]] = []
+
+            def on_solution_callback(self) -> None:
+                selected_local = [
+                    fid for fid, var in self.variables.items() if self.Value(var) == 1
+                ]
+                self.solutions.append(selected_local)
+                if len(self.solutions) >= self.limit:
+                    self.StopSearch()
+
+        solver = cp_model.CpSolver()
+        collector = _SolutionCollector(vars_map, count)
+        solver.SearchForAllSolutions(model, collector)
+
+        results: list[GenerationResult] = []
+        for selected in collector.solutions:
+            configuration = {fid: fid in selected for fid in vars_map.keys()}
+            results.append(
+                GenerationResult(
+                    success=True,
+                    configuration=configuration,
+                    selected_features=selected,
+                    score=self._score_configuration(
+                        configuration, list(configuration.keys())
+                    ),
+                    iterations=0,
+                )
+            )
+
+        if not results:
+            return [
+                GenerationResult(
+                    success=False,
+                    errors=["No se encontró configuración válida"],
+                )
+            ]
+
+        return results
+
+    def _build_feature_name_map(
+        self, features: List[Dict[str, Any]]
+    ) -> Dict[str, str]:
+        name_to_id: Dict[str, str] = {}
+        for feature in features:
+            feature_id = str(feature.get("id"))
+            name = feature.get("name", feature_id)
+            name_to_id[name.strip().lower()] = feature_id
+        return name_to_id
+
+    def _resolve_feature_id(self, token: str, name_to_id: Dict[str, str]) -> str:
+        normalized = token.strip().lower()
+        return name_to_id.get(normalized, token.strip())
+
+    def _parse_binary_constraint(
+        self, expr_text: str, name_to_id: Dict[str, str]
+    ) -> Optional[tuple[str, str, str]]:
+        expr_upper = expr_text.upper()
+        if "REQUIRES" in expr_upper:
+            idx = expr_upper.index("REQUIRES")
+            left = expr_text[:idx]
+            right = expr_text[idx + len("REQUIRES") :]
+            return "requires", left.strip(), right.strip()
+        if "EXCLUDES" in expr_upper:
+            idx = expr_upper.index("EXCLUDES")
+            left = expr_text[:idx]
+            right = expr_text[idx + len("EXCLUDES") :]
+            return "excludes", left.strip(), right.strip()
+        if "IMPLIES" in expr_upper:
+            idx = expr_upper.index("IMPLIES")
+            left = expr_text[:idx]
+            right = expr_text[idx + len("IMPLIES") :]
+            return "implies", left.strip(), right.strip()
+        return None
+
+    def _build_groups_from_relations(
+        self, relations: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        groups: Dict[str, Dict[str, Any]] = {}
+        for relation in relations:
+            group_id = relation.get("group_id")
+            if not group_id:
+                continue
+            gid = str(group_id)
+            group = groups.get(gid)
+            if not group:
+                group = {
+                    "parent_id": str(relation.get("parent_id")),
+                    "children": [],
+                    "group_type": relation.get("group_type"),
+                    "min_cardinality": relation.get("min_cardinality"),
+                    "max_cardinality": relation.get("max_cardinality"),
+                }
+                groups[gid] = group
+            child_id = relation.get("child_id")
+            if child_id:
+                group["children"].append(str(child_id))
+
+        return list(groups.values())
 
     def _generate_sat_enumeration(
         self,
