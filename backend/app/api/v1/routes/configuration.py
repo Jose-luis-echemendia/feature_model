@@ -54,6 +54,18 @@ class ConfigurationGenerationResponse(BaseModel):
     results: list[ConfigurationGenerationItem] = Field(default_factory=list)
 
 
+class StagedConfigurationRequest(BaseModel):
+    feature_model_version_id: uuid.UUID
+    partial_selection: dict[uuid.UUID, bool] = Field(default_factory=dict)
+
+
+class StagedConfigurationResponse(BaseModel):
+    can_select: list[uuid.UUID] = Field(default_factory=list)
+    can_deselect: list[uuid.UUID] = Field(default_factory=list)
+    must_select: list[uuid.UUID] = Field(default_factory=list)
+    must_deselect: list[uuid.UUID] = Field(default_factory=list)
+
+
 def _build_configuration_payload(
     version,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
@@ -414,3 +426,91 @@ async def generate_configuration(
             )
 
     return ConfigurationGenerationResponse(results=results)
+
+
+@router.post(
+    "/staged/options",
+    response_model=StagedConfigurationResponse,
+    summary="Staged configuration",
+    description=(
+        "Dadas decisiones parciales, devuelve qué features pueden seleccionarse "
+        "o deseleccionarse, y cuáles quedan forzadas por las restricciones."
+    ),
+)
+async def staged_configuration_options(
+    *,
+    payload: StagedConfigurationRequest,
+    feature_model_version_repo: AsyncFeatureModelVersionRepoDep,
+) -> StagedConfigurationResponse:
+    """
+    Calcula opciones válidas para configuración guiada (staged).
+    """
+    version = await feature_model_version_repo.get_complete_with_relations(
+        version_id=payload.feature_model_version_id,
+        include_resources=False,
+    )
+    if not version:
+        raise HTTPException(status_code=404, detail="Feature model version not found")
+
+    features_payload, relations_payload, constraints_payload = (
+        _build_configuration_payload(version)
+    )
+
+    validator = FeatureModelLogicalValidator()
+    partial = {str(k): v for k, v in payload.partial_selection.items()}
+    if not validator.is_partial_selection_satisfiable(
+        features=features_payload,
+        relations=relations_payload,
+        constraints=constraints_payload,
+        partial_selection=partial,
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=["Partial selection is unsatisfiable"],
+        )
+
+    can_select: list[uuid.UUID] = []
+    can_deselect: list[uuid.UUID] = []
+    must_select: list[uuid.UUID] = []
+    must_deselect: list[uuid.UUID] = []
+
+    for feature in features_payload:
+        feature_id = str(feature.get("id"))
+        if feature_id in partial:
+            if partial[feature_id]:
+                must_select.append(uuid.UUID(feature_id))
+            else:
+                must_deselect.append(uuid.UUID(feature_id))
+            continue
+
+        partial_true = {**partial, feature_id: True}
+        partial_false = {**partial, feature_id: False}
+
+        can_true = validator.is_partial_selection_satisfiable(
+            features=features_payload,
+            relations=relations_payload,
+            constraints=constraints_payload,
+            partial_selection=partial_true,
+        )
+        can_false = validator.is_partial_selection_satisfiable(
+            features=features_payload,
+            relations=relations_payload,
+            constraints=constraints_payload,
+            partial_selection=partial_false,
+        )
+
+        if can_true:
+            can_select.append(uuid.UUID(feature_id))
+        if can_false:
+            can_deselect.append(uuid.UUID(feature_id))
+        if can_true and not can_false:
+            must_select.append(uuid.UUID(feature_id))
+        if can_false and not can_true:
+            must_deselect.append(uuid.UUID(feature_id))
+
+    return StagedConfigurationResponse(
+        can_select=can_select,
+        can_deselect=can_deselect,
+        must_select=must_select,
+        must_deselect=must_deselect,
+    )
