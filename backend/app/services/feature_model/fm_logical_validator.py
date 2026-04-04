@@ -371,6 +371,60 @@ class FeatureModelLogicalValidator:
             features, relations, constraints, selected_features
         )
 
+    def is_partial_selection_satisfiable(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        partial_selection: Dict[str, bool],
+    ) -> bool:
+        """
+        Verifica si una selección parcial es satisfacible.
+        """
+        self._reset()
+
+        if Z3_AVAILABLE:
+            self.z3_solver = z3.Solver()
+            self.z3_var_mapping = {}
+            for feature in features:
+                feature_id = str(feature.get("id"))
+                self.z3_var_mapping[feature_id] = z3.Bool(feature_id)
+
+            self._encode_hierarchy_z3(features, relations)
+            self._encode_groups_z3(features, relations)
+            self._encode_cross_tree_constraints_z3(features, constraints)
+
+            for feature_id, selected in partial_selection.items():
+                var = self.z3_var_mapping.get(str(feature_id))
+                if var is None:
+                    continue
+                self.z3_solver.add(var if selected else z3.Not(var))
+
+            return self.z3_solver.check() == z3.sat
+
+        # Fallback a SymPy
+        self._build_symbolic_variables(features)
+        hierarchy_constraints = self._encode_hierarchy(features, relations)
+        group_constraints = self._encode_groups_sympy(features, relations)
+        cross_tree_constraints, _ = self._encode_cross_tree_constraints(constraints)
+        all_constraints = (
+            hierarchy_constraints + group_constraints + cross_tree_constraints
+        )
+
+        user_decisions = []
+        for feature_id, selected in partial_selection.items():
+            symbol = self.var_mapping.get(str(feature_id))
+            if symbol is None:
+                continue
+            user_decisions.append(symbol if selected else Not(symbol))
+
+        full_formula = And(*all_constraints, *user_decisions)
+        try:
+            result = satisfiable(full_formula)
+            return result is not False
+        except Exception:
+            return False
+
     def enumerate_configurations(
         self,
         features: List[Dict[str, Any]],
