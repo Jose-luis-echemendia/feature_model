@@ -240,6 +240,20 @@ class FeatureModelConfigurationGenerator:
                 success=False,
                 errors=["No se pudo generar configuración BDD"],
             )
+        elif strategy == GenerationStrategy.NSGA2:
+            results = self._generate_nsga2_configurations(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                count=1,
+                partial_selection=partial_selection,
+            )
+            if results:
+                return results[0]
+            return GenerationResult(
+                success=False,
+                errors=["No se pudo generar configuración NSGA-II"],
+            )
 
         return GenerationResult(
             success=False, errors=[f"Estrategia no soportada: {strategy}"]
@@ -373,6 +387,15 @@ class FeatureModelConfigurationGenerator:
 
         if strategy == GenerationStrategy.BDD:
             return self._generate_bdd_sample(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                count=count,
+                partial_selection=partial_selection,
+            )
+
+        if strategy == GenerationStrategy.NSGA2:
+            return self._generate_nsga2_configurations(
                 features=features,
                 relations=relations,
                 constraints=constraints,
@@ -1019,6 +1042,151 @@ class FeatureModelConfigurationGenerator:
                     iterations=0,
                 )
             )
+
+        return results
+
+    def _generate_nsga2_configurations(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        count: int,
+        partial_selection: Optional[Dict[str, bool]] = None,
+    ) -> List[GenerationResult]:
+        """
+        Genera configuraciones multiobjetivo con NSGA-II (DEAP).
+
+        Objetivos:
+        1) Maximizar número de features seleccionadas.
+        2) Minimizar violaciones (0 si es válida, 1 si no).
+        """
+        if not DEAP_AVAILABLE:
+            return [
+                GenerationResult(
+                    success=False,
+                    errors=["DEAP no disponible, instalar con: pip install deap"],
+                )
+            ]
+
+        self._initialize(features, relations, constraints)
+        feature_ids = list(self.features_map.keys())
+        n_features = len(feature_ids)
+        if n_features == 0:
+            return [
+                GenerationResult(
+                    success=False,
+                    errors=["No hay features para generar"],
+                )
+            ]
+
+        # Definir fitness multiobjetivo
+        if not hasattr(creator, "FitnessMulti"):
+            creator.create("FitnessMulti", base.Fitness, weights=(1.0, -1.0))
+        if not hasattr(creator, "IndividualMulti"):
+            creator.create("IndividualMulti", list, fitness=creator.FitnessMulti)
+
+        toolbox = base.Toolbox()
+        toolbox.register("attr_bool", random.randint, 0, 1)
+        toolbox.register(
+            "individual",
+            tools.initRepeat,
+            creator.IndividualMulti,
+            toolbox.attr_bool,
+            n=n_features,
+        )
+        toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+
+        def apply_partial(individual: list[int]) -> list[int]:
+            if not partial_selection:
+                return individual
+            for idx, fid in enumerate(feature_ids):
+                if fid in partial_selection:
+                    individual[idx] = 1 if partial_selection[fid] else 0
+            return individual
+
+        def evaluate(individual: list[int]) -> tuple[float, float]:
+            individual = apply_partial(individual)
+            configuration = {fid: bool(bit) for fid, bit in zip(feature_ids, individual)}
+            selected = [fid for fid, sel in configuration.items() if sel]
+
+            if len(selected) == 0:
+                return 0.0, 1.0
+
+            is_valid = self._is_valid_configuration(selected)
+            violations = 0.0 if is_valid else 1.0
+            return float(len(selected)), violations
+
+        toolbox.register("evaluate", evaluate)
+        toolbox.register("mate", tools.cxTwoPoint)
+        toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
+        toolbox.register("select", tools.selNSGA2)
+
+        population = toolbox.population(n=self.population_size)
+        population = [apply_partial(ind) for ind in population]
+
+        for ind in population:
+            ind.fitness.values = toolbox.evaluate(ind)
+
+        for _ in range(self.num_generations):
+            offspring = tools.selTournamentDCD(population, len(population))
+            offspring = list(map(toolbox.clone, offspring))
+
+            for child1, child2 in zip(offspring[::2], offspring[1::2]):
+                if random.random() < 0.9:
+                    toolbox.mate(child1, child2)
+                    del child1.fitness.values
+                    del child2.fitness.values
+
+            for mutant in offspring:
+                if random.random() < 0.2:
+                    toolbox.mutate(mutant)
+                    del mutant.fitness.values
+
+            for ind in offspring:
+                apply_partial(ind)
+
+            invalid = [ind for ind in offspring if not ind.fitness.valid]
+            for ind in invalid:
+                ind.fitness.values = toolbox.evaluate(ind)
+
+            population = toolbox.select(population + offspring, self.population_size)
+
+        # Seleccionar soluciones no dominadas y válidas primero
+        pareto = tools.sortNondominated(population, k=len(population), first_front_only=True)[0]
+
+        results: list[GenerationResult] = []
+        seen: set[frozenset[str]] = set()
+        for ind in pareto:
+            configuration = {fid: bool(bit) for fid, bit in zip(feature_ids, ind)}
+            selected = [fid for fid, sel in configuration.items() if sel]
+            selected_set = frozenset(selected)
+            if selected_set in seen:
+                continue
+            seen.add(selected_set)
+
+            violations = ind.fitness.values[1]
+            if violations > 0:
+                continue
+
+            results.append(
+                GenerationResult(
+                    success=True,
+                    configuration=configuration,
+                    selected_features=selected,
+                    score=self._score_configuration(configuration, feature_ids),
+                    iterations=self.num_generations,
+                )
+            )
+            if len(results) >= count:
+                break
+
+        if not results:
+            return [
+                GenerationResult(
+                    success=False,
+                    errors=["No se encontró configuración válida"],
+                )
+            ]
 
         return results
 
