@@ -45,6 +45,14 @@ try:
 except ImportError:
     CP_SAT_AVAILABLE = False
 
+# BDD/ROBDD
+try:
+    from dd.autoref import BDD
+
+    BDD_AVAILABLE = True
+except ImportError:
+    BDD_AVAILABLE = False
+
 
 class GenerationResult:
     """Resultado de una generación de configuración."""
@@ -218,6 +226,20 @@ class FeatureModelConfigurationGenerator:
                 constraints=constraints,
                 partial_selection=partial_selection,
             )
+        elif strategy == GenerationStrategy.BDD:
+            results = self._generate_bdd_sample(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                count=1,
+                partial_selection=partial_selection,
+            )
+            if results:
+                return results[0]
+            return GenerationResult(
+                success=False,
+                errors=["No se pudo generar configuración BDD"],
+            )
 
         return GenerationResult(
             success=False, errors=[f"Estrategia no soportada: {strategy}"]
@@ -342,6 +364,15 @@ class FeatureModelConfigurationGenerator:
 
         if strategy == GenerationStrategy.CP_SAT:
             return self._generate_cp_sat_multiple(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+                count=count,
+                partial_selection=partial_selection,
+            )
+
+        if strategy == GenerationStrategy.BDD:
+            return self._generate_bdd_sample(
                 features=features,
                 relations=relations,
                 constraints=constraints,
@@ -833,9 +864,7 @@ class FeatureModelConfigurationGenerator:
 
         return results
 
-    def _build_feature_name_map(
-        self, features: List[Dict[str, Any]]
-    ) -> Dict[str, str]:
+    def _build_feature_name_map(self, features: List[Dict[str, Any]]) -> Dict[str, str]:
         name_to_id: Dict[str, str] = {}
         for feature in features:
             feature_id = str(feature.get("id"))
@@ -892,6 +921,106 @@ class FeatureModelConfigurationGenerator:
                 group["children"].append(str(child_id))
 
         return list(groups.values())
+
+    def _generate_bdd_sample(
+        self,
+        features: List[Dict[str, Any]],
+        relations: List[Dict[str, Any]],
+        constraints: List[Dict[str, Any]],
+        count: int,
+        partial_selection: Optional[Dict[str, bool]] = None,
+    ) -> List[GenerationResult]:
+        """
+        Genera configuraciones usando BDD/ROBDD a partir de CNF.
+        """
+        if not BDD_AVAILABLE:
+            return [
+                GenerationResult(
+                    success=False,
+                    errors=["BDD no disponible (instalar dd)"],
+                )
+            ]
+
+        validator = FeatureModelLogicalValidator()
+        try:
+            var_map, clauses = validator.build_cnf(
+                features=features,
+                relations=relations,
+                constraints=constraints,
+            )
+        except Exception as exc:
+            return [GenerationResult(success=False, errors=[str(exc)])]
+
+        # Mapear variables a nombres válidos
+        id_to_var: dict[int, str] = {idx: f"v{idx}" for idx in var_map.values()}
+        bdd = BDD()
+        bdd.declare(*id_to_var.values())
+
+        expr_parts: list[str] = []
+        for clause in clauses:
+            lits = []
+            for lit in clause:
+                var_name = id_to_var.get(abs(lit))
+                if not var_name:
+                    continue
+                lits.append(f"~{var_name}" if lit < 0 else var_name)
+            if lits:
+                expr_parts.append("(" + " | ".join(lits) + ")")
+
+        if partial_selection:
+            for fid, selected in partial_selection.items():
+                var_id = var_map.get(str(fid))
+                if var_id is None:
+                    continue
+                var_name = id_to_var.get(var_id)
+                if not var_name:
+                    continue
+                expr_parts.append(var_name if selected else f"~{var_name}")
+
+        expr = " & ".join(expr_parts) if expr_parts else "True"
+        root = bdd.add_expr(expr)
+
+        assignments = []
+        for assignment in bdd.pick_iter(root):
+            assignments.append(assignment)
+            if len(assignments) >= count:
+                break
+
+        if not assignments:
+            return [
+                GenerationResult(
+                    success=False,
+                    errors=["No se encontró configuración válida"],
+                )
+            ]
+
+        results: list[GenerationResult] = []
+        # Convertir a feature ids
+        var_to_fid = {v: fid for fid, v in var_map.items()}
+        for assignment in assignments:
+            selected = [
+                var_to_fid[var_id]
+                for var_id, var_name in id_to_var.items()
+                if assignment.get(var_name)
+            ]
+            selected_ids = [str(fid) for fid in selected]
+            configuration = {
+                str(feature.get("id")): str(feature.get("id")) in selected_ids
+                for feature in features
+            }
+            results.append(
+                GenerationResult(
+                    success=True,
+                    configuration=configuration,
+                    selected_features=selected_ids,
+                    score=self._score_configuration(
+                        configuration, list(configuration.keys())
+                    ),
+                    iterations=0,
+                )
+            )
+
+        return results
 
     def _generate_sat_enumeration(
         self,
