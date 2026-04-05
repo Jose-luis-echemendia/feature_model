@@ -1106,7 +1106,9 @@ class FeatureModelConfigurationGenerator:
 
         def evaluate(individual: list[int]) -> tuple[float, float]:
             individual = apply_partial(individual)
-            configuration = {fid: bool(bit) for fid, bit in zip(feature_ids, individual)}
+            configuration = {
+                fid: bool(bit) for fid, bit in zip(feature_ids, individual)
+            }
             selected = [fid for fid, sel in configuration.items() if sel]
 
             if len(selected) == 0:
@@ -1152,7 +1154,9 @@ class FeatureModelConfigurationGenerator:
             population = toolbox.select(population + offspring, self.population_size)
 
         # Seleccionar soluciones no dominadas y válidas primero
-        pareto = tools.sortNondominated(population, k=len(population), first_front_only=True)[0]
+        pareto = tools.sortNondominated(
+            population, k=len(population), first_front_only=True
+        )[0]
 
         results: list[GenerationResult] = []
         seen: set[frozenset[str]] = set()
