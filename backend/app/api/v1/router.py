@@ -13,6 +13,8 @@ from app.api.v1.routes import (
     feature_relation,
     feature_group,
     constraint,
+    tags,
+    resources,
     # --- FMs ---
     feature_model,
     feature_model_version,
@@ -21,7 +23,9 @@ from app.api.v1.routes import (
     feature_model_statistics_ws,
     feature_model_export,
     feature_model_uvl,
-    validation,
+    feature_model_validation,
+    #
+    configuration,
 )
 
 # ========================================================================
@@ -40,6 +44,8 @@ api_router.include_router(feature.router)
 api_router.include_router(feature_relation.router)
 api_router.include_router(feature_group.router)
 api_router.include_router(constraint.router)
+api_router.include_router(tags.router)
+api_router.include_router(resources.router)
 # --- FMs ---
 api_router.include_router(feature_model.router)
 api_router.include_router(feature_model_version.router)
@@ -48,7 +54,9 @@ api_router.include_router(feature_model_statistics.router)
 api_router.include_router(feature_model_statistics_ws.router)  # WebSocket
 api_router.include_router(feature_model_export.router)  # Export
 api_router.include_router(feature_model_uvl.router)  # UVL sync/edit
-api_router.include_router(validation.router)  # Validations
+api_router.include_router(feature_model_validation.router)  # Validations
+#
+api_router.include_router(configuration.router)
 
 if settings.ENVIRONMENT == "local":
     api_router.include_router(private.router)
