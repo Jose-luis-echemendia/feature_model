@@ -52,6 +52,7 @@ class ConfigurationGenerationItem(BaseModel):
 
 class ConfigurationGenerationResponse(BaseModel):
     results: list[ConfigurationGenerationItem] = Field(default_factory=list)
+    quality: dict[str, Any] = Field(default_factory=dict)
 
 
 class StagedConfigurationRequest(BaseModel):
@@ -383,6 +384,7 @@ async def generate_configuration(
     )
 
     results: list[ConfigurationGenerationItem] = []
+    quality: dict[str, Any] = {}
     if payload.count == 1:
         generated = generator.generate_valid_configuration(
             features=features_payload,
@@ -402,6 +404,9 @@ async def generate_configuration(
                 errors=generated.errors,
             )
         )
+        quality = generator.compute_quality_metrics(
+            [generated], [str(f["id"]) for f in features_payload]
+        )
     else:
         generated_list = generator.generate_multiple_configurations(
             features=features_payload,
@@ -411,6 +416,9 @@ async def generate_configuration(
             diverse=payload.diverse,
             strategy=payload.strategy,
             partial_selection=partial_selection,
+        )
+        quality = generator.compute_quality_metrics(
+            generated_list, [str(f["id"]) for f in features_payload]
         )
         for generated in generated_list:
             results.append(
@@ -425,7 +433,7 @@ async def generate_configuration(
                 )
             )
 
-    return ConfigurationGenerationResponse(results=results)
+    return ConfigurationGenerationResponse(results=results, quality=quality)
 
 
 @router.post(
