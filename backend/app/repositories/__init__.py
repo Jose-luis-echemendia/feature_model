@@ -7,3 +7,5 @@ from .feature_group import FeatureGroupRepository
 from .constraint import ConstraintRepository
 from .configuration import ConfigurationRepository
 from .feature_model_version import FeatureModelVersionRepository
+from .tag import TagRepository
+from .resource import ResourceRepository

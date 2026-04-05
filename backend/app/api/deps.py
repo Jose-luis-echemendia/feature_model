@@ -65,6 +65,8 @@ from app.repositories import (
     ConstraintRepository,
     ConfigurationRepository,
     FeatureModelVersionRepository,
+    TagRepository,
+    ResourceRepository,
 )
 
 
@@ -104,6 +106,14 @@ async def get_feature_model_version_repo(session: SessionDep):
     return FeatureModelVersionRepository(session)
 
 
+async def get_tag_repo(session: SessionDep):
+    return TagRepository(session)
+
+
+async def get_resource_repo(session: SessionDep):
+    return ResourceRepository(session)
+
+
 # usuarios
 AsyncUserRepoDep = Annotated[UserRepository, Depends(get_user_repo)]
 # dominios
@@ -132,6 +142,8 @@ AsyncConfigurationRepoDep = Annotated[
 AsyncFeatureModelVersionRepoDep = Annotated[
     FeatureModelVersionRepository, Depends(get_feature_model_version_repo)
 ]
+AsyncTagRepoDep = Annotated[TagRepository, Depends(get_tag_repo)]
+AsyncResourceRepoDep = Annotated[ResourceRepository, Depends(get_resource_repo)]
 
 
 # ========================================================================
