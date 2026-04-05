@@ -945,6 +945,72 @@ class FeatureModelConfigurationGenerator:
 
         return list(groups.values())
 
+    def compute_quality_metrics(
+        self, results: List[GenerationResult], feature_ids: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Calcula métricas de calidad: diversidad, cobertura y objetivos.
+        """
+        successful = [r for r in results if r.success]
+        if not successful:
+            return {
+                "diversity": 0.0,
+                "pairwise_coverage": 0.0,
+                "objectives": {
+                    "avg_selected": 0.0,
+                    "min_selected": 0,
+                    "max_selected": 0,
+                },
+            }
+
+        selected_sets = [set(r.selected_features) for r in successful]
+
+        diversity = self._average_jaccard_distance(selected_sets)
+        coverage = self._pairwise_coverage(selected_sets, feature_ids)
+        selected_counts = [len(s) for s in selected_sets]
+
+        return {
+            "diversity": diversity,
+            "pairwise_coverage": coverage,
+            "objectives": {
+                "avg_selected": sum(selected_counts) / len(selected_counts),
+                "min_selected": min(selected_counts),
+                "max_selected": max(selected_counts),
+            },
+        }
+
+    def _average_jaccard_distance(self, sets: List[Set[str]]) -> float:
+        if len(sets) < 2:
+            return 0.0
+        total = 0.0
+        count = 0
+        for i in range(len(sets)):
+            for j in range(i + 1, len(sets)):
+                a = sets[i]
+                b = sets[j]
+                if not a and not b:
+                    distance = 0.0
+                else:
+                    intersection = len(a & b)
+                    union = len(a | b)
+                    distance = 1.0 - (intersection / union if union else 0.0)
+                total += distance
+                count += 1
+        return total / count if count else 0.0
+
+    def _pairwise_coverage(self, sets: List[Set[str]], feature_ids: List[str]) -> float:
+        total_features = list(feature_ids)
+        if len(total_features) < 2:
+            return 0.0
+        total_pairs = len(total_features) * (len(total_features) - 1) // 2
+        covered_pairs: Set[tuple[str, str]] = set()
+        for s in sets:
+            if len(s) < 2:
+                continue
+            for a, b in combinations(sorted(s), 2):
+                covered_pairs.add((a, b))
+        return len(covered_pairs) / total_pairs if total_pairs else 0.0
+
     def _generate_bdd_sample(
         self,
         features: List[Dict[str, Any]],
