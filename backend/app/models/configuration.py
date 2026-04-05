@@ -12,11 +12,13 @@ from sqlmodel import Field, Relationship, SQLModel
 
 from .common import BaseTable, PaginatedResponse
 from .link_models import ConfigurationFeatureLink, ConfigurationTagLink
+from .feature import FeaturePublicWithChildren
+from .tag import TagPublic
 
 if TYPE_CHECKING:
     from .feature_model_version import FeatureModelVersion
-    from .feature import Feature, FeaturePublicWithChildren
-    from .tag import Tag, TagPublic
+    from .feature import Feature
+    from .tag import Tag
 
 
 # ========================================================================
@@ -40,6 +42,7 @@ class ConfigurationBase(SQLModel):
 # ========================================================================
 #      --- Modelo para la tabla física de Configuraciones ---
 # ========================================================================
+
 
 class Configuration(BaseTable, ConfigurationBase, table=True):
 
@@ -68,6 +71,7 @@ class Configuration(BaseTable, ConfigurationBase, table=True):
 #       --- Modelos para Entrada de datos de Configuraciones ---
 # ========================================================================
 
+
 class ConfigurationCreate(ConfigurationBase):
     # Al crear una configuración, también pasaremos la lista de IDs de features
     feature_ids: list[uuid.UUID] = []
@@ -79,10 +83,10 @@ class ConfigurationUpdate(SQLModel):
     feature_ids: Optional[list[uuid.UUID]] = None
 
 
-
 # ========================================================================
 #           --- Modelos para Respuestas de Configuraciones ---
 # ========================================================================
+
 
 class ConfigurationPublic(ConfigurationBase):
     id: uuid.UUID
