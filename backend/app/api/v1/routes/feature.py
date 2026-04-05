@@ -10,6 +10,7 @@ from app.api.deps import (
     AsyncFeatureModelRepoDep,
     AsyncCurrentUser,
     AsyncFeatureRelationRepoDep,
+    AsyncTagRepoDep,
     VerifiedUser,
 )
 from app.models import (
@@ -20,9 +21,14 @@ from app.models import (
     FeatureRelationPublic,
     Message,
 )
+from app.models.tag import TagPublic
 from app.enums import FeatureType
 from app.models.feature_relation import FeatureRelation
-from app.exceptions import FeatureNotFoundException, FeatureAccessDeniedException
+from app.exceptions import (
+    FeatureNotFoundException,
+    FeatureAccessDeniedException,
+    TagNotFoundException,
+)
 
 
 router = APIRouter(prefix="/features", tags=["features"])
@@ -221,6 +227,103 @@ async def read_feature_relations(
     )
     result = await feature_relation_repo.session.execute(stmt)
     return result.scalars().all()
+
+
+@router.get(
+    "/{feature_id}/tags",
+    dependencies=[Depends(VerifiedUser)],
+    response_model=list[TagPublic],
+)
+async def list_feature_tags(
+    *,
+    feature_id: uuid.UUID,
+    feature_repo: AsyncFeatureRepoDep,
+) -> list[TagPublic]:
+    """Listar tags asociadas a una feature."""
+    feature = await feature_repo.get(feature_id)
+    if not feature:
+        raise FeatureNotFoundException(feature_id=str(feature_id))
+
+    await feature_repo.session.refresh(feature, ["tags"])
+    return feature.tags
+
+
+@router.post(
+    "/{feature_id}/tags/{tag_id}",
+    response_model=Message,
+)
+async def add_tag_to_feature(
+    *,
+    feature_id: uuid.UUID,
+    tag_id: uuid.UUID,
+    feature_repo: AsyncFeatureRepoDep,
+    tag_repo: AsyncTagRepoDep,
+    current_user: AsyncCurrentUser,
+) -> Message:
+    """Asociar una tag a una feature."""
+    from app.enums import UserRole
+
+    if current_user.role not in [
+        UserRole.MODEL_DESIGNER,
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+    ]:
+        raise FeatureAccessDeniedException()
+
+    feature = await feature_repo.get(feature_id)
+    if not feature:
+        raise FeatureNotFoundException(feature_id=str(feature_id))
+
+    tag = await tag_repo.get(tag_id)
+    if not tag:
+        raise TagNotFoundException(tag_id=str(tag_id))
+
+    await feature_repo.session.refresh(feature, ["tags"])
+    if tag not in feature.tags:
+        feature.tags.append(tag)
+        feature_repo.session.add(feature)
+        await feature_repo.session.commit()
+
+    return Message(message="Tag associated with feature")
+
+
+@router.delete(
+    "/{feature_id}/tags/{tag_id}",
+    response_model=Message,
+)
+async def remove_tag_from_feature(
+    *,
+    feature_id: uuid.UUID,
+    tag_id: uuid.UUID,
+    feature_repo: AsyncFeatureRepoDep,
+    tag_repo: AsyncTagRepoDep,
+    current_user: AsyncCurrentUser,
+) -> Message:
+    """Desasociar una tag de una feature."""
+    from app.enums import UserRole
+
+    if current_user.role not in [
+        UserRole.MODEL_DESIGNER,
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+    ]:
+        raise FeatureAccessDeniedException()
+
+    feature = await feature_repo.get(feature_id)
+    if not feature:
+        raise FeatureNotFoundException(feature_id=str(feature_id))
+
+    tag = await tag_repo.get(tag_id)
+    if not tag:
+        raise TagNotFoundException(tag_id=str(tag_id))
+
+    await feature_repo.session.refresh(feature, ["tags"])
+    if tag in feature.tags:
+        feature.tags.remove(tag)
+        feature_repo.session.add(feature)
+        await feature_repo.session.commit()
+
+    return Message(message="Tag removed from feature")
 
 
 @router.patch("/{feature_id}", response_model=FeaturePublic)
