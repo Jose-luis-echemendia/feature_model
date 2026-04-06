@@ -51,6 +51,21 @@ class FeatureModelUVLImporter:
         self.feature_model = feature_model
         self.user = user
 
+    @classmethod
+    def validate_uvl_only(cls, uvl_content: str) -> dict:
+        """Valida UVL sin persistir: estructura, cardinalidad y constraints simples."""
+        parser = cls.__new__(cls)
+        parsed, constraints = parser._parse_uvl(uvl_content)
+        parser._validate_parsed_structure(parsed)
+        parser._validate_constraints(constraints, parsed)
+        root = parser._find_root(parsed)
+        return {
+            "is_valid": True,
+            "root": root,
+            "features": len(parsed),
+            "constraints": len(constraints),
+        }
+
     async def apply_uvl(self, uvl_content: str) -> FeatureModelVersion:
         parsed, constraints = self._parse_uvl(uvl_content)
         root_name = self._find_root(parsed)

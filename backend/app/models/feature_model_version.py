@@ -93,6 +93,7 @@ class FeatureModelVersionUVLPublic(SQLModel):
     feature_model_id: uuid.UUID
     uvl_content: str
     source: str
+    analysis_task_id: Optional[str] = None
 
 
 # ========================================================================================

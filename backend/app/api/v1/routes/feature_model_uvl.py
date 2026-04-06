@@ -19,6 +19,7 @@ from app.services.feature_model import (
     FeatureModelExportService,
     FeatureModelUVLImporter,
 )
+from app.tasks.feature_model_analysis import run_feature_model_analysis
 
 router = APIRouter(
     prefix="/feature-models",
@@ -111,18 +112,29 @@ async def save_feature_model_version_uvl(
 
     try:
         normalized_uvl = _validate_uvl_content(data.uvl_content)
+        FeatureModelUVLImporter.validate_uvl_only(normalized_uvl)
     except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     version.uvl_content = normalized_uvl
     version_repo.session.add(version)
     await version_repo.session.commit()
     await version_repo.session.refresh(version)
 
+    task = run_feature_model_analysis.delay(
+        model_id=str(model_id),
+        version_id=str(version.id),
+        analysis_types=None,
+        max_solutions=100,
+    )
+
     return FeatureModelVersionUVLPublic(
         version_id=version.id,
         feature_model_id=version.feature_model_id,
         uvl_content=version.uvl_content,
         source="stored",
+        analysis_task_id=str(task.id),
     )
 
 
@@ -156,11 +168,19 @@ async def sync_feature_model_version_uvl_from_structure(
     await version_repo.session.commit()
     await version_repo.session.refresh(version)
 
+    task = run_feature_model_analysis.delay(
+        model_id=str(model_id),
+        version_id=str(version.id),
+        analysis_types=None,
+        max_solutions=100,
+    )
+
     return FeatureModelVersionUVLPublic(
         version_id=version.id,
         feature_model_id=version.feature_model_id,
         uvl_content=version.uvl_content,
         source="synced",
+        analysis_task_id=str(task.id),
     )
 
 
@@ -197,11 +217,19 @@ async def apply_feature_model_uvl_to_structure(
     )
     new_version = await importer.apply_uvl(data.uvl_content)
 
+    task = run_feature_model_analysis.delay(
+        model_id=str(model_id),
+        version_id=str(new_version.id),
+        analysis_types=None,
+        max_solutions=100,
+    )
+
     return FeatureModelVersionUVLPublic(
         version_id=new_version.id,
         feature_model_id=new_version.feature_model_id,
         uvl_content=new_version.uvl_content or "",
         source="applied",
+        analysis_task_id=str(task.id),
     )
 
 
