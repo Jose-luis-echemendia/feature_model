@@ -19,6 +19,7 @@ from .fm_tree_builder import FeatureModelTreeBuilder
 from .fm_export import FeatureModelExportService
 from .fm_version_manager import FeatureModelVersionManager
 from .fm_uvl_importer import FeatureModelUVLImporter
+from .fm_analysis_facade import analyze_version, compare_versions
 
 __all__ = [
     "FeatureModelLogicalValidator",
@@ -28,4 +29,6 @@ __all__ = [
     "FeatureModelExportService",
     "FeatureModelVersionManager",
     "FeatureModelUVLImporter",
+    "analyze_version",
+    "compare_versions",
 ]

@@ -24,6 +24,8 @@ from app.api.v1.routes import (
     feature_model_export,
     feature_model_uvl,
     feature_model_validation,
+    feature_model_analysis,
+    tasks,
     #
     configuration,
 )
@@ -55,6 +57,9 @@ api_router.include_router(feature_model_statistics_ws.router)  # WebSocket
 api_router.include_router(feature_model_export.router)  # Export
 api_router.include_router(feature_model_uvl.router)  # UVL sync/edit
 api_router.include_router(feature_model_validation.router)  # Validations
+api_router.include_router(feature_model_analysis.router)  # Analysis
+# --- Tasks ---
+api_router.include_router(tasks.router)
 #
 api_router.include_router(configuration.router)
 

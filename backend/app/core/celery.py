@@ -39,6 +39,7 @@ celery_app = Celery(
     backend=settings.REDIS_URL_BACKEND,
     include=[
         "app.tasks.backfill",
+        "app.tasks.feature_model_analysis",
     ],
 )
 
@@ -88,6 +89,10 @@ celery_app.conf.update(
         },
         # Validaciones y análisis
         "app.tasks.feature_model.validate_feature_model_version": {
+            "queue": "validation",
+            "routing_key": "validation",
+        },
+        "app.tasks.feature_model_analysis.run_feature_model_analysis": {
             "queue": "validation",
             "routing_key": "validation",
         },
