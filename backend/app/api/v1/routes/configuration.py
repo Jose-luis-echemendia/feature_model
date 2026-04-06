@@ -42,6 +42,23 @@ class ConfigurationGenerationRequest(BaseModel):
     partial_selection: Optional[dict[uuid.UUID, bool]] = None
 
 
+class ConfigurationOptimizationRequest(BaseModel):
+    feature_model_version_id: uuid.UUID
+    strategy: GenerationStrategy = GenerationStrategy.NSGA2
+    count: int = Field(default=5, ge=1, le=50)
+    partial_selection: Optional[dict[uuid.UUID, bool]] = None
+    objective_hint: Optional[str] = Field(
+        default=None,
+        description="Descripción del objetivo (informativo).",
+    )
+
+
+class ConfigurationOptimizationResponse(BaseModel):
+    results: list[ConfigurationGenerationItem] = Field(default_factory=list)
+    quality: dict[str, Any] = Field(default_factory=dict)
+    objective_hint: Optional[str] = None
+
+
 class ConfigurationGenerationItem(BaseModel):
     success: bool
     selected_features: list[uuid.UUID] = Field(default_factory=list)
@@ -434,6 +451,70 @@ async def generate_configuration(
             )
 
     return ConfigurationGenerationResponse(results=results, quality=quality)
+
+
+@router.post(
+    "/optimize",
+    response_model=ConfigurationOptimizationResponse,
+    summary="Optimizar configuraciones",
+    description=(
+        "Genera configuraciones optimizadas usando estrategias avanzadas (NSGA2, CP_SAT, BDD)."
+    ),
+)
+async def optimize_configurations(
+    *,
+    payload: ConfigurationOptimizationRequest,
+    feature_model_version_repo: AsyncFeatureModelVersionRepoDep,
+) -> ConfigurationOptimizationResponse:
+    version = await feature_model_version_repo.get_complete_with_relations(
+        version_id=payload.feature_model_version_id,
+        include_resources=False,
+    )
+    if not version:
+        raise HTTPException(status_code=404, detail="Feature model version not found")
+
+    features_payload, relations_payload, constraints_payload = (
+        _build_configuration_payload(version)
+    )
+
+    generator = FeatureModelConfigurationGenerator()
+    partial = (
+        {str(k): v for k, v in payload.partial_selection.items()}
+        if payload.partial_selection
+        else None
+    )
+    generated_list = generator.generate_multiple_configurations(
+        features=features_payload,
+        relations=relations_payload,
+        constraints=constraints_payload,
+        count=payload.count,
+        diverse=True,
+        strategy=payload.strategy,
+        partial_selection=partial,
+    )
+
+    results: list[ConfigurationGenerationItem] = []
+    quality = generator.compute_quality_metrics(
+        generated_list, [str(f["id"]) for f in features_payload]
+    )
+    for generated in generated_list:
+        results.append(
+            ConfigurationGenerationItem(
+                success=generated.success,
+                selected_features=[
+                    uuid.UUID(fid) for fid in generated.selected_features
+                ],
+                score=generated.score,
+                iterations=generated.iterations,
+                errors=generated.errors,
+            )
+        )
+
+    return ConfigurationOptimizationResponse(
+        results=results,
+        quality=quality,
+        objective_hint=payload.objective_hint,
+    )
 
 
 @router.post(
