@@ -55,6 +55,10 @@ class CacheKeys:
     TTL_IMPORT_STATUS = 10  # Polling de importación
     TTL_VALIDATION_LOCK = 300  # Lock de validación
     TTL_IMPORT_LOCK = 300  # Lock de importación
+    TTL_ANALYSIS_STATUS = 30  # Polling de análisis
+    TTL_ANALYSIS_LOCK = 300  # Lock de análisis
+    TTL_TASK_STATUS = 3600  # Estado genérico de tareas
+    TTL_TASK_PROGRESS = 3600  # Progreso genérico de tareas
     TTL_HEALTH = 15  # Health check
 
     # ── Prefijos ──────────────────────────────────────────────────────────────
@@ -63,6 +67,9 @@ class CacheKeys:
     _PFX_TEMPLATE = "template:"
     _PFX_IMPORT_STATUS = "import_status:"
     _PFX_VALIDATION = "validation_status:"
+    _PFX_ANALYSIS = "analysis_status:"
+    _PFX_TASK = "task_status:"
+    _PFX_TASK_PROGRESS = "task_progress:"
     _PFX_LOCK = "lock:"
 
     # ── Claves compuestas ─────────────────────────────────────────────────────
@@ -86,6 +93,26 @@ class CacheKeys:
     def validation_lock(version_id: str | UUID) -> str:
         """Lock distribuido para evitar validaciones duplicadas de una versión."""
         return f"{CacheKeys._PFX_LOCK}validation:{version_id}"
+
+    @staticmethod
+    def analysis_lock(version_id: str | UUID) -> str:
+        """Lock distribuido para evitar análisis duplicados de una versión."""
+        return f"{CacheKeys._PFX_LOCK}analysis:{version_id}"
+
+    @staticmethod
+    def feature_model_analysis_status(version_id: str | UUID) -> str:
+        """Estado del job de análisis para una versión de Feature Model."""
+        return f"{CacheKeys._PFX_ANALYSIS}{version_id}"
+
+    @staticmethod
+    def task_status(task_id: str | UUID) -> str:
+        """Estado genérico de tareas Celery."""
+        return f"{CacheKeys._PFX_TASK}{task_id}"
+
+    @staticmethod
+    def task_progress(task_id: str | UUID) -> str:
+        """Progreso genérico de tareas Celery."""
+        return f"{CacheKeys._PFX_TASK_PROGRESS}{task_id}"
 
     @staticmethod
     def user_feature_models(user_id: str | UUID) -> str:
@@ -306,6 +333,60 @@ class CacheService:
         value = await self._redis.get(key)
         return json.loads(value) if value else None
 
+    async def set_analysis_status(
+        self,
+        version_id: str | UUID,
+        status: str,
+        error: str | None = None,
+    ) -> None:
+        """Persiste estado de análisis de una versión de Feature Model."""
+        key = CacheKeys.feature_model_analysis_status(version_id)
+        payload = {"status": status, "version_id": str(version_id)}
+        if error:
+            payload["error"] = error
+        await self._redis.setex(key, CacheKeys.TTL_ANALYSIS_STATUS, json.dumps(payload))
+        log.debug(
+            "cache.analysis_status.set", version_id=str(version_id), status=status
+        )
+
+    async def get_analysis_status(self, version_id: str | UUID) -> dict | None:
+        """Retorna estado cacheado de análisis o None si expiró."""
+        key = CacheKeys.feature_model_analysis_status(version_id)
+        value = await self._redis.get(key)
+        return json.loads(value) if value else None
+
+    async def set_task_status(
+        self,
+        task_id: str | UUID,
+        status: str,
+        payload: dict | None = None,
+    ) -> None:
+        """Estado genérico de tarea Celery para polling UI."""
+        key = CacheKeys.task_status(task_id)
+        body = {"status": status, "task_id": str(task_id)}
+        if payload:
+            body.update(payload)
+        await self._redis.setex(key, CacheKeys.TTL_TASK_STATUS, json.dumps(body))
+
+    async def get_task_status(self, task_id: str | UUID) -> dict | None:
+        key = CacheKeys.task_status(task_id)
+        value = await self._redis.get(key)
+        return json.loads(value) if value else None
+
+    async def set_task_progress(
+        self,
+        task_id: str | UUID,
+        progress: dict,
+    ) -> None:
+        key = CacheKeys.task_progress(task_id)
+        payload = {"task_id": str(task_id), **progress}
+        await self._redis.setex(key, CacheKeys.TTL_TASK_PROGRESS, json.dumps(payload))
+
+    async def get_task_progress(self, task_id: str | UUID) -> dict | None:
+        key = CacheKeys.task_progress(task_id)
+        value = await self._redis.get(key)
+        return json.loads(value) if value else None
+
     # ── Locks distribuidos ────────────────────────────────────────────────────
 
     async def acquire_import_lock(self, feature_model_id: str | UUID) -> bool:
@@ -343,6 +424,24 @@ class CacheService:
                 "cache.validation_lock.already_held", version_id=str(version_id)
             )
         return bool(acquired)
+
+    async def acquire_analysis_lock(self, version_id: str | UUID) -> bool:
+        """Adquiere lock exclusivo para análisis de una versión."""
+        key = CacheKeys.analysis_lock(version_id)
+        acquired = await self._redis.set(
+            key, "1", nx=True, ex=CacheKeys.TTL_ANALYSIS_LOCK
+        )
+        if acquired:
+            log.debug("cache.analysis_lock.acquired", version_id=str(version_id))
+        else:
+            log.warning("cache.analysis_lock.already_held", version_id=str(version_id))
+        return bool(acquired)
+
+    async def release_analysis_lock(self, version_id: str | UUID) -> None:
+        """Libera lock de análisis."""
+        key = CacheKeys.analysis_lock(version_id)
+        await self._redis.delete(key)
+        log.debug("cache.analysis_lock.released", version_id=str(version_id))
 
     async def release_validation_lock(self, version_id: str | UUID) -> None:
         """Libera lock de validación."""

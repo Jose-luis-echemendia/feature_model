@@ -71,6 +71,26 @@ class BatchAnalysisResponse(BaseModel):
     task_id: str
 
 
+class BulkConfigurationsRequest(BaseModel):
+    count: int = Field(default=50, ge=1, le=1000)
+    strategy: str = Field(default="sat_enum")
+    partial_selection: Optional[dict[uuid.UUID, bool]] = None
+
+
+class ExportBundleRequest(BaseModel):
+    formats: Optional[list[str]] = None
+
+
+class CompareBatchRequest(BaseModel):
+    target_version_id: uuid.UUID
+    analysis_types: Optional[list[AnalysisType]] = Field(default=None)
+    max_solutions: int = Field(default=100, ge=1, le=1000)
+
+
+class TaskLaunchResponse(BaseModel):
+    task_id: str
+
+
 @router.post(
     "/{model_id}/versions/{version_id}/analysis/summary",
     response_model=AnalysisSummaryResponse,
@@ -192,6 +212,158 @@ async def feature_model_analysis_batch(
     )
 
     return BatchAnalysisResponse(task_id=str(task.id))
+
+
+@router.post(
+    "/{model_id}/versions/{version_id}/analysis/batch/bulk-configurations",
+    response_model=TaskLaunchResponse,
+    summary="Generación masiva asíncrona",
+)
+async def feature_model_bulk_configurations(
+    *,
+    model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
+    version_id: uuid.UUID = Path(..., description="Version UUID"),
+    payload: BulkConfigurationsRequest,
+    version_repo: AsyncFeatureModelVersionRepoDep,
+    current_user: AsyncCurrentUser,
+) -> TaskLaunchResponse:
+    version = await version_repo.get(version_id)
+    if not version or version.feature_model_id != model_id:
+        raise FeatureModelVersionNotFoundException(version_id=str(version_id))
+
+    if (
+        version.feature_model.owner_id != current_user.id
+        and not current_user.is_superuser
+        and not version.feature_model.is_active
+    ):
+        raise ForbiddenException(
+            detail="Not enough permissions to generate configurations"
+        )
+
+    from app.tasks.feature_model_analysis import generate_bulk_configurations
+
+    partial = (
+        {str(k): v for k, v in payload.partial_selection.items()}
+        if payload.partial_selection
+        else None
+    )
+
+    task = generate_bulk_configurations.delay(
+        model_id=str(model_id),
+        version_id=str(version_id),
+        count=payload.count,
+        strategy=payload.strategy,
+        partial_selection=partial,
+    )
+
+    return TaskLaunchResponse(task_id=str(task.id))
+
+
+@router.post(
+    "/{model_id}/versions/{version_id}/analysis/batch/export-bundle",
+    response_model=TaskLaunchResponse,
+    summary="Exportación masiva asíncrona",
+)
+async def feature_model_export_bundle(
+    *,
+    model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
+    version_id: uuid.UUID = Path(..., description="Version UUID"),
+    payload: ExportBundleRequest,
+    version_repo: AsyncFeatureModelVersionRepoDep,
+    current_user: AsyncCurrentUser,
+) -> TaskLaunchResponse:
+    version = await version_repo.get(version_id)
+    if not version or version.feature_model_id != model_id:
+        raise FeatureModelVersionNotFoundException(version_id=str(version_id))
+
+    if (
+        version.feature_model.owner_id != current_user.id
+        and not current_user.is_superuser
+        and not version.feature_model.is_active
+    ):
+        raise ForbiddenException(detail="Not enough permissions to export bundle")
+
+    from app.tasks.feature_model_analysis import export_feature_model_bundle
+
+    task = export_feature_model_bundle.delay(
+        model_id=str(model_id),
+        version_id=str(version_id),
+        formats=payload.formats,
+    )
+
+    return TaskLaunchResponse(task_id=str(task.id))
+
+
+@router.post(
+    "/{model_id}/versions/{version_id}/analysis/batch/compare",
+    response_model=TaskLaunchResponse,
+    summary="Comparación asíncrona de versiones",
+)
+async def feature_model_compare_batch(
+    *,
+    model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
+    version_id: uuid.UUID = Path(..., description="Base Version UUID"),
+    payload: CompareBatchRequest,
+    version_repo: AsyncFeatureModelVersionRepoDep,
+    current_user: AsyncCurrentUser,
+) -> TaskLaunchResponse:
+    base_version = await version_repo.get(version_id)
+    target_version = await version_repo.get(payload.target_version_id)
+
+    if not base_version or base_version.feature_model_id != model_id:
+        raise FeatureModelVersionNotFoundException(version_id=str(version_id))
+    if not target_version or target_version.feature_model_id != model_id:
+        raise FeatureModelVersionNotFoundException(
+            version_id=str(payload.target_version_id)
+        )
+
+    if (
+        base_version.feature_model.owner_id != current_user.id
+        and not current_user.is_superuser
+        and not base_version.feature_model.is_active
+    ):
+        raise ForbiddenException(detail="Not enough permissions to compare models")
+
+    from app.tasks.feature_model_analysis import compare_feature_model_versions
+
+    task = compare_feature_model_versions.delay(
+        model_id=str(model_id),
+        base_version_id=str(version_id),
+        target_version_id=str(payload.target_version_id),
+        analysis_types=[t.value for t in (payload.analysis_types or [])],
+        max_solutions=payload.max_solutions,
+    )
+
+    return TaskLaunchResponse(task_id=str(task.id))
+
+
+@router.post(
+    "/{model_id}/versions/{version_id}/analysis/batch/recompute-stats",
+    response_model=TaskLaunchResponse,
+    summary="Recomputar estadísticas asíncronas",
+)
+async def feature_model_recompute_stats(
+    *,
+    model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
+    version_id: uuid.UUID = Path(..., description="Version UUID"),
+    version_repo: AsyncFeatureModelVersionRepoDep,
+    current_user: AsyncCurrentUser,
+) -> TaskLaunchResponse:
+    version = await version_repo.get(version_id)
+    if not version or version.feature_model_id != model_id:
+        raise FeatureModelVersionNotFoundException(version_id=str(version_id))
+
+    if (
+        version.feature_model.owner_id != current_user.id
+        and not current_user.is_superuser
+        and not version.feature_model.is_active
+    ):
+        raise ForbiddenException(detail="Not enough permissions to recompute stats")
+
+    from app.tasks.feature_model_analysis import recompute_version_statistics
+
+    task = recompute_version_statistics.delay(version_id=str(version_id))
+    return TaskLaunchResponse(task_id=str(task.id))
 
 
 @router.get(
