@@ -40,6 +40,7 @@ celery_app = Celery(
     include=[
         "app.tasks.backfill",
         "app.tasks.feature_model_analysis",
+        "app.tasks.maintenance",
     ],
 )
 
@@ -95,6 +96,54 @@ celery_app.conf.update(
         "app.tasks.feature_model_analysis.run_feature_model_analysis": {
             "queue": "validation",
             "routing_key": "validation",
+        },
+        "app.tasks.feature_model_analysis.generate_bulk_configurations": {
+            "queue": "default",
+            "routing_key": "default",
+        },
+        "app.tasks.feature_model_analysis.export_feature_model_bundle": {
+            "queue": "import",
+            "routing_key": "import",
+        },
+        "app.tasks.feature_model_analysis.compare_feature_model_versions": {
+            "queue": "validation",
+            "routing_key": "validation",
+        },
+        "app.tasks.feature_model_analysis.recompute_version_statistics": {
+            "queue": "maintenance",
+            "routing_key": "maintenance",
+        },
+        "app.tasks.feature_model_analysis.validate_configuration": {
+            "queue": "validation",
+            "routing_key": "validation",
+        },
+        "app.tasks.maintenance.refresh_active_models_metrics": {
+            "queue": "maintenance",
+            "routing_key": "maintenance",
+        },
+        "app.tasks.maintenance.cleanup_stale_task_results": {
+            "queue": "maintenance",
+            "routing_key": "maintenance",
+        },
+        "app.tasks.maintenance.verify_models_integrity": {
+            "queue": "maintenance",
+            "routing_key": "maintenance",
+        },
+        "app.tasks.maintenance.precache_popular_models_analysis": {
+            "queue": "maintenance",
+            "routing_key": "maintenance",
+        },
+        "app.tasks.maintenance.collect_analysis_runtime_metrics": {
+            "queue": "maintenance",
+            "routing_key": "maintenance",
+        },
+        "app.tasks.maintenance.recompute_version_statistics": {
+            "queue": "maintenance",
+            "routing_key": "maintenance",
+        },
+        "app.tasks.maintenance.audit_feature_model_data_quality": {
+            "queue": "maintenance",
+            "routing_key": "maintenance",
         },
         # Mantenimiento periódico
         "app.tasks.feature_model.cleanup_stale_import_jobs": {
