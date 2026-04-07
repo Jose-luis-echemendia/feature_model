@@ -53,18 +53,18 @@ class ConfigurationOptimizationRequest(BaseModel):
     )
 
 
-class ConfigurationOptimizationResponse(BaseModel):
-    results: list[ConfigurationGenerationItem] = Field(default_factory=list)
-    quality: dict[str, Any] = Field(default_factory=dict)
-    objective_hint: Optional[str] = None
-
-
 class ConfigurationGenerationItem(BaseModel):
     success: bool
     selected_features: list[uuid.UUID] = Field(default_factory=list)
     score: float = 0.0
     iterations: int = 0
     errors: list[str] = Field(default_factory=list)
+
+
+class ConfigurationOptimizationResponse(BaseModel):
+    results: list[ConfigurationGenerationItem] = Field(default_factory=list)
+    quality: dict[str, Any] = Field(default_factory=dict)
+    objective_hint: Optional[str] = None
 
 
 class ConfigurationGenerationResponse(BaseModel):
