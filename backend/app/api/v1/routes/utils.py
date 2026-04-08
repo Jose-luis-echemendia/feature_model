@@ -205,27 +205,34 @@ async def clear_cache():
         return {"detail": "Redis no está disponible", "keys_deleted": 0}
 
     try:
-        # Buscar todas las claves que empiezan con 'fastapi-cache:'
-        pattern = "fastapi-cache:*"
-        keys = []
+        # Borrar ambos prefijos: el actual ('fm:http:') y el legacy 'fastapi-cache:'
+        patterns = ["fm:http:*", "fastapi-cache:*"]
+        total_deleted = 0
 
-        # Usar scan para obtener las claves (más eficiente que keys())
-        cursor = 0
-        while True:
-            cursor, partial_keys = await redis.scan(cursor, match=pattern, count=100)
-            keys.extend(partial_keys)
-            if cursor == 0:
-                break
+        for pattern in patterns:
+            cursor = 0
+            keys = []
+            while True:
+                cursor, partial_keys = await redis.scan(
+                    cursor, match=pattern, count=100
+                )
+                keys.extend(partial_keys)
+                if cursor == 0:
+                    break
 
-        # Eliminar las claves encontradas
-        deleted_count = 0
-        if keys:
-            deleted_count = await redis.delete(*keys)
+            if keys:
+                try:
+                    deleted = await redis.delete(*keys)
+                    if isinstance(deleted, int):
+                        total_deleted += deleted
+                except Exception:
+                    # Si falla eliminar un lote, seguimos con el siguiente patrón
+                    continue
 
         return {
             "detail": "Cache cleared successfully",
-            "pattern": pattern,
-            "keys_deleted": deleted_count,
+            "patterns": patterns,
+            "keys_deleted": total_deleted,
         }
 
     except Exception as e:
