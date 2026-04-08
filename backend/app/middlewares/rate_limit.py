@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import HTTPException, Request, status
-from backend.app.core.redis import RedisService
+from app.core.redis import redis_client
 
 logger = logging.getLogger(__name__)
 
@@ -74,14 +74,7 @@ class RateLimiter:
         Raises:
             HTTPException: Si se excede el rate limit
         """
-        redis_client = RedisService.get_async()
-
-        if not redis_client:
-            # Si Redis no está disponible, permitir el request (fail open)
-            logger.warning(
-                "Redis no disponible para rate limiting - permitiendo request"
-            )
-            return True
+        redis = redis_client
 
         # Obtener identificador del cliente
         client_id = identifier or self._get_client_identifier(request)
@@ -94,56 +87,66 @@ class RateLimiter:
         now = datetime.now(timezone.utc)
         window_start = now - timedelta(seconds=self.window_seconds)
 
-        # Usar Redis sorted set para implementar sliding window
-        # Score = timestamp, valor = request ID único
+        try:
+            # Usar Redis sorted set para implementar sliding window
+            # Score = timestamp, valor = request ID único
 
-        # 1. Limpiar requests antiguos fuera de la ventana
-        await redis_client.zremrangebyscore(key, "-inf", window_start.timestamp())
+            # 1. Limpiar requests antiguos fuera de la ventana
+            await redis.zremrangebyscore(key, "-inf", window_start.timestamp())
 
-        # 2. Contar requests en la ventana actual
-        current_count = await redis_client.zcard(key)
+            # 2. Contar requests en la ventana actual
+            current_count = await redis.zcard(key)
 
-        # 3. Verificar si excede el límite
-        if current_count >= self.max_requests:
-            # Obtener el timestamp del request más antiguo
-            oldest = await redis_client.zrange(key, 0, 0, withscores=True)
-            if oldest:
-                oldest_timestamp = oldest[0][1]
-                retry_after = int(
-                    oldest_timestamp + self.window_seconds - now.timestamp()
+            # 3. Verificar si excede el límite
+            if current_count >= self.max_requests:
+                # Obtener el timestamp del request más antiguo
+                oldest = await redis.zrange(key, 0, 0, withscores=True)
+                if oldest:
+                    oldest_timestamp = oldest[0][1]
+                    retry_after = int(
+                        oldest_timestamp + self.window_seconds - now.timestamp()
+                    )
+                    retry_after = max(retry_after, 1)  # Mínimo 1 segundo
+                else:
+                    retry_after = self.window_seconds
+
+                logger.warning(
+                    f"Rate limit excedido para {client_id} en {endpoint}: "
+                    f"{current_count}/{self.max_requests} requests en {self.window_seconds}s"
                 )
-                retry_after = max(retry_after, 1)  # Mínimo 1 segundo
-            else:
-                retry_after = self.window_seconds
 
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail=f"Rate limit exceeded. Try again in {retry_after} seconds.",
+                    headers={"Retry-After": str(retry_after)},
+                )
+
+            # 4. Agregar el request actual
+            request_id = f"{now.timestamp()}:{id(request)}"
+            await redis.zadd(key, {request_id: now.timestamp()})
+
+            # 5. Establecer expiración de la key (limpieza automática)
+            await redis.expire(key, self.window_seconds + 60)
+
+            # Agregar headers informativos
+            remaining = self.max_requests - current_count - 1
+
+            logger.debug(
+                f"Rate limit para {client_id} en {endpoint}: "
+                f"{current_count + 1}/{self.max_requests} "
+                f"(quedan {remaining} requests)"
+            )
+
+            return True
+        except HTTPException:
+            raise
+        except Exception as exc:
+            # Fail-open: si Redis falla, no bloquear tráfico legítimo
             logger.warning(
-                f"Rate limit excedido para {client_id} en {endpoint}: "
-                f"{current_count}/{self.max_requests} requests en {self.window_seconds}s"
+                "Rate limiting degradado por error de Redis; permitiendo request",
+                extra={"endpoint": endpoint, "client_id": client_id, "error": str(exc)},
             )
-
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail=f"Rate limit exceeded. Try again in {retry_after} seconds.",
-                headers={"Retry-After": str(retry_after)},
-            )
-
-        # 4. Agregar el request actual
-        request_id = f"{now.timestamp()}:{id(request)}"
-        await redis_client.zadd(key, {request_id: now.timestamp()})
-
-        # 5. Establecer expiración de la key (limpieza automática)
-        await redis_client.expire(key, self.window_seconds + 60)
-
-        # Agregar headers informativos
-        remaining = self.max_requests - current_count - 1
-
-        logger.debug(
-            f"Rate limit para {client_id} en {endpoint}: "
-            f"{current_count + 1}/{self.max_requests} "
-            f"(quedan {remaining} requests)"
-        )
-
-        return True
+            return True
 
 
 # Instancias predefinidas para diferentes niveles de protección

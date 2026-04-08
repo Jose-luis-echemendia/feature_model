@@ -6,6 +6,7 @@ from fastapi_cache.decorator import cache
 from pydantic.networks import EmailStr
 
 from app import enums
+from app.core.redis import redis_client
 from app.models import Message, AllEnumsResponse
 from app.services import format_enum_for_frontend, SettingsService
 from app.api.deps import get_settings_service
@@ -199,9 +200,7 @@ async def clear_cache():
     Elimina todas las claves de Redis que empiezan con 'fastapi-cache:'
     (usadas por el decorador @cache) sin afectar otros datos en Redis.
     """
-    from app.services.redis import RedisService
-
-    redis = RedisService.get_async()
+    redis = redis_client
     if not redis:
         return {"detail": "Redis no está disponible", "keys_deleted": 0}
 

@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import Request
+from app.core.config import settings
 from app.core.redis import redis_client
 from app.utils import invalidate_cache_pattern
 
@@ -34,13 +35,18 @@ async def invalidate_cache_on_write_middleware(request: Request, call_next):
     # Solo procesar métodos de escritura
     if request.method in ["POST", "PUT", "PATCH", "DELETE"]:
         path = request.url.path
+        normalized_path = path
+        if settings.API_V1_PREFIX and path.startswith(settings.API_V1_PREFIX):
+            normalized_path = path[len(settings.API_V1_PREFIX) :]
+            if not normalized_path.startswith("/"):
+                normalized_path = f"/{normalized_path}"
 
         # Diccionario de rutas y sus patrones de caché relacionados
         # Cada entrada puede tener múltiples patrones para invalidar caché relacionado
         cache_invalidation_map = {
             # App Settings
             "/app-settings": [
-                "fastapi-cache:*app-settings*",
+                "fm:http:*app-settings*",
             ],
         }
 
@@ -53,7 +59,7 @@ async def invalidate_cache_on_write_middleware(request: Request, call_next):
             patterns_to_invalidate = []
 
             for route_prefix, patterns in cache_invalidation_map.items():
-                if path.startswith(route_prefix):
+                if normalized_path.startswith(route_prefix):
                     patterns_to_invalidate.extend(patterns)
                     logger.info(
                         f"🔄 Operación de escritura exitosa en {path} ({request.method}). "

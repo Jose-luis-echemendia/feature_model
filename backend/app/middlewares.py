@@ -22,9 +22,9 @@ import jwt
 from jwt.exceptions import InvalidTokenError
 
 from app.core.config import settings
+from app.core.redis import redis_client
 from app.core.security import ALGORITHM
 from app.enums import UserRole
-from app.services import RedisService
 
 # Configurar logger para este módulo
 logger = logging.getLogger(__name__)
@@ -350,9 +350,8 @@ async def invalidate_cache_on_write_middleware(request: Request, call_next):
             # Invalidar todos los patrones encontrados
             if patterns_to_invalidate:
                 try:
-                    redis = await RedisService.get_redis()
                     for pattern in patterns_to_invalidate:
-                        await _invalidate_cache_pattern(redis, pattern)
+                        await _invalidate_cache_pattern(redis_client, pattern)
                 except Exception as e:
                     logger.error(
                         f"⚠️  Error al invalidar caché después de {request.method} {path}: {e}",
