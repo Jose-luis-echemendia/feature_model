@@ -143,3 +143,43 @@ flowchart TB
 ## Conclusión
 
 El backend actual está bien encaminado hacia una arquitectura empresarial: modular, explícita, con infraestructura separada y capacidades de escalado asíncrono. La principal evolución pendiente para llegar a Clean/Hexagonal completa es **invertir dependencias** mediante puertos/adaptadores y reforzar límites de contexto entre dominio y framework.
+
+## Diagrama alternativo (flowchart LR)
+
+```mermaid
+flowchart LR
+    U[Usuario / Frontend]
+    U -->|HTTP/REST| API[FastAPI API v1]
+    U -->|WebSocket| WS[WS Estadísticas en tiempo real]
+
+    subgraph APP[Backend Monolito Modular]
+      API --> AUTH[Auth + Dependencias]
+      API --> ROUTES[Routers]
+      ROUTES --> SERVICES[Servicios de Dominio]
+      ROUTES --> REPOS[Repositorios]
+      SERVICES --> REPOS
+      REPOS --> MODELS[Modelos SQLModel]
+
+      API --> CACHE[CacheService + fastapi-cache2]
+      SERVICES --> CACHE
+
+      ROUTES --> TASKS_API[Disparo de tareas async]
+      TASKS_API --> CELERY[Celery App]
+      BEAT[Celery Beat] --> CELERY
+      CELERY --> WORKERS[Workers]
+      WORKERS --> SERVICES
+      WORKERS --> REPOS
+      WORKERS --> S3[Cliente MinIO]
+
+      API --> EXC[Exception Handlers]
+      API --> MW[Middlewares]
+      API --> LOG[Logging estructurado]
+      WS --> AUTH
+    end
+
+    MODELS --> DB[(PostgreSQL)]
+    CACHE --> REDIS[(Redis)]
+    CELERY --> REDIS
+    S3 --> MINIO[(MinIO)]
+
+```
