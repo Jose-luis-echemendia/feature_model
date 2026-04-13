@@ -82,3 +82,19 @@ class ConfigurationRepository(BaseConfigurationRepository):
         stmt = select(func.count()).select_from(Configuration)
         result = await self.session.execute(stmt)
         return result.scalar_one()
+
+    async def activate(self, db_configuration: Configuration) -> Configuration:
+        """Activar una configuración."""
+        db_configuration.is_active = True
+        self.session.add(db_configuration)
+        await self.session.commit()
+        await self.session.refresh(db_configuration)
+        return db_configuration
+
+    async def deactivate(self, db_configuration: Configuration) -> Configuration:
+        """Desactivar una configuración."""
+        db_configuration.is_active = False
+        self.session.add(db_configuration)
+        await self.session.commit()
+        await self.session.refresh(db_configuration)
+        return db_configuration
