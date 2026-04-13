@@ -119,13 +119,23 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class TokenWithRefresh(Token):
+    refresh_token: str
+
+
 class TokenPayload(BaseModel):
     sub: Optional[uuid.UUID] = None
+    type: Optional[str] = None
+    jti: Optional[str] = None
 
 
 class NewPassword(BaseModel):
     token: str
     new_password: str
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 
 class LoginRequest(BaseModel):

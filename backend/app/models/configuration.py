@@ -90,6 +90,7 @@ class ConfigurationUpdate(SQLModel):
 
 class ConfigurationPublic(ConfigurationBase):
     id: uuid.UUID
+    is_active: bool
 
 
 class ConfigurationListResponse(PaginatedResponse[ConfigurationPublic]):
