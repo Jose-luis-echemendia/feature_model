@@ -172,3 +172,19 @@ class ConstraintRepository(BaseConstraintRepository):
         """Verificar si una constraint existe."""
         constraint = await self.get(constraint_id)
         return constraint is not None
+
+    async def activate(self, db_constraint: Constraint) -> Constraint:
+        """Activar una constraint."""
+        db_constraint.is_active = True
+        self.session.add(db_constraint)
+        await self.session.commit()
+        await self.session.refresh(db_constraint)
+        return db_constraint
+
+    async def deactivate(self, db_constraint: Constraint) -> Constraint:
+        """Desactivar una constraint."""
+        db_constraint.is_active = False
+        self.session.add(db_constraint)
+        await self.session.commit()
+        await self.session.refresh(db_constraint)
+        return db_constraint

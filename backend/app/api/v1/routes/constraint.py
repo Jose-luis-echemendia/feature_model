@@ -226,3 +226,65 @@ async def delete_constraint(
     return Message(
         message="Constraint deleted in new model version created successfully."
     )
+
+
+@router.patch("/{constraint_id}/activate", response_model=ConstraintPublic)
+async def activate_constraint(
+    *,
+    constraint_id: uuid.UUID,
+    current_user: ModelDesignerUser,
+    constraint_repo: AsyncConstraintRepoDep,
+) -> ConstraintPublic:
+    """
+    Activar una constraint (is_active=true).
+    """
+    db_constraint = await constraint_repo.get(constraint_id=constraint_id)
+    if not db_constraint:
+        raise ConstraintNotFoundException(constraint_id=str(constraint_id))
+
+    await constraint_repo.session.refresh(db_constraint, ["feature_model_version"])
+    await constraint_repo.session.refresh(
+        db_constraint.feature_model_version, ["feature_model"]
+    )
+
+    if (
+        db_constraint.feature_model_version.feature_model.owner_id != current_user.id
+        and not current_user.is_superuser
+    ):
+        raise ConstraintAccessDeniedException(constraint_id=str(constraint_id))
+
+    if db_constraint.is_active:
+        raise HTTPException(status_code=400, detail="Constraint is already active")
+
+    return await constraint_repo.activate(db_constraint)
+
+
+@router.patch("/{constraint_id}/deactivate", response_model=ConstraintPublic)
+async def deactivate_constraint(
+    *,
+    constraint_id: uuid.UUID,
+    current_user: ModelDesignerUser,
+    constraint_repo: AsyncConstraintRepoDep,
+) -> ConstraintPublic:
+    """
+    Desactivar una constraint (is_active=false).
+    """
+    db_constraint = await constraint_repo.get(constraint_id=constraint_id)
+    if not db_constraint:
+        raise ConstraintNotFoundException(constraint_id=str(constraint_id))
+
+    await constraint_repo.session.refresh(db_constraint, ["feature_model_version"])
+    await constraint_repo.session.refresh(
+        db_constraint.feature_model_version, ["feature_model"]
+    )
+
+    if (
+        db_constraint.feature_model_version.feature_model.owner_id != current_user.id
+        and not current_user.is_superuser
+    ):
+        raise ConstraintAccessDeniedException(constraint_id=str(constraint_id))
+
+    if not db_constraint.is_active:
+        raise HTTPException(status_code=400, detail="Constraint is already inactive")
+
+    return await constraint_repo.deactivate(db_constraint)
