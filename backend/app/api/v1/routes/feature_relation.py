@@ -246,3 +246,69 @@ async def delete_feature_relation(
     return Message(
         message="Feature relation deleted in new model version created successfully."
     )
+
+
+@router.patch("/{relation_id}/activate", response_model=FeatureRelationPublic)
+async def activate_feature_relation(
+    *,
+    relation_id: uuid.UUID,
+    current_user: ModelDesignerUser,
+    feature_relation_repo: AsyncFeatureRelationRepoDep,
+) -> FeatureRelationPublic:
+    """
+    Activar una relación (is_active=true).
+    """
+    db_relation = await feature_relation_repo.get(relation_id=relation_id)
+    if not db_relation:
+        raise FeatureRelationNotFoundException(relation_id=str(relation_id))
+
+    await feature_relation_repo.session.refresh(db_relation, ["feature_model_version"])
+    await feature_relation_repo.session.refresh(
+        db_relation.feature_model_version, ["feature_model"]
+    )
+
+    if (
+        db_relation.feature_model_version.feature_model.owner_id != current_user.id
+        and not current_user.is_superuser
+    ):
+        raise FeatureRelationAccessDeniedException(relation_id=str(relation_id))
+
+    if db_relation.is_active:
+        raise HTTPException(
+            status_code=400, detail="Feature relation is already active"
+        )
+
+    return await feature_relation_repo.activate(db_relation)
+
+
+@router.patch("/{relation_id}/deactivate", response_model=FeatureRelationPublic)
+async def deactivate_feature_relation(
+    *,
+    relation_id: uuid.UUID,
+    current_user: ModelDesignerUser,
+    feature_relation_repo: AsyncFeatureRelationRepoDep,
+) -> FeatureRelationPublic:
+    """
+    Desactivar una relación (is_active=false).
+    """
+    db_relation = await feature_relation_repo.get(relation_id=relation_id)
+    if not db_relation:
+        raise FeatureRelationNotFoundException(relation_id=str(relation_id))
+
+    await feature_relation_repo.session.refresh(db_relation, ["feature_model_version"])
+    await feature_relation_repo.session.refresh(
+        db_relation.feature_model_version, ["feature_model"]
+    )
+
+    if (
+        db_relation.feature_model_version.feature_model.owner_id != current_user.id
+        and not current_user.is_superuser
+    ):
+        raise FeatureRelationAccessDeniedException(relation_id=str(relation_id))
+
+    if not db_relation.is_active:
+        raise HTTPException(
+            status_code=400, detail="Feature relation is already inactive"
+        )
+
+    return await feature_relation_repo.deactivate(db_relation)

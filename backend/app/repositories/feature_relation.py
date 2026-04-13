@@ -226,3 +226,19 @@ class FeatureRelationRepository(BaseFeatureRelationRepository):
         """Verificar si una relación existe."""
         relation = await self.get(relation_id)
         return relation is not None
+
+    async def activate(self, db_relation: FeatureRelation) -> FeatureRelation:
+        """Activar una relación."""
+        db_relation.is_active = True
+        self.session.add(db_relation)
+        await self.session.commit()
+        await self.session.refresh(db_relation)
+        return db_relation
+
+    async def deactivate(self, db_relation: FeatureRelation) -> FeatureRelation:
+        """Desactivar una relación."""
+        db_relation.is_active = False
+        self.session.add(db_relation)
+        await self.session.commit()
+        await self.session.refresh(db_relation)
+        return db_relation
