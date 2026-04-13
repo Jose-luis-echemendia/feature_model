@@ -25,6 +25,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 ALGORITHM = "HS256"
+REFRESH_TOKEN_TYPE = "refresh"
 
 
 # ── Esquemas de seguridad (FastAPI Security) ──────────────────────────────────
@@ -88,6 +89,20 @@ def create_access_token(
     to_encode = {"exp": expire, "sub": str(subject)}
     if role:
         to_encode["role"] = role
+    encoded_jwt = jwt.encode(
+        to_encode, settings.SECRET_KEY.get_secret_value(), algorithm=ALGORITHM
+    )
+    return encoded_jwt
+
+
+def create_refresh_token(subject: str | Any, expires_delta: timedelta) -> str:
+    expire = datetime.now(timezone.utc) + expires_delta
+    to_encode = {
+        "exp": expire,
+        "sub": str(subject),
+        "type": REFRESH_TOKEN_TYPE,
+        "jti": secrets.token_urlsafe(16),
+    }
     encoded_jwt = jwt.encode(
         to_encode, settings.SECRET_KEY.get_secret_value(), algorithm=ALGORITHM
     )
