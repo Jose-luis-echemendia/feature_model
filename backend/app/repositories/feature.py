@@ -86,6 +86,10 @@ class FeatureRepository(BaseFeatureRepository):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_any(self, feature_id: UUID) -> Feature | None:
+        """Obtener una feature por ID incluyendo inactivas."""
+        return await self.session.get(Feature, feature_id)
+
     async def get_by_version(
         self, feature_model_version_id: UUID, skip: int = 0, limit: int = 100
     ) -> list[Feature]:
@@ -275,6 +279,22 @@ class FeatureRepository(BaseFeatureRepository):
 
         # Ejecutar la lógica sync dentro del contexto async
         await self.session.run_sync(_delete_feature_sync)
+
+    async def activate(self, db_feature: Feature) -> Feature:
+        """Activar una feature."""
+        db_feature.is_active = True
+        self.session.add(db_feature)
+        await self.session.commit()
+        await self.session.refresh(db_feature)
+        return db_feature
+
+    async def deactivate(self, db_feature: Feature) -> Feature:
+        """Desactivar una feature."""
+        db_feature.is_active = False
+        self.session.add(db_feature)
+        await self.session.commit()
+        await self.session.refresh(db_feature)
+        return db_feature
 
     async def exists(self, feature_id: UUID) -> bool:
         """Verificar si una feature existe y está activa."""

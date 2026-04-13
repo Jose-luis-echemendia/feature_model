@@ -472,6 +472,64 @@ async def move_feature(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.patch("/{feature_id}/activate", response_model=FeaturePublic)
+async def activate_feature(
+    *,
+    feature_id: uuid.UUID,
+    feature_repo: AsyncFeatureRepoDep,
+    current_user: AsyncCurrentUser,
+) -> FeaturePublic:
+    """
+    Activar una feature (is_active=true).
+    """
+    from app.enums import UserRole
+
+    if current_user.role not in [
+        UserRole.MODEL_DESIGNER,
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+    ]:
+        raise FeatureAccessDeniedException(feature_id=str(feature_id))
+
+    db_feature = await feature_repo.get_any(feature_id)
+    if not db_feature:
+        raise FeatureNotFoundException(feature_id=str(feature_id))
+
+    if db_feature.is_active:
+        raise HTTPException(status_code=400, detail="Feature is already active")
+
+    return await feature_repo.activate(db_feature)
+
+
+@router.patch("/{feature_id}/deactivate", response_model=FeaturePublic)
+async def deactivate_feature(
+    *,
+    feature_id: uuid.UUID,
+    feature_repo: AsyncFeatureRepoDep,
+    current_user: AsyncCurrentUser,
+) -> FeaturePublic:
+    """
+    Desactivar una feature (is_active=false).
+    """
+    from app.enums import UserRole
+
+    if current_user.role not in [
+        UserRole.MODEL_DESIGNER,
+        UserRole.ADMIN,
+        UserRole.DEVELOPER,
+    ]:
+        raise FeatureAccessDeniedException(feature_id=str(feature_id))
+
+    db_feature = await feature_repo.get_any(feature_id)
+    if not db_feature:
+        raise FeatureNotFoundException(feature_id=str(feature_id))
+
+    if not db_feature.is_active:
+        raise HTTPException(status_code=400, detail="Feature is already inactive")
+
+    return await feature_repo.deactivate(db_feature)
+
+
 @router.delete("/{feature_id}", response_model=Message)
 async def delete_feature(
     *,
