@@ -296,6 +296,54 @@ async def update_configuration(
     return db_configuration
 
 
+@router.patch(
+    "/{id}/activate",
+    response_model=ConfigurationPublic,
+    summary="Activar configuración",
+    description="Activa una configuración (is_active=true).",
+)
+async def activate_configuration(
+    *,
+    id: uuid.UUID,
+    configuration_repo: AsyncConfigurationRepoDep,
+) -> ConfigurationPublic:
+    """
+    Activa una configuración.
+    """
+    db_configuration = await configuration_repo.get(configuration_id=id)
+    if not db_configuration:
+        raise HTTPException(status_code=404, detail="Configuration not found")
+
+    if db_configuration.is_active:
+        raise HTTPException(status_code=400, detail="Configuration is already active")
+
+    return await configuration_repo.activate(db_configuration)
+
+
+@router.patch(
+    "/{id}/deactivate",
+    response_model=ConfigurationPublic,
+    summary="Desactivar configuración",
+    description="Desactiva una configuración (is_active=false).",
+)
+async def deactivate_configuration(
+    *,
+    id: uuid.UUID,
+    configuration_repo: AsyncConfigurationRepoDep,
+) -> ConfigurationPublic:
+    """
+    Desactiva una configuración.
+    """
+    db_configuration = await configuration_repo.get(configuration_id=id)
+    if not db_configuration:
+        raise HTTPException(status_code=404, detail="Configuration not found")
+
+    if not db_configuration.is_active:
+        raise HTTPException(status_code=400, detail="Configuration is already inactive")
+
+    return await configuration_repo.deactivate(db_configuration)
+
+
 @router.delete(
     "/{id}",
     response_model=Message,

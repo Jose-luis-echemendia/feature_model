@@ -1,9 +1,12 @@
-from datetime import timedelta
-from typing import Annotated, Any
+from datetime import datetime, timedelta, timezone
+from typing import Any
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
+import jwt
+from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
+from redis.asyncio import Redis
 
 from app.core import security
 from app.core.config import settings
@@ -13,7 +16,16 @@ from app.api.deps import (
     AsyncUserRepoDep,
     get_current_active_superuser,
 )
-from app.models import Message, NewPassword, Token, LoginRequest, UserPublic
+from app.core.redis import get_redis
+from app.models import (
+    Message,
+    NewPassword,
+    TokenWithRefresh,
+    LoginRequest,
+    UserPublic,
+    RefreshTokenRequest,
+    TokenPayload,
+)
 from app.utils import (
     generate_password_reset_token,
     generate_reset_password_email,
@@ -28,7 +40,7 @@ logger = logging.getLogger(__name__)
 @router.post("/login/access-token")
 async def login_access_token(
     *, user_repo: AsyncUserRepoDep, login_data: LoginRequest
-) -> Token:
+) -> TokenWithRefresh:
     """
     ## Login de usuario con email y contraseña
 
@@ -84,16 +96,155 @@ async def login_access_token(
         )
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    token = Token(
+    refresh_token_expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    token = TokenWithRefresh(
         access_token=security.create_access_token(
             user.id, expires_delta=access_token_expires, role=user.role.value
-        )
+        ),
+        refresh_token=security.create_refresh_token(
+            user.id, expires_delta=refresh_token_expires
+        ),
     )
 
     logger.info(
         f"✅ Login exitoso para: {login_data.email} (ID: {user.id}, Rol: {user.role})"
     )
     return token
+
+
+def _refresh_blacklist_key(jti: str) -> str:
+    return f"auth:refresh:blacklist:{jti}"
+
+
+async def _blacklist_refresh_token(redis: Redis, jti: str, exp: int) -> None:
+    now_ts = int(datetime.now(timezone.utc).timestamp())
+    ttl = max(exp - now_ts, 0)
+    if ttl == 0:
+        return
+    await redis.set(_refresh_blacklist_key(jti), "1", ex=ttl)
+
+
+@router.post("/login/refresh-token", response_model=TokenWithRefresh)
+async def refresh_access_token(
+    *,
+    user_repo: AsyncUserRepoDep,
+    body: RefreshTokenRequest,
+    redis: Redis = Depends(get_redis),
+) -> TokenWithRefresh:
+    """
+    ## Refrescar tokens usando refresh token
+
+    - Verifica el refresh token
+    - Emite un nuevo access token y refresh token
+    - Revoca el refresh token anterior (rotación)
+    """
+    try:
+        payload = jwt.decode(
+            body.refresh_token,
+            settings.SECRET_KEY.get_secret_value(),
+            algorithms=[security.ALGORITHM],
+            options={"verify_exp": True},
+        )
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token expired",
+        )
+    except InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+        )
+
+    token_data = TokenPayload(**payload)
+
+    if token_data.type != security.REFRESH_TOKEN_TYPE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid token type",
+        )
+
+    jti = token_data.jti
+    if not jti:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Refresh token missing jti",
+        )
+
+    if await redis.get(_refresh_blacklist_key(jti)):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token revoked",
+        )
+
+    user = await user_repo.get(user_id=token_data.sub)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Inactive user",
+        )
+
+    exp = payload.get("exp")
+    if isinstance(exp, int):
+        await _blacklist_refresh_token(redis, jti, exp)
+
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    return TokenWithRefresh(
+        access_token=security.create_access_token(
+            user.id, expires_delta=access_token_expires, role=user.role.value
+        ),
+        refresh_token=security.create_refresh_token(
+            user.id, expires_delta=refresh_token_expires
+        ),
+    )
+
+
+@router.post("/login/logout", response_model=Message)
+async def logout(
+    *,
+    body: RefreshTokenRequest,
+    redis: Redis = Depends(get_redis),
+) -> Message:
+    """
+    ## Logout (revoca refresh token)
+
+    Marca el refresh token como revocado en Redis.
+    """
+    try:
+        payload = jwt.decode(
+            body.refresh_token,
+            settings.SECRET_KEY.get_secret_value(),
+            algorithms=[security.ALGORITHM],
+            options={"verify_exp": False},
+        )
+    except InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+        )
+
+    if payload.get("type") != security.REFRESH_TOKEN_TYPE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid token type",
+        )
+
+    jti = payload.get("jti")
+    exp = payload.get("exp")
+    if not jti or not isinstance(exp, int):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Refresh token missing jti/exp",
+        )
+
+    await _blacklist_refresh_token(redis, jti, exp)
+    return Message(message="Logout successful")
 
 
 @router.post("/login/test-token", response_model=UserPublic)
