@@ -245,3 +245,65 @@ async def delete_feature_group(
     return Message(
         message="Feature group deleted in new model version created successfully."
     )
+
+
+@router.patch("/{group_id}/activate", response_model=FeatureGroupPublic)
+async def activate_feature_group(
+    *,
+    group_id: uuid.UUID,
+    current_user: ModelDesignerUser,
+    feature_group_repo: AsyncFeatureGroupRepoDep,
+) -> FeatureGroupPublic:
+    """
+    Activar un grupo de features (is_active=true).
+    """
+    db_group = await feature_group_repo.get(group_id=group_id)
+    if not db_group:
+        raise FeatureGroupNotFoundException(group_id=str(group_id))
+
+    await feature_group_repo.session.refresh(db_group, ["feature_model_version"])
+    await feature_group_repo.session.refresh(
+        db_group.feature_model_version, ["feature_model"]
+    )
+
+    if (
+        db_group.feature_model_version.feature_model.owner_id != current_user.id
+        and not current_user.is_superuser
+    ):
+        raise FeatureGroupAccessDeniedException(group_id=str(group_id))
+
+    if db_group.is_active:
+        raise HTTPException(status_code=400, detail="Feature group is already active")
+
+    return await feature_group_repo.activate(db_group)
+
+
+@router.patch("/{group_id}/deactivate", response_model=FeatureGroupPublic)
+async def deactivate_feature_group(
+    *,
+    group_id: uuid.UUID,
+    current_user: ModelDesignerUser,
+    feature_group_repo: AsyncFeatureGroupRepoDep,
+) -> FeatureGroupPublic:
+    """
+    Desactivar un grupo de features (is_active=false).
+    """
+    db_group = await feature_group_repo.get(group_id=group_id)
+    if not db_group:
+        raise FeatureGroupNotFoundException(group_id=str(group_id))
+
+    await feature_group_repo.session.refresh(db_group, ["feature_model_version"])
+    await feature_group_repo.session.refresh(
+        db_group.feature_model_version, ["feature_model"]
+    )
+
+    if (
+        db_group.feature_model_version.feature_model.owner_id != current_user.id
+        and not current_user.is_superuser
+    ):
+        raise FeatureGroupAccessDeniedException(group_id=str(group_id))
+
+    if not db_group.is_active:
+        raise HTTPException(status_code=400, detail="Feature group is already inactive")
+
+    return await feature_group_repo.deactivate(db_group)

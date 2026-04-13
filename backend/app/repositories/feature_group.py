@@ -213,3 +213,19 @@ class FeatureGroupRepository(BaseFeatureGroupRepository):
         """Verificar si un grupo existe."""
         group = await self.get(group_id)
         return group is not None
+
+    async def activate(self, db_group: FeatureGroup) -> FeatureGroup:
+        """Activar un grupo de features."""
+        db_group.is_active = True
+        self.session.add(db_group)
+        await self.session.commit()
+        await self.session.refresh(db_group)
+        return db_group
+
+    async def deactivate(self, db_group: FeatureGroup) -> FeatureGroup:
+        """Desactivar un grupo de features."""
+        db_group.is_active = False
+        self.session.add(db_group)
+        await self.session.commit()
+        await self.session.refresh(db_group)
+        return db_group
