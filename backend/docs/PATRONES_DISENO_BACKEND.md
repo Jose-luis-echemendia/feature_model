@@ -31,7 +31,8 @@
 - `Repository` → _Pure Fabrication_ + _Indirection_ (reduce acoplamiento con persistencia): [backend/app/repositories/base.py](backend/app/repositories/base.py)
 - `Service Layer` → _Pure Fabrication_ (centraliza lógica de negocio): [backend/app/services/feature_model/fm_version_manager.py](backend/app/services/feature_model/fm_version_manager.py)
 - `Controller` (orquestación de casos de uso en API): [backend/app/api/v1/routes/feature_model.py](backend/app/api/v1/routes/feature_model.py), [backend/app/api/v1/routes/domain.py](backend/app/api/v1/routes/domain.py)
-- `Low Coupling / Indirection` (inyección de dependencias): [backend/app/api/deps.py](backend/app/api/deps.py)
+- `Bajo Acoplamiento (Low Coupling) / Indirection` (inyección de dependencias y separación por capas): [backend/app/api/deps.py](backend/app/api/deps.py), [backend/app/repositories/domain.py](backend/app/repositories/domain.py), [backend/app/repositories/user.py](backend/app/repositories/user.py)
+- `Alta Cohesión (High Cohesion)` (responsabilidades enfocadas por módulo/clase): [backend/app/services/feature_model/fm_version_manager.py](backend/app/services/feature_model/fm_version_manager.py), [backend/app/services/feature_model/fm_tree_builder.py](backend/app/services/feature_model/fm_tree_builder.py), [backend/app/repositories/feature_model.py](backend/app/repositories/feature_model.py)
 
 **Nota:** `DTO`, `Dependency Injection`, `Cache‑Aside`, `Copy‑on‑Write`, `Task/Work Queue`, `Object Pool`, `Unit of Work`, `Middleware Pipeline` y `Retry with Backoff` son patrones arquitectónicos/infraestructura (no GoF/GRASP), pero se mantienen documentados por su relevancia técnica.
 
@@ -44,7 +45,7 @@
 | GoF             | Creacionales                    | `Singleton`, `Factory Method`                                                                                              |
 | GoF             | Estructurales                   | `Adapter`, `Facade`, `Decorator`, `Proxy`                                                                                  |
 | GoF             | Comportamiento                  | `Strategy`, `Command`, `Observer`, `Chain of Responsibility`, `State`                                                      |
-| GRASP           | Asignación de responsabilidades | `Controller`, `Pure Fabrication`, `Indirection`, `Low Coupling`                                                            |
+| GRASP           | Asignación de responsabilidades | `Controller`, `Pure Fabrication`, `Indirection`, `Low Coupling`, `High Cohesion`                                           |
 | Arquitectónicos | Persistencia/Infra              | `Repository`, `Unit of Work`, `Object Pool`, `Cache-Aside`, `Task/Work Queue`, `Middleware Pipeline`, `Retry with Backoff` |
 
 ---
