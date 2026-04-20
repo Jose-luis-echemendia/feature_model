@@ -50,21 +50,26 @@ Este documento describe, de forma detallada, los servicios implementados en el m
 
 **Estrategias soportadas**
 
-- **GREEDY**: determinista, rápida, prioriza mandatory.
-- **RANDOM**: estocástica, fomenta diversidad.
-- **BEAM_SEARCH**: balance entre exploración y eficiencia.
-- **GENETIC (DEAP)**: búsqueda evolutiva multi-objetivo.
-- **SAT_ENUM**: enumeración por SAT (cuando está disponible).
-- **PAIRWISE / UNIFORM / STRATIFIED**: muestreo para cobertura.
-- **CP_SAT (OR-Tools)**: programación con restricciones.
-- **BDD**: muestreo usando diagramas de decisión binaria.
-- **NSGA2**: optimización multi-objetivo.
+- **GREEDY**: determinista, rápida y con prioridad en relaciones obligatorias; especializa en rapidez y consistencia sobre diversidad.
+- **RANDOM**: estocástica; prioriza diversidad y exploración, útil para muestras variadas.
+- **BEAM_SEARCH**: explora varios caminos en paralelo con poda; balancea exploración/eficiencia y prioriza soluciones prometedoras.
+- **GENETIC (DEAP)**: búsqueda evolutiva multi-objetivo; prioriza optimización de criterios definidos (p. ej., minimizar costos o maximizar cobertura).
+- **SAT_ENUM**: enumeración por SAT (si está disponible); prioriza exhaustividad controlada, ideal para listar configuraciones válidas.
+- **PAIRWISE / UNIFORM / STRATIFIED**: muestreo para cobertura; prioriza representatividad (cobertura de pares, distribución uniforme o estratos definidos).
+- **CP_SAT (OR-Tools)**: programación con restricciones; prioriza factibilidad bajo restricciones complejas y objetivos declarativos.
+- **BDD**: muestreo con diagramas de decisión binaria; prioriza eficiencia en conteo/muestreo cuando el modelo es grande.
+- **NSGA2**: optimización multi-objetivo con Pareto; prioriza soluciones no dominadas y trade-offs entre objetivos.
 
 **Funcionalidades principales**
 
 - `generate_valid_configuration(...)`: genera una configuración válida con estrategia.
 - `complete_partial_configuration(...)`: completa selecciones parciales.
 - `generate_multiple_configurations(...)`: genera conjuntos de configuraciones diversas.
+
+**Configuración proporcionada por el usuario**
+
+- El usuario puede aportar una **configuración parcial** (decisiones iniciales) y el servicio la completa mediante `complete_partial_configuration(...)`.
+- La configuración propuesta por el usuario puede validarse antes o durante el completado, asegurando consistencia con el modelo.
 
 **Resultado/artefactos**
 
