@@ -1,14 +1,17 @@
 # Plan de tareas de ingeniería (Backend) alineado a RF y HU
 
 ## Alcance
+
 Este plan define tareas técnicas para implementar las historias de usuario del backend del sistema de modelos de características, incluyendo controladores, servicios, repositorios, esquemas, modelos, excepciones y tareas asíncronas.
 
 ## Convenciones
+
 - **HU-01..HU-14**: numeración usada en este plan para las historias descritas.
 - **Programador responsable**: Jose Luis Echemendia López.
 - **Fechas**: planificación base propuesta (ajustable por sprint).
 
 ## Mapeo HU
+
 - **HU-01**: Autenticación y Autogestión de cuenta
 - **HU-02**: Administración de Usuarios y Permisos
 - **HU-03**: Gestión de Dominios de Conocimiento
@@ -28,13 +31,13 @@ Este plan define tareas técnicas para implementar las historias de usuario del 
 
 ## Tareas de ingeniería
 
-| Nº tarea | Nº HU | Nombre de la tarea | Tipo de tarea | Tiempo estimado | Fecha inicio | Fecha fin | Programador responsable | Descripción |
-|---|---|---|---|---:|---|---|---|---|
-| T-001 | HU-01 | Diseñar modelo de token de recuperación | Definir modelos | 6h | 2026-04-20 | 2026-04-20 | Jose Luis Echemendia López | Definir entidad para recuperación de contraseña (token, expiración, estado, usuario), con auditoría y compatibilidad de persistencia. |
-| T-002 | HU-01 | Implementar esquemas de autenticación | Crear esquemas de validación entrada de la api y salida | 8h | 2026-04-20 | 2026-04-21 | Jose Luis Echemendia López | Crear DTOs para registro, login, solicitud de recuperación, restablecimiento (token y autenticado), y actualización de perfil propio. |
-| T-003 | HU-01 | Implementar servicio de autenticación y cuenta | Crear servicio | 12h | 2026-04-21 | 2026-04-22 | Jose Luis Echemendia López | Implementar lógica de registro, login, hash de contraseñas, emisión/validación de tokens y actualización de perfil. |
-| T-004 | HU-01 | Exponer endpoints de auth y perfil | Crear controlador | 10h | 2026-04-22 | 2026-04-23 | Jose Luis Echemendia López | Crear rutas para RF#1, RF#2, RF#3, RF#4, RF#5 y RF#8 con validaciones, permisos y respuestas estandarizadas. |
-| T-005 | HU-01 | Enviar correos de recuperación asíncronamente | Crear tareas de celery | 6h | 2026-04-23 | 2026-04-24 | Jose Luis Echemendia López | Implementar tarea asíncrona para envío de token de recuperación, reintentos, plantillas y trazabilidad. |
+| Nº tarea | Nº HU | Nombre de la tarea                             | Tipo de tarea                                           | Tiempo estimado | Fecha inicio | Fecha fin  | Programador responsable    | Descripción                                                                                                                           |
+| -------- | ----- | ---------------------------------------------- | ------------------------------------------------------- | --------------: | ------------ | ---------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| T-001    | HU-01 | Diseñar modelo de token de recuperación        | Definir modelos                                         |              6h | 2026-04-20   | 2026-04-20 | Jose Luis Echemendia López | Definir entidad para recuperación de contraseña (token, expiración, estado, usuario), con auditoría y compatibilidad de persistencia. |
+| T-002    | HU-01 | Implementar esquemas de autenticación          | Crear esquemas de validación entrada de la api y salida |              8h | 2026-04-20   | 2026-04-21 | Jose Luis Echemendia López | Crear DTOs para registro, login, solicitud de recuperación, restablecimiento (token y autenticado), y actualización de perfil propio. |
+| T-003    | HU-01 | Implementar servicio de autenticación y cuenta | Crear servicio                                          |             12h | 2026-04-21   | 2026-04-22 | Jose Luis Echemendia López | Implementar lógica de registro, login, hash de contraseñas, emisión/validación de tokens y actualización de perfil.                   |
+| T-004    | HU-01 | Exponer endpoints de auth y perfil             | Crear controlador                                       |             10h | 2026-04-22   | 2026-04-23 | Jose Luis Echemendia López | Crear rutas para RF#1, RF#2, RF#3, RF#4, RF#5 y RF#8 con validaciones, permisos y respuestas estandarizadas.                          |
+| T-005    | HU-01 | Enviar correos de recuperación asíncronamente  | Crear tareas de celery                                  |              6h | 2026-04-23   | 2026-04-24 | Jose Luis Echemendia López | Implementar tarea asíncrona para envío de token de recuperación, reintentos, plantillas y trazabilidad.                               |
 
 | T-006 | HU-02 | Implementar esquemas para gestión de usuarios | Crear esquemas de validación entrada de la api y salida | 6h | 2026-04-27 | 2026-04-27 | Jose Luis Echemendia López | Definir esquemas de listado paginado, filtros por rol/término, cambio de rol y activación/desactivación de cuenta. |
 | T-007 | HU-02 | Implementar repositorio administrativo de usuarios | Crear repositorio | 8h | 2026-04-27 | 2026-04-28 | Jose Luis Echemendia López | Añadir consultas de listado, filtrado, búsqueda, cambios de rol y cambio de estado activo/inactivo con soft delete lógico. |
@@ -117,6 +120,7 @@ Este plan define tareas técnicas para implementar las historias de usuario del 
 ---
 
 ## Notas técnicas de ejecución
+
 - Implementar en módulos de `backend/app/api`, `backend/app/services`, `backend/app/repositories`, `backend/app/schemas`, `backend/app/models` y `backend/app/tasks`.
 - Mantener soft delete y auditoría en entidades sensibles.
 - Aplicar control de acceso por rol en routers.
