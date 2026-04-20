@@ -247,6 +247,61 @@ Este documento describe, de forma detallada, los servicios implementados en el m
 
 ---
 
+## 9) CRUD de Feature Models (API v1)
+
+**Objetivo**
+
+- Exponer operaciones completas de gestión de Feature Models (crear, leer, actualizar, activar/desactivar y eliminar).
+- Centralizar control de permisos, validaciones y respuesta de datos para el frontend.
+
+**Qué hace**
+
+- Implementa endpoints REST para administrar modelos de características.
+- Aplica control de permisos por rol y propiedad del modelo.
+- Usa cache para lecturas frecuentes (listado y detalle).
+- Orquesta el acceso a repositorios para persistencia.
+
+**Operaciones principales (endpoints)**
+
+- **Listar**: `GET /feature-models/`
+  - Paginación (`skip`, `limit`) y filtro por `domain_id`.
+  - Cache 5 minutos.
+
+- **Detalle**: `GET /feature-models/{model_id}`
+  - Retorna información completa del modelo y todas sus versiones.
+  - Cache 5 minutos.
+
+- **Crear**: `POST /feature-models/`
+  - Requiere roles: MODEL_DESIGNER, ADMIN o DEVELOPER.
+  - Valida que el dominio exista.
+
+- **Actualizar**: `PATCH /feature-models/{model_id}`
+  - Solo propietario o admin.
+  - Actualización parcial de campos.
+
+- **Activar**: `PATCH /feature-models/{model_id}/activate`
+  - Marca el modelo como activo.
+  - Solo propietario o admin.
+
+- **Desactivar**: `PATCH /feature-models/{model_id}/deactivate`
+  - Marca el modelo como inactivo (soft-delete).
+  - Solo propietario o admin.
+
+- **Eliminar**: `DELETE /feature-models/{model_id}`
+  - Eliminación permanente, solo si no hay features ni configuraciones asociadas.
+  - Solo propietario o admin.
+
+**Validaciones y reglas de negocio**
+
+- Control de acceso por rol y propiedad del modelo.
+- Validación de existencia de dominio en creación.
+- Validación de eliminabilidad (sin features ni configuraciones).
+
+**Resultado/artefactos**
+
+- Respuestas tipadas (`FeatureModelPublic`, `FeatureModelListResponse`, `Message`).
+- Estructuras con info de dominio, propietario y versiones.
+
 ## Resumen general del objetivo del módulo
 
 El módulo de servicios de Feature Model busca **garantizar la calidad, consistencia, trazabilidad y utilidad operativa** de los modelos de características. En conjunto:
