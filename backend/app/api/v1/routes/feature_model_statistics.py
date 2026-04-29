@@ -6,12 +6,14 @@ import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi_cache.decorator import cache
 
 from app.api.deps import (
     AsyncFeatureModelVersionRepoDep,
     AsyncFeatureModelRepoDep,
     get_verified_user,
 )
+from app.core.cache import user_key_builder
 from app.schemas.feature_model_complete import FeatureModelStatistics
 from app.exceptions import (
     FeatureModelNotFoundException,
@@ -39,6 +41,7 @@ router = APIRouter(
     dependencies=[Depends(get_verified_user)],
     response_model=FeatureModelStatistics,
 )
+@cache(expire=300, key_builder=user_key_builder)
 async def get_latest_feature_model_statistics(
     *,
     model_id: uuid.UUID,

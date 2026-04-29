@@ -2,10 +2,15 @@
 Endpoint para exportar Feature Models a diferentes formatos estándar.
 """
 
+import json
+import time
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Path
 from fastapi.responses import Response
+from fastapi_cache.decorator import cache
+from pydantic import BaseModel
 
 from sqlmodel import select
 
@@ -16,6 +21,9 @@ from app.api.deps import (
 )
 from app.models import FeatureModelVersion
 from app.services.feature_model import FeatureModelExportService
+from app.core.s3 import minio_client
+from app.core.redis import redis_client
+from app.core.cache import CacheKeys, user_key_builder
 from app.enums import ExportFormat, ModelStatus
 from app.exceptions import (
     NoPublishedVersionException,
@@ -30,6 +38,22 @@ router = APIRouter(
     tags=["Feature Models - Export"],
     dependencies=[Depends(get_verified_user)],
 )
+
+
+class ExportCacheItem(BaseModel):
+    model_id: str
+    version_id: str
+    format: str
+    content_type: str
+    object_name: str
+    filename: str
+    created_at: str
+    download_url: str | None = None
+
+
+class ExportCacheListResponse(BaseModel):
+    data: list[ExportCacheItem]
+    count: int
 
 
 # ============================================================================
@@ -124,6 +148,7 @@ router = APIRouter(
         400: {"description": "Invalid export format"},
     },
 )
+@cache(expire=300, key_builder=user_key_builder)
 async def export_latest_feature_model(
     *,
     model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
@@ -246,6 +271,7 @@ async def export_latest_feature_model(
         400: {"description": "Invalid export format"},
     },
 )
+@cache(expire=300, key_builder=user_key_builder)
 async def export_feature_model(
     *,
     model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
@@ -303,6 +329,40 @@ async def export_feature_model(
     model_name = version.feature_model.name.replace(" ", "_").replace("/", "_")
     filename = f"{model_name}_v{version.version_number}.{extension}"
 
+    # Persistir export en MinIO
+    try:
+        object_name = await minio_client.upload_feature_model_export(
+            version_id=str(version.id),
+            export_bytes=content.encode("utf-8"),
+            fmt=extension,
+            content_type=content_type,
+        )
+        cache_key = CacheKeys.feature_model_export_item(
+            model_id=str(model_id),
+            version_id=str(version.id),
+            fmt=extension,
+        )
+        index_key = CacheKeys.feature_model_export_index(model_id=str(model_id))
+        created_at = datetime.now(timezone.utc).isoformat()
+        payload = {
+            "model_id": str(model_id),
+            "version_id": str(version.id),
+            "format": extension,
+            "content_type": content_type,
+            "object_name": object_name,
+            "filename": filename,
+            "created_at": created_at,
+        }
+        await redis_client.setex(
+            cache_key,
+            CacheKeys.TTL_EXPORT_CACHE,
+            json.dumps(payload),
+        )
+        await redis_client.zadd(index_key, {cache_key: time.time()})
+        await redis_client.expire(index_key, CacheKeys.TTL_EXPORT_CACHE)
+    except Exception as e:
+        raise ExportFailedException(format=format.value, reason=str(e))
+
     return Response(
         content=content,
         media_type=content_type,
@@ -310,3 +370,49 @@ async def export_feature_model(
             "Content-Disposition": f'attachment; filename="{filename}"',
         },
     )
+
+
+@router.get(
+    "/{model_id}/exports",
+    summary="List cached feature model exports",
+    description="Devuelve todas las exportaciones cacheadas de un feature model.",
+    response_model=ExportCacheListResponse,
+)
+@cache(expire=300, key_builder=user_key_builder)
+async def list_feature_model_exports(
+    *,
+    model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
+) -> ExportCacheListResponse:
+    index_key = CacheKeys.feature_model_export_index(model_id=str(model_id))
+    export_keys = await redis_client.zrevrange(index_key, 0, -1)
+    if not export_keys:
+        return ExportCacheListResponse(data=[], count=0)
+
+    raw_items = await redis_client.mget(export_keys)
+    items: list[ExportCacheItem] = []
+    for raw in raw_items:
+        if not raw:
+            continue
+        try:
+            payload = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+
+        download_url = await minio_client.get_feature_model_export_url(
+            version_id=payload["version_id"],
+            fmt=payload.get("format", "txt"),
+        )
+        items.append(
+            ExportCacheItem(
+                model_id=payload["model_id"],
+                version_id=payload["version_id"],
+                format=payload.get("format", "txt"),
+                content_type=payload.get("content_type", "text/plain"),
+                object_name=payload.get("object_name", ""),
+                filename=payload.get("filename", ""),
+                created_at=payload.get("created_at", ""),
+                download_url=download_url,
+            )
+        )
+
+    return ExportCacheListResponse(data=items, count=len(items))

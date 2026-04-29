@@ -60,6 +60,7 @@ class CacheKeys:
     TTL_TASK_STATUS = 3600  # Estado genérico de tareas
     TTL_TASK_PROGRESS = 3600  # Progreso genérico de tareas
     TTL_HEALTH = 15  # Health check
+    TTL_EXPORT_CACHE = 604800  # Cache de exportaciones (7 días)
 
     # ── Prefijos ──────────────────────────────────────────────────────────────
     _PFX_FM = "fm:"
@@ -71,6 +72,7 @@ class CacheKeys:
     _PFX_TASK = "task_status:"
     _PFX_TASK_PROGRESS = "task_progress:"
     _PFX_LOCK = "lock:"
+    _PFX_EXPORT = "export:"
 
     # ── Claves compuestas ─────────────────────────────────────────────────────
 
@@ -128,6 +130,21 @@ class CacheKeys:
     def feature_model_tree(version_id: str | UUID) -> str:
         """Clave de caché para el árbol completo de una versión."""
         return f"{CacheKeys._PFX_FM}tree:{version_id}"
+
+    @staticmethod
+    def feature_model_export_item(
+        model_id: str | UUID,
+        version_id: str | UUID,
+        fmt: str,
+    ) -> str:
+        """Clave de caché para una exportación específica."""
+        normalized_fmt = fmt.lstrip(".") or "txt"
+        return f"{CacheKeys._PFX_EXPORT}{model_id}:{version_id}:{normalized_fmt}"
+
+    @staticmethod
+    def feature_model_export_index(model_id: str | UUID) -> str:
+        """Índice (sorted set) de exportaciones por modelo."""
+        return f"{CacheKeys._PFX_EXPORT}index:{model_id}"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

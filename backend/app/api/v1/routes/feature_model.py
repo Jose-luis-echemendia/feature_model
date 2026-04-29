@@ -10,13 +10,13 @@ from app.api.deps import (
     AsyncDomainRepoDep,
     AsyncCurrentUser,
     get_verified_user,
+    ModelDesignerUser,
 )
 from app.exceptions import (
     FeatureModelNotFoundException,
-    NotFoundException,
+    DomainNotFoundException,
     ForbiddenException,
     BusinessLogicException,
-    UnauthorizedException,
 )
 from app.models.common import Message
 from app.models.feature_model import (
@@ -144,7 +144,10 @@ async def read_feature_models(
 
 
 @router.post(
-    "/", response_model=FeatureModelPublic, status_code=status.HTTP_201_CREATED
+    "/",
+    dependencies=[Depends(ModelDesignerUser)],
+    response_model=FeatureModelPublic,
+    status_code=status.HTTP_201_CREATED,
 )
 async def create_feature_model(
     *,
@@ -203,15 +206,14 @@ async def create_feature_model(
         UserRole.ADMIN,
         UserRole.DEVELOPER,
     ]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Only Model Designers and Admins can create feature models.",
+        raise ForbiddenException(
+            "Not enough permissions. Only Model Designers and Admins can create feature models."
         )
 
     # Verificar que el dominio existe
     domain = await domain_repo.get(model_in.domain_id)
     if not domain:
-        raise HTTPException(status_code=404, detail="Domain not found.")
+        raise DomainNotFoundException(domain_id=str(model_in.domain_id))
 
     try:
         model = await feature_model_repo.create(data=model_in, owner_id=current_user.id)
@@ -243,7 +245,7 @@ async def create_feature_model(
             versions=versions,
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise BusinessLogicException(detail=str(e))
 
 
 @router.get(
@@ -291,7 +293,7 @@ async def read_feature_model(
     """
     model = await feature_model_repo.get(model_id)
     if not model:
-        raise HTTPException(status_code=404, detail="Feature Model not found")
+        raise FeatureModelNotFoundException(model_id=str(model_id))
 
     # Ordenar versiones por version_number ascendente
     sorted_versions = sorted(model.versions, key=lambda v: v.version_number)
@@ -323,7 +325,11 @@ async def read_feature_model(
     )
 
 
-@router.patch("/{model_id}", response_model=FeatureModelPublic)
+@router.patch(
+    "/{model_id}",
+    dependencies=[Depends(ModelDesignerUser)],
+    response_model=FeatureModelPublic,
+)
 async def update_feature_model(
     *,
     model_id: uuid.UUID,
@@ -373,18 +379,17 @@ async def update_feature_model(
         UserRole.ADMIN,
         UserRole.DEVELOPER,
     ]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Only Model Designers and Admins can update feature models.",
+        raise ForbiddenException(
+            "Not enough permissions. Only Model Designers and Admins can update feature models."
         )
 
     db_model = await feature_model_repo.get(model_id)
     if not db_model:
-        raise HTTPException(status_code=404, detail="Feature Model not found")
+        raise FeatureModelNotFoundException(model_id=str(model_id))
 
     # Verificar si el usuario es el propietario o un admin
     if db_model.owner_id != current_user.id and not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenException("Not enough permissions")
 
     try:
         updated_model = await feature_model_repo.update(
@@ -418,10 +423,14 @@ async def update_feature_model(
             versions=versions,
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise BusinessLogicException(detail=str(e))
 
 
-@router.patch("/{model_id}/activate", response_model=FeatureModelPublic)
+@router.patch(
+    "/{model_id}/activate",
+    dependencies=[Depends(ModelDesignerUser)],
+    response_model=FeatureModelPublic,
+)
 async def activate_feature_model(
     *,
     model_id: uuid.UUID,
@@ -463,18 +472,17 @@ async def activate_feature_model(
         UserRole.ADMIN,
         UserRole.DEVELOPER,
     ]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Only Model Designers and Admins can activate feature models.",
+        raise ForbiddenException(
+            "Not enough permissions. Only Model Designers and Admins can activate feature models."
         )
 
     db_model = await feature_model_repo.get(model_id)
     if not db_model:
-        raise HTTPException(status_code=404, detail="Feature Model not found")
+        raise FeatureModelNotFoundException(model_id=str(model_id))
 
     # Verificar si el usuario es el propietario o un admin
     if db_model.owner_id != current_user.id and not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenException("Not enough permissions")
 
     activated_model = await feature_model_repo.activate(db_model)
     # Recargar con domain y versiones
@@ -506,7 +514,11 @@ async def activate_feature_model(
     )
 
 
-@router.patch("/{model_id}/deactivate", response_model=FeatureModelPublic)
+@router.patch(
+    "/{model_id}/deactivate",
+    dependencies=[Depends(ModelDesignerUser)],
+    response_model=FeatureModelPublic,
+)
 async def deactivate_feature_model(
     *,
     model_id: uuid.UUID,
@@ -553,18 +565,17 @@ async def deactivate_feature_model(
         UserRole.ADMIN,
         UserRole.DEVELOPER,
     ]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Only Model Designers and Admins can deactivate feature models.",
+        raise ForbiddenException(
+            "Not enough permissions. Only Model Designers and Admins can deactivate feature models."
         )
 
     db_model = await feature_model_repo.get(model_id)
     if not db_model:
-        raise HTTPException(status_code=404, detail="Feature Model not found")
+        raise FeatureModelNotFoundException(model_id=str(model_id))
 
     # Verificar si el usuario es el propietario o un admin
     if db_model.owner_id != current_user.id and not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenException("Not enough permissions")
 
     deactivated_model = await feature_model_repo.deactivate(db_model)
     # Recargar con domain y versiones
@@ -596,7 +607,11 @@ async def deactivate_feature_model(
     )
 
 
-@router.delete("/{model_id}", response_model=Message)
+@router.delete(
+    "/{model_id}",
+    dependencies=[Depends(ModelDesignerUser)],
+    response_model=Message,
+)
 async def delete_feature_model(
     *,
     model_id: uuid.UUID,
@@ -655,25 +670,21 @@ async def delete_feature_model(
         UserRole.ADMIN,
         UserRole.DEVELOPER,
     ]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Only Model Designers and Admins can delete feature models.",
+        raise ForbiddenException(
+            "Not enough permissions. Only Model Designers and Admins can delete feature models."
         )
 
     db_model = await feature_model_repo.get(model_id)
     if not db_model:
-        raise HTTPException(status_code=404, detail="Feature Model not found")
+        raise FeatureModelNotFoundException(model_id=str(model_id))
 
     if db_model.owner_id != current_user.id and not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenException("Not enough permissions")
 
     # Verificar que el modelo puede ser eliminado
     can_delete, error_message = await feature_model_repo.can_be_deleted(model_id)
     if not can_delete:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=error_message,
-        )
+        raise BusinessLogicException(detail=error_message)
 
     await feature_model_repo.delete(db_model)
     return Message(message="Feature Model deleted successfully.")

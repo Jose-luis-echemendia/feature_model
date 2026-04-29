@@ -6,6 +6,7 @@ Permite trabajar en paralelo modelo visual + texto UVL.
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Path, status
+from fastapi_cache.decorator import cache
 
 from app.api.deps import (
     AsyncCurrentUser,
@@ -20,6 +21,7 @@ from app.services.feature_model import (
     FeatureModelUVLImporter,
 )
 from app.tasks.feature_model_analysis import run_feature_model_analysis
+from app.core.cache import feature_model_detail_key_builder
 
 router = APIRouter(
     prefix="/feature-models",
@@ -54,6 +56,7 @@ def _validate_uvl_content(uvl_content: str) -> str:
     response_model=FeatureModelVersionUVLPublic,
     summary="Get effective UVL for a feature model version",
 )
+@cache(expire=300, key_builder=feature_model_detail_key_builder)
 async def get_feature_model_version_uvl(
     *,
     model_id: uuid.UUID = Path(..., description="Feature Model UUID"),

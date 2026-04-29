@@ -2,6 +2,7 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends
+from fastapi_cache.decorator import cache
 from pydantic import BaseModel
 from sqlmodel import select
 
@@ -21,6 +22,7 @@ from app.models.feature_model_version import (
     FeatureModelVersion,
 )
 from app.services.feature_model import FeatureModelVersionManager
+from app.core.cache import user_key_builder
 
 router = APIRouter(
     prefix="/feature-models",
@@ -38,6 +40,7 @@ class FeatureModelVersionCreateRequest(BaseModel):
     dependencies=[Depends(VerifiedUser)],
     response_model=list[FeatureModelVersionPublic],
 )
+@cache(expire=300, key_builder=user_key_builder)
 async def list_feature_model_versions(
     *,
     model_id: uuid.UUID,
@@ -61,6 +64,7 @@ async def list_feature_model_versions(
     dependencies=[Depends(VerifiedUser)],
     response_model=FeatureModelVersionPublic,
 )
+@cache(expire=300, key_builder=user_key_builder)
 async def read_feature_model_version(
     *,
     model_id: uuid.UUID,
