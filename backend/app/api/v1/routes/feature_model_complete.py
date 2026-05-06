@@ -197,56 +197,34 @@ async def get_complete_feature_model(
     This is the main endpoint for retrieving the full feature model structure.
     It returns a nested tree with all features, groups, relations, and constraints
     in a format optimized for frontend tree rendering components.
-    """
-    # Verificar que el usuario está autenticado
-    if not current_user:
-        raise UnauthorizedException(detail="Authentication required")
 
-    # Obtener la versión completa con todas las relaciones
+    OPTIMIZACIONES IMPLEMENTADAS:
+    - Eager loading de todas las relaciones (reduce N+1 queries)
+    - Caching inteligente por ModelStatus
+    - Serialización eficiente con caché pre-computado
+    """
+    # 1. Obtener la versión completa con eager loading
     version = await version_repo.get_complete_with_relations(
-        version_id=version_id, include_resources=include_resources
+        version_id=version_id,
+        include_resources=include_resources,
     )
 
-    if not version:
+    if not version or version.feature_model_id != model_id:
         raise FeatureModelVersionNotFoundException(version_id=str(version_id))
 
-    # Verificar que la versión pertenece al feature model solicitado
-    if version.feature_model_id != model_id:
-        raise BusinessLogicException(
-            detail="Version does not belong to the specified feature model"
-        )
-
-    # Verificar permisos (el modelo debe estar activo o el usuario debe ser owner/admin)
+    # 2. Verificar permisos
     feature_model = version.feature_model
     if not feature_model.is_active:
-        # Solo el owner o superuser pueden ver modelos inactivos
         if feature_model.owner_id != current_user.id and not current_user.is_superuser:
             raise ForbiddenException(
-                detail="This feature model is inactive and you don't have permission to view it"
+                detail="This feature model is inactive and you don't have permission to access it"
             )
 
-    # Determinar si viene del caché y cuándo expira
-    cached = False  # El decorador @cache manejará esto
-    cache_expires_at = None
+    # 3. Construir respuesta con caché Redis (NUEVO)
+    builder = FeatureModelTreeBuilder(version, include_resources=include_resources)
+    response = await builder.build_complete_response_with_cache()
 
-    # Calcular tiempo de expiración del caché según el estado
-    if version.status == ModelStatus.PUBLISHED:
-        cache_expires_at = datetime.utcnow() + timedelta(hours=1)
-    elif version.status == ModelStatus.IN_REVIEW:
-        cache_expires_at = datetime.utcnow() + timedelta(minutes=30)
-    else:  # DRAFT
-        cache_expires_at = datetime.utcnow() + timedelta(minutes=5)
-
-    # Construir la respuesta usando el TreeBuilder
-    builder = FeatureModelTreeBuilder(
-        version=version, include_resources=include_resources
-    )
-
-    response = builder.build_complete_response(
-        cached=cached, cache_expires_at=cache_expires_at
-    )
-
-    # Si no se solicitan estadísticas, eliminarlas
+    # 4. Opcionalmente, excluir estadísticas si no se solicitan
     if not include_statistics:
         response.statistics = None
 

@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Path
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from fastapi_cache.decorator import cache
 from pydantic import BaseModel
 
@@ -21,6 +21,7 @@ from app.api.deps import (
 )
 from app.models import FeatureModelVersion
 from app.services.feature_model import FeatureModelExportService
+from app.services.feature_model.fm_tree_builder import FeatureModelTreeBuilder
 from app.core.s3 import minio_client
 from app.core.redis import redis_client
 from app.core.cache import CacheKeys, user_key_builder
@@ -369,6 +370,39 @@ async def export_feature_model(
         headers={
             "Content-Disposition": f'attachment; filename="{filename}"',
         },
+    )
+
+
+@router.get(
+    "/{model_id}/versions/{version_id}/export-stream/json",
+    summary="Stream complete feature model tree as JSON",
+    description="Stream the complete feature model tree (JSON) in chunks. Uses Redis cache when possible.",
+)
+async def stream_feature_model_tree_json(
+    *,
+    model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
+    version_id: uuid.UUID = Path(..., description="Version UUID"),
+    version_repo: AsyncFeatureModelVersionRepoDep,
+    current_user: AsyncCurrentUser,
+) -> StreamingResponse:
+    """Stream the complete tree as JSON using FeatureModelTreeBuilder.stream_complete_response_with_cache."""
+    # Obtener la versión con todas las relaciones cargadas
+    version = await version_repo.get_version_with_full_structure(version_id)
+
+    if not version or version.feature_model_id != model_id:
+        raise FeatureModelVersionNotFoundException(version_id=str(version_id))
+
+    # Nombre de archivo
+    model_name = version.feature_model.name.replace(" ", "_").replace("/", "_")
+    filename = f"{model_name}_v{version.version_number}.json"
+
+    builder = FeatureModelTreeBuilder(version, include_resources=True)
+    generator = builder.stream_complete_response_with_cache()
+
+    return StreamingResponse(
+        generator,
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 
