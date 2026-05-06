@@ -224,7 +224,6 @@ services:
       timeout: 10s
       start_period: 40s
       retries: 3
-    restart: unless-stopped
 
   # SERVICIO DE CELERY BEAT PARA TAREAS PROGRAMADAS
   celery_beat:
@@ -273,7 +272,6 @@ services:
       timeout: 10s
       start_period: 30s
       retries: 3
-    restart: unless-stopped
 
 volumes:
   app-db-data:
