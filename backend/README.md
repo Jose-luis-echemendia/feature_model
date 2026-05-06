@@ -2,8 +2,8 @@
 
 ## Requirements
 
-* [Docker](https://www.docker.com/).
-* [uv](https://docs.astral.sh/uv/) for Python package and environment management.
+- [Docker](https://www.docker.com/).
+- [uv](https://docs.astral.sh/uv/) for Python package and environment management.
 
 ## Docker Compose
 
@@ -121,29 +121,44 @@ docker compose exec backend bash scripts/tests-start.sh -x
 
 When the tests are run, a file `htmlcov/index.html` is generated, you can open it in your browser to see the coverage of the tests.
 
+### RNF#10: p95 de latencia repositorios → BD
+
+Hay un script opt-in para medir la latencia p95 de una consulta real de repositorio contra la base de datos.
+Por defecto está desactivado para no volver inestable la suite normal.
+
+```console
+$ python scripts/check_rnf_10_latency.py
+```
+
+Puedes ajustar el umbral y el muestreo con estas variables:
+
+```console
+$ RNF10_BUDGET_MS=50 RNF10_SAMPLE_SIZE=20 RNF10_WARMUP_RUNS=3 python scripts/check_rnf_10_latency.py
+```
+
 ## Migrations
 
 As during local development your app directory is mounted as a volume inside the container, you can also run the migrations with `alembic` commands inside the container and the migration code will be in your app directory (instead of being only inside the container). So you can add it to your git repository.
 
 Make sure you create a "revision" of your models and that you "upgrade" your database with that revision every time you change them. As this is what will update the tables in your database. Otherwise, your application will have errors.
 
-* Start an interactive session in the backend container:
+- Start an interactive session in the backend container:
 
 ```console
 $ docker compose exec backend bash
 ```
 
-* Alembic is already configured to import your SQLModel models from `./backend/app/models.py`.
+- Alembic is already configured to import your SQLModel models from `./backend/app/models.py`.
 
-* After changing a model (for example, adding a column), inside the container, create a revision, e.g.:
+- After changing a model (for example, adding a column), inside the container, create a revision, e.g.:
 
 ```console
 $ alembic revision --autogenerate -m "Add column last_name to User model"
 ```
 
-* Commit to the git repository the files generated in the alembic directory.
+- Commit to the git repository the files generated in the alembic directory.
 
-* After creating the revision, run the migration in the database (this is what will actually change the database):
+- After creating the revision, run the migration in the database (this is what will actually change the database):
 
 ```console
 $ alembic upgrade head
