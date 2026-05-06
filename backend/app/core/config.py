@@ -151,6 +151,8 @@ class Settings(BaseSettings):
     CACHE_TTL_SHORT: int = 60  # 1 min  — datos muy volátiles
     CACHE_TTL_DEFAULT: int = 300  # 5 min  — listados, etc.
     CACHE_TTL_LONG: int = 3600  # 1 hora — plantillas, config estática
+    # GZIP middleware minimum size (bytes). Responses smaller than this won't be compressed.
+    GZIP_MINIMUM_SIZE: int = 500
 
     @property
     def REDIS_URL_BROKER(self) -> str:

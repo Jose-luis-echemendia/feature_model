@@ -44,13 +44,33 @@ class CacheKeys:
     """
     Centraliza TTLs y prefijos de caché del dominio Feature Model.
     Modifica aquí y afecta a toda la app.
+
+    OPTIMIZACIONES:
+    - TTLs dinámicos según ModelStatus (PUBLISHED > DRAFT)
+    - Invalidación granular por version/model/type
+    - Patrón de prefijos para bulk operations
     """
 
-    # ── TTLs (segundos) ───────────────────────────────────────────────────────
+    # ── TTLs (segundos) — OPTIMIZADOS POR STATUS ──────────────────────────────
+    # ✅ PUBLISHED = 1 hora (cambios raros, estable)
+    TTL_FM_TREE_PUBLISHED = 3600
+    TTL_FM_DETAIL_PUBLISHED = 1800
+
+    # ⚠️ DRAFT = 5 minutos (cambios frecuentes, mutable)
+    TTL_FM_TREE_DRAFT = 300
+    TTL_FM_DETAIL_DRAFT = 60
+
+    # ⏳ IN_REVIEW = 10 minutos (cambios ocasionales)
+    TTL_FM_TREE_IN_REVIEW = 600
+    TTL_FM_DETAIL_IN_REVIEW = 300
+
+    # 🔒 ARCHIVED = 2 horas (nunca cambia)
+    TTL_FM_TREE_ARCHIVED = 7200
+    TTL_FM_DETAIL_ARCHIVED = 3600
+
+    # ── TTLs Generales (sin variación de status) ───────────────────────────────
     TTL_TEMPLATES = 3600  # Catálogos/plantillas globales
     TTL_FEATURE_MODELS_LIST = 120  # Listado de feature models
-    TTL_FEATURE_MODEL_DETAIL = 60  # Detalle de feature model
-    TTL_FEATURE_MODEL_TREE = 300  # Árbol completo serializado
     TTL_VALIDATION_STATUS = 10  # Polling de validación
     TTL_IMPORT_STATUS = 10  # Polling de importación
     TTL_VALIDATION_LOCK = 300  # Lock de validación
@@ -145,6 +165,148 @@ class CacheKeys:
     def feature_model_export_index(model_id: str | UUID) -> str:
         """Índice (sorted set) de exportaciones por modelo."""
         return f"{CacheKeys._PFX_EXPORT}index:{model_id}"
+
+    @staticmethod
+    def get_ttl_for_status(status: "ModelStatus") -> dict[str, int]:
+        """
+        Obtener TTLs según el status de la versión.
+
+        Args:
+            status: ModelStatus (PUBLISHED, DRAFT, IN_REVIEW, ARCHIVED)
+
+        Returns:
+            Dict con TTLs para tree, detail, y otros recursos
+        """
+        from app.enums import ModelStatus
+
+        ttl_map = {
+            ModelStatus.PUBLISHED: {
+                "tree": CacheKeys.TTL_FM_TREE_PUBLISHED,
+                "detail": CacheKeys.TTL_FM_DETAIL_PUBLISHED,
+                "statistics": 3600,
+                "export": CacheKeys.TTL_EXPORT_CACHE,
+            },
+            ModelStatus.DRAFT: {
+                "tree": CacheKeys.TTL_FM_TREE_DRAFT,
+                "detail": CacheKeys.TTL_FM_DETAIL_DRAFT,
+                "statistics": 300,
+                "export": 600,
+            },
+            ModelStatus.IN_REVIEW: {
+                "tree": CacheKeys.TTL_FM_TREE_IN_REVIEW,
+                "detail": CacheKeys.TTL_FM_DETAIL_IN_REVIEW,
+                "statistics": 600,
+                "export": 1200,
+            },
+            ModelStatus.ARCHIVED: {
+                "tree": CacheKeys.TTL_FM_TREE_ARCHIVED,
+                "detail": CacheKeys.TTL_FM_DETAIL_ARCHIVED,
+                "statistics": 7200,
+                "export": CacheKeys.TTL_EXPORT_CACHE,
+            },
+        }
+        return ttl_map.get(status, ttl_map[ModelStatus.DRAFT])  # Default to DRAFT TTLs
+
+    @staticmethod
+    async def invalidate_version_cache(
+        version_id: str | UUID,
+        redis_client: "Redis",
+        invalidate_model_lists: bool = True,
+    ) -> int:
+        """
+        Invalidar caché para una versión específica de forma inteligente.
+
+        INVALIDACIÓN GRANULAR:
+        - Solo caché relacionada con esta versión
+        - No invalida listados/detalles globales (opcional)
+
+        Args:
+            version_id: UUID de la versión a invalidar
+            redis_client: Cliente de Redis
+            invalidate_model_lists: Si también invalidar listados de modelos
+
+        Returns:
+            Número de claves eliminadas
+        """
+        keys_to_delete = []
+
+        # 1. Invalidar caché del árbol
+        keys_to_delete.append(CacheKeys.feature_model_tree(version_id))
+
+        # 2. Invalidar exportaciones de esta versión (todas las versiones del modelo)
+        # Patrón: export:{model_id}:{version_id}:*
+        export_pattern = f"{CacheKeys._PFX_EXPORT}*:{version_id}:*"
+        export_keys = await redis_client.keys(export_pattern)
+        keys_to_delete.extend(export_keys or [])
+
+        # 3. Invalidar estados de trabajos
+        keys_to_delete.append(CacheKeys.feature_model_validation_status(version_id))
+        keys_to_delete.append(CacheKeys.feature_model_analysis_status(version_id))
+
+        # 4. Invalidar locks (aunque no corresponde, por seguridad)
+        keys_to_delete.append(CacheKeys.validation_lock(version_id))
+        keys_to_delete.append(CacheKeys.analysis_lock(version_id))
+
+        # 5. Eliminar del caché
+        deleted_count = 0
+        if keys_to_delete:
+            deleted_count = await redis_client.delete(*keys_to_delete)
+
+        return deleted_count
+
+    @staticmethod
+    async def invalidate_model_cache(
+        model_id: str | UUID,
+        redis_client: "Redis",
+        include_all_versions: bool = True,
+    ) -> int:
+        """
+        Invalidar caché para un Feature Model completo.
+
+        INVALIDACIÓN EN CASCADA:
+        - Detalle del modelo
+        - Árbol de TODAS sus versiones (opcional)
+        - Todas las exportaciones del modelo
+
+        Args:
+            model_id: UUID del feature model
+            redis_client: Cliente de Redis
+            include_all_versions: Si también invalidar árboles de todas las versiones
+
+        Returns:
+            Número de claves eliminadas
+        """
+        keys_to_delete = []
+
+        # 1. Invalidar detalle del modelo
+        keys_to_delete.append(CacheKeys.feature_model_detail(model_id))
+
+        # 2. Invalidar listados que incluyen este modelo
+        # Patrón: fm:list:*
+        list_pattern = f"{CacheKeys._PFX_FM}list:*"
+        list_keys = await redis_client.keys(list_pattern)
+        keys_to_delete.extend(list_keys or [])
+
+        # 3. Invalidar árboles de TODAS las versiones (opcional, costoso)
+        if include_all_versions:
+            tree_pattern = f"{CacheKeys._PFX_FM}tree:*"
+            tree_keys = await redis_client.keys(tree_pattern)
+            keys_to_delete.extend(tree_keys or [])
+
+        # 4. Invalidar todas las exportaciones del modelo
+        export_pattern = f"{CacheKeys._PFX_EXPORT}{model_id}:*"
+        export_keys = await redis_client.keys(export_pattern)
+        keys_to_delete.extend(export_keys or [])
+
+        # 5. Invalidar índice de exportaciones
+        keys_to_delete.append(CacheKeys.feature_model_export_index(model_id))
+
+        # 6. Eliminar del caché
+        deleted_count = 0
+        if keys_to_delete:
+            deleted_count = await redis_client.delete(*keys_to_delete)
+
+        return deleted_count
 
 
 # ─────────────────────────────────────────────────────────────────────────────

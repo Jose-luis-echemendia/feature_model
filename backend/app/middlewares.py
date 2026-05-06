@@ -18,6 +18,7 @@ Uso:
 import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from starlette.middleware.gzip import GZipMiddleware
 import jwt
 from jwt.exceptions import InvalidTokenError
 
@@ -424,6 +425,15 @@ def setup_middlewares(app: FastAPI) -> None:
         setup_middlewares(app)
         ```
     """
+    # Registrar GZip middleware para comprimir respuestas grandes
+    try:
+        from app.core.config import settings
+
+        app.add_middleware(GZipMiddleware, minimum_size=settings.GZIP_MINIMUM_SIZE)
+    except Exception:
+        # Si falla la configuración, continuar sin GZip
+        logger.exception("No se pudo configurar GZipMiddleware, continuando sin compresión")
+
     # Registrar middleware de invalidación de caché (primero para que se ejecute después)
     app.middleware("http")(invalidate_cache_on_write_middleware)
 
