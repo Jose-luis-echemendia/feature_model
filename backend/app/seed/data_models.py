@@ -4841,6 +4841,293 @@ bootcamp_fullstack_model = {
     },
 }
 
+
+# ==========================================================================
+# MODELO 10: Curso de Principios SOLID y OOP (6 características)
+# Prueba: Relación grupal (OR) + restricción cross-tree (excludes)
+# ==========================================================================
+oop_solid_model = {
+    "name": "Curso Profesional de OOP + SOLID",
+    "domain_name": "Diseño de Software",
+    "description": "Aprende los pilares de la Programación Orientada a Objetos y los principios SOLID aplicados.",
+    "version": {
+        "version_number": 1,
+        "status": "DRAFT",
+        "features": [
+            {
+                # === NIVEL 1: RAÍZ ===
+                "name": "Certificación OOP Avanzado",
+                "type": "MANDATORY",
+                "tags": ["certificacion", "proyecto"],
+                "children": [
+                    {
+                        # === NIVEL 2: PILARES OOP ===
+                        "name": "Pilares de OOP",
+                        "type": "MANDATORY",
+                        "tags": ["teorico", "fundamentos"],
+                        "children": [
+                            # === NIVEL 3 ===
+                            {
+                                "name": "Encapsulación",
+                                "type": "MANDATORY",
+                                "tags": ["basico"],
+                                "children": [
+                                    {
+                                        "name": "Getters/Setters",
+                                        "type": "MANDATORY",
+                                        "resource_title": "Propiedades vs Métodos públicos",
+                                    },
+                                    {
+                                        "name": "Name Mangling",
+                                        "type": "OPTIONAL",
+                                        "resource_title": "Atributos privados en Python",
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Herencia",
+                                "type": "MANDATORY",
+                                "tags": ["basico"],
+                                "children": [
+                                    {
+                                        "name": "Herencia Simple",
+                                        "type": "MANDATORY",
+                                    },
+                                    {
+                                        "name": "Herencia Múltiple (MRO)",
+                                        "type": "OPTIONAL",
+                                        "resource_title": "Method Resolution Order",
+                                    },
+                                ],
+                            },
+                        ],
+                    }
+                ],
+                "groups": [
+                    {
+                        # Grupo OR: Elige al menos 2 de estos 3 patrones avanzados (Nivel 2)
+                        "type": "OR",
+                        "min": 2,
+                        "max": 3,
+                        "features": [
+                            # ====================================================
+                            # PATRÓN 1: Polimorfismo
+                            # ====================================================
+                            {
+                                "name": "Polimorfismo",
+                                "type": "OPTIONAL",
+                                "tags": ["avanzado", "polimorfismo"],
+                                "resource_title": "Sobrescritura y sobrecarga",
+                                "children": [
+                                    {
+                                        "name": "Duck Typing",
+                                        "type": "MANDATORY",
+                                        "resource_title": "Protocolos en Python",
+                                    },
+                                    {
+                                        "name": "ABC (Abstract Base Classes)",
+                                        "type": "OPTIONAL",
+                                    },
+                                ],
+                            },
+                            # ====================================================
+                            # PATRÓN 2: Composición vs Herencia
+                            # ====================================================
+                            {
+                                "name": "Composición",
+                                "type": "OPTIONAL",
+                                "tags": ["patron", "diseno"],
+                                "resource_title": "Composición sobre herencia",
+                                "children": [
+                                    {
+                                        "name": "Delegación",
+                                        "type": "MANDATORY",
+                                    },
+                                    {
+                                        "name": "Mixins",
+                                        "type": "OPTIONAL",
+                                        "tags": ["avanzado"],
+                                    },
+                                ],
+                            },
+                            # ====================================================
+                            # PATRÓN 3: SOLID (5 principios)
+                            # ====================================================
+                            {
+                                "name": "Principios SOLID",
+                                "type": "OPTIONAL",
+                                "tags": ["solid", "arquitectura"],
+                                "children": [
+                                    {
+                                        "name": "SRP (Responsabilidad Única)",
+                                        "type": "MANDATORY",
+                                        "resource_title": "Single Responsibility Principle",
+                                    },
+                                    {
+                                        "name": "OCP (Abierto/Cerrado)",
+                                        "type": "MANDATORY",
+                                    },
+                                    {
+                                        "name": "DIP (Inversión de Dependencias)",
+                                        "type": "MANDATORY",
+                                    },
+                                ],
+                            },
+                        ],
+                    }
+                ],
+            }
+        ],
+        # RELACIONES TRANSVERSALES (CROSS-TREE)
+        "feature_relations": [
+            # Restricción: Si usas Herencia Múltiple, NO puedes usar Mixins (redundante)
+            {
+                "source": "Herencia Múltiple (MRO)",
+                "target": "Mixins",
+                "type": "excludes",
+                "description": "Mixins ya implementan herencia múltiple; elegir ambos es redundante y confuso",
+            }
+        ],
+        # REGLAS LÓGICAS (CONSTRAINTS)
+        "constraints": [
+            # Regla cross-tree: Polimorfismo obliga a usar ABC (nivel avanzado)
+            {
+                "expr": "Polimorfismo IMPLIES ABC (Abstract Base Classes)",
+                "description": "Para aplicar polimorfismo estricto en Python se recomienda usar clases abstractas",
+            }
+        ],
+    },
+}
+
+
+
+# ==========================================================================
+# MODELO 11: Arquitectura de Computadoras (Modelo chiquito)
+# Prueba: Grupo XOR + restricción cross-tree (requires)
+# ==========================================================================
+computer_architecture_model = {
+    "name": "Curso de Arquitectura de Computadoras",
+    "domain_name": "Hardware y Sistemas",
+    "description": "Fundamentos de organización y arquitectura de computadoras, desde la ALU hasta la memoria caché.",
+    "version": {
+        "version_number": 1,
+        "status": "DRAFT",
+        "features": [
+            {
+                # === NIVEL 1: RAÍZ ===
+                "name": "Certificación Arquitectura de Computadoras",
+                "type": "MANDATORY",
+                "tags": ["certificacion", "hardware"],
+                "children": [
+                    {
+                        # === NIVEL 2: NÚCLEO OBLIGATORIO ===
+                        "name": "Fundamentos del CPU",
+                        "type": "MANDATORY",
+                        "tags": ["cpu", "fundamentos"],
+                        "children": [
+                            # === NIVEL 3 ===
+                            {
+                                "name": "ALU (Unidad Aritmético-Lógica)",
+                                "type": "MANDATORY",
+                                "tags": ["cpu"],
+                                "children": [
+                                    {
+                                        "name": "Operaciones Aritméticas",
+                                        "type": "MANDATORY",
+                                        "resource_title": "Sumadores y multiplicadores binarios",
+                                    },
+                                    {
+                                        "name": "Operaciones Lógicas",
+                                        "type": "MANDATORY",
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Unidad de Control",
+                                "type": "MANDATORY",
+                                "tags": ["cpu"],
+                                "children": [
+                                    {
+                                        "name": "Decodificación de Instrucciones",
+                                        "type": "MANDATORY",
+                                    }
+                                ],
+                            },
+                        ],
+                    }
+                ],
+                "groups": [
+                    {
+                        # Grupo XOR: Elige exactamente 1 modelo de caché (Nivel 2)
+                        "type": "XOR",
+                        "min": 1,
+                        "max": 1,
+                        "features": [
+                            # ====================================================
+                            # OPCIÓN 1: Caché de Mapeo Directo
+                            # ====================================================
+                            {
+                                "name": "Caché Mapeo Directo",
+                                "type": "OPTIONAL",
+                                "tags": ["memoria", "caché"],
+                                "resource_title": "Memoria Caché: Mapeo Directo vs Asociativo",
+                                "children": [
+                                    {
+                                        "name": "Cálculo de Tags",
+                                        "type": "MANDATORY",
+                                    },
+                                    {
+                                        "name": "Tasa de Aciertos",
+                                        "type": "OPTIONAL",
+                                    },
+                                ],
+                            },
+                            # ====================================================
+                            # OPCIÓN 2: Caché Asociativa por Conjuntos
+                            # ====================================================
+                            {
+                                "name": "Caché Asociativa por Conjuntos",
+                                "type": "OPTIONAL",
+                                "tags": ["memoria", "caché", "avanzado"],
+                                "children": [
+                                    {
+                                        "name": "Política de Reemplazo LRU",
+                                        "type": "MANDATORY",
+                                        "resource_title": "Algoritmos de reemplazo de caché",
+                                    },
+                                    {
+                                        "name": "Vías (Ways)",
+                                        "type": "MANDATORY",
+                                    },
+                                ],
+                            },
+                        ],
+                    }
+                ],
+            }
+        ],
+        # RELACIONES TRANSVERSALES (CROSS-TREE)
+        "feature_relations": [
+            # Restricción: Si eliges Caché Asociativa, NECESITAS saber decodificación (Unidad de Control)
+            {
+                "source": "Caché Asociativa por Conjuntos",
+                "target": "Decodificación de Instrucciones",
+                "type": "requires",
+                "description": "La caché asociativa requiere entender cómo se decodifican direcciones de memoria",
+            }
+        ],
+        # REGLAS LÓGICAS (CONSTRAINTS)
+        "constraints": [
+            # Regla cross-tree: Mapeo Directo obliga a saber calcular la tasa de aciertos
+            {
+                "expr": "Caché Mapeo Directo IMPLIES Tasa de Aciertos",
+                "description": "El mapeo directo se evalúa con su tasa de aciertos característica",
+            }
+        ],
+    },
+}
+
+
 # Lista de todos los modelos
 feature_models_data = [
     computer_engineering_degree_model,
@@ -4852,4 +5139,6 @@ feature_models_data = [
     subject_data_structure_model,
     computer_engineering_curriculum_2024,
     bootcamp_fullstack_model,
+    oop_solid_model,
+    computer_architecture_model
 ]

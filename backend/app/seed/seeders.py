@@ -551,7 +551,7 @@ def _create_feature_recursive(
                 owner_id,
                 resource_map,
                 tag_map,
-                parent_id=None,
+                parent_id=feature.id,
                 group_id=feature_group.id,
                 feature_map=feature_map,
                 solver_map=solver_map,
