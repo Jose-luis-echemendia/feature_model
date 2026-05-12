@@ -1,0 +1,81 @@
+name: CI/CD Smart Web Scraping (Zero-Code Mode)
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Checkout Código de la App
+        uses: actions/checkout@v4
+
+      - name: 2. Login en Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 3. Construir y Subir imagen
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: jose031003/ffm-app:latest,jose031003/ffm-app:${{ github.sha }}
+
+      - name: 4. Checkout Repo de Infraestructura (Externo)
+        uses: actions/checkout@v4
+        with:
+          repository: Netsy-Ai/netsy-infrastructure-Hetzner-VPS
+          token: ${{ secrets.INFRA_REPO_TOKEN }}
+          path: infra-repo
+
+      - name: 5. Configurar Kubectl remoto (API 6443)
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: 6. Inyectar Secretos y Desplegar
+        run: |
+          # --- A. Preparar variables para envsubst ---
+          export SECRET_KEY="${{ secrets.SECRET_KEY }}"
+          export SENTRY_DSN="${{ secrets.SENTRY_DSN }}"
+          export POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
+          export S3_ACCESS_KEY="${{ secrets.S3_ACCESS_KEY }}"
+          export S3_SECRET_KEY="${{ secrets.S3_SECRET_KEY }}"
+          export REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
+          export LLM_BASE_URL="${{ secrets.LLM_BASE_URL }}"
+          export LLM_API_KEY="${{ secrets.LLM_API_KEY }}"
+          export IMAGE_TAG="${{ github.sha }}"
+
+          # Ruta base en el repo de infra
+          INFRA_PATH="infra-repo/apps/fm"
+
+          # --- B. Aplicar Configuración base ---
+          envsubst < $INFRA_PATH/secrets.yaml | kubectl apply -f -
+          kubectl apply -f $INFRA_PATH/configmap.yaml
+
+          # --- C. Ejecutar Migraciones y ESPERAR ---
+          echo "🚀 Ejecutando migraciones..."
+          kubectl delete job fm-prestart --ignore-not-found
+          envsubst < $INFRA_PATH/prestart-job.yaml | kubectl apply -f -
+
+          # Bloquear hasta que las migraciones terminen (máx 8 min)
+          # kubectl wait --for=condition=complete job/fm-prestart --timeout=480s
+
+          # --- D. Aplicar Despliegues y Servicios ---
+          kubectl apply -f $INFRA_PATH/deployments.yaml
+          kubectl apply -f $INFRA_PATH/services-ingress.yaml
+
+          # --- E. Actualizar Imágenes al SHA actual ---
+          kubectl set image deployment/fm-backend backend=jose031003/ffm-app:${{ github.sha }}
+          kubectl set image deployment/fm-worker worker=jose031003/ffm-app:${{ github.sha }}
+          kubectl set image deployment/fm-beat beat=jose031003/ffm-app:${{ github.sha }}
+
+          # --- F. Verificar salud final ---
+          kubectl rollout status deployment/fm-backend
