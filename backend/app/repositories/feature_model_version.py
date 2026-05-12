@@ -11,6 +11,7 @@ from app.models import (
     FeatureRelation,
     User,
 )
+from app.enums import ModelStatus
 from app.repositories.base import BaseFeatureModelVersionRepository
 
 
@@ -34,6 +35,28 @@ class FeatureModelVersionRepository(BaseFeatureModelVersionRepository):
         result = await self.session.execute(statement)
         versions = result.all()
         return max((v[0] for v in versions), default=0)
+
+    async def get_latest_published_version(
+        self, feature_model_id: uuid.UUID
+    ) -> FeatureModelVersion | None:
+        """
+        Obtener la última versión con status PUBLISHED para un feature model.
+
+        Returns:
+            FeatureModelVersion o None si no existe ninguna versión publicada.
+        """
+        stmt = (
+            select(FeatureModelVersion)
+            .where(
+                FeatureModelVersion.feature_model_id == feature_model_id,
+                FeatureModelVersion.status == ModelStatus.PUBLISHED,
+            )
+            .order_by(FeatureModelVersion.version_number.desc())
+            .limit(1)
+        )
+
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
 
     async def create_new_version_from_existing(
         self,
@@ -112,12 +135,16 @@ class FeatureModelVersionRepository(BaseFeatureModelVersionRepository):
                 ),
                 # Features con jerarquía padre-hijo optimizada
                 selectinload(FeatureModelVersion.features).selectinload(Feature.parent),
-                selectinload(FeatureModelVersion.features).selectinload(Feature.children),
+                selectinload(FeatureModelVersion.features).selectinload(
+                    Feature.children
+                ),
                 # Features con tags
                 selectinload(FeatureModelVersion.features).selectinload(Feature.tags),
                 # Features con grupos
                 selectinload(FeatureModelVersion.features).selectinload(Feature.group),
-                selectinload(FeatureModelVersion.features).selectinload(Feature.child_groups),
+                selectinload(FeatureModelVersion.features).selectinload(
+                    Feature.child_groups
+                ),
                 # Feature Relations con features de origen y destino
                 selectinload(FeatureModelVersion.feature_relations).selectinload(
                     FeatureRelation.source_feature
@@ -126,9 +153,15 @@ class FeatureModelVersionRepository(BaseFeatureModelVersionRepository):
                     FeatureRelation.target_feature
                 ),
                 # Feature Groups con parent feature
-                selectinload(FeatureModelVersion.feature_groups).selectinload(
-                    FeatureModelVersion.feature_groups.__dict__.get('parent_feature', None)
-                ) if hasattr(FeatureModelVersion.feature_groups, '__dict__') else selectinload(FeatureModelVersion.feature_groups),
+                (
+                    selectinload(FeatureModelVersion.feature_groups).selectinload(
+                        FeatureModelVersion.feature_groups.__dict__.get(
+                            "parent_feature", None
+                        )
+                    )
+                    if hasattr(FeatureModelVersion.feature_groups, "__dict__")
+                    else selectinload(FeatureModelVersion.feature_groups)
+                ),
                 # Constraints
                 selectinload(FeatureModelVersion.constraints),
                 # Configurations
@@ -150,7 +183,7 @@ class FeatureModelVersionRepository(BaseFeatureModelVersionRepository):
 
         # Agregar métrica de caché para debugging
         if version:
-            version._loaded_at = __import__('datetime').datetime.utcnow()
+            version._loaded_at = __import__("datetime").datetime.utcnow()
             version._eager_loaded = True
 
         return version
