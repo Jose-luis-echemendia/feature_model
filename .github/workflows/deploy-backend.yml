@@ -24,7 +24,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          file: docker/Dockerfile
+          file: ./backend/docker/Dockerfile
           push: true
           tags: jose031003/ffm-app:latest,jose031003/ffm-app:${{ github.sha }}
 
