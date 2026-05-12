@@ -1,7 +1,7 @@
 import uuid
 
 from app.enums import FeatureType, ModelStatus
-from app.models import Feature, FeatureModel, FeatureModelVersion
+from app.models import Constraint, Feature, FeatureModel, FeatureModelVersion
 from app.models.domain import Domain
 from app.services.feature_model.fm_export import FeatureModelExportService
 
@@ -53,3 +53,20 @@ def test_export_to_uvl_contains_root_and_optional_child():
     assert "Root" in uvl
     assert "optional" in uvl
     assert "Child" in uvl
+
+
+def test_export_to_uvl_uses_constraint_expr_text():
+    version = _build_simple_version()
+    constraint = Constraint(
+        description="Requires relationship",
+        expr_text="Root AND Child",
+        feature_model_version_id=version.id,
+    )
+    version.constraints = [constraint]
+
+    exporter = FeatureModelExportService(version)
+
+    uvl = exporter.export_to_uvl()
+
+    assert "constraints" in uvl
+    assert "Root & Child" in uvl

@@ -13,6 +13,7 @@ Soporta exportación a:
 """
 
 import uuid
+import unicodedata
 from typing import Optional
 from xml.etree.ElementTree import Element, SubElement, tostring
 from xml.dom import minidom
@@ -50,6 +51,21 @@ class FeatureModelExportService:
         for idx, feature in enumerate(self.version.features, start=1):
             self.uuid_to_int[feature.id] = idx
             self.int_to_uuid[idx] = feature.id
+
+    def _normalize_uvl_identifier(self, value: str) -> str:
+        """
+        Normalizar identificadores UVL eliminando tildes y espacios.
+
+        Mantiene caracteres no diacríticos y reemplaza espacios por '_'.
+        """
+        if not value:
+            return value
+
+        normalized = unicodedata.normalize("NFKD", value)
+        without_accents = "".join(
+            char for char in normalized if not unicodedata.combining(char)
+        )
+        return without_accents.replace(" ", "_")
 
     def export(self, format: ExportFormat) -> str:
         """
@@ -215,7 +231,7 @@ class FeatureModelExportService:
         # TODO: Parsear constraint.expression y convertir a formato FeatureIDE
         # Por ahora, agregar como comentario
         comment = SubElement(rule, "description")
-        comment.text = constraint.expression
+        comment.text = self._get_constraint_expression(constraint)
 
     def _prettify_xml(self, element: Element) -> str:
         """
@@ -466,7 +482,7 @@ class FeatureModelExportService:
         lines = []
 
         # Namespace (usar nombre del modelo)
-        namespace = self.feature_model.name.replace(" ", "_")
+        namespace = self._normalize_uvl_identifier(self.feature_model.name)
         lines.append(f"namespace {namespace}")
         lines.append("")
 
@@ -486,8 +502,12 @@ class FeatureModelExportService:
 
             # Agregar relaciones como constraints
             for relation in self.version.feature_relations:
-                source_name = relation.source_feature.name.replace(" ", "_")
-                target_name = relation.target_feature.name.replace(" ", "_")
+                source_name = self._normalize_uvl_identifier(
+                    relation.source_feature.name
+                )
+                target_name = self._normalize_uvl_identifier(
+                    relation.target_feature.name
+                )
 
                 if relation.type == FeatureRelationType.REQUIRED:
                     # source requires target: source => target
@@ -499,7 +519,11 @@ class FeatureModelExportService:
             # Agregar constraints adicionales
             for constraint in self.version.constraints:
                 # Convertir expresión a formato UVL (simplificado)
-                uvl_expr = self._convert_constraint_to_uvl(constraint.expression)
+                constraint_expression = self._get_constraint_expression(constraint)
+                if not constraint_expression:
+                    continue
+
+                uvl_expr = self._convert_constraint_to_uvl(constraint_expression)
                 lines.append(f"    {uvl_expr}")
 
         return "\n".join(lines)
@@ -516,7 +540,7 @@ class FeatureModelExportService:
             indent: Nivel de indentación
         """
         indent_str = "    " * indent
-        feature_name = feature.name.replace(" ", "_")
+        feature_name = self._normalize_uvl_identifier(feature.name)
 
         # Agregar nombre de la feature
         lines.append(f"{indent_str}{feature_name}")
@@ -615,14 +639,26 @@ class FeatureModelExportService:
         for old, new in replacements.items():
             uvl_expr = uvl_expr.replace(old, new)
 
-        # Reemplazar espacios en nombres de features
-        for feature in self.version.features:
-            if " " in feature.name:
-                uvl_expr = uvl_expr.replace(
-                    feature.name, feature.name.replace(" ", "_")
-                )
+        # Reemplazar nombres de features por identificadores UVL normalizados
+        for feature in sorted(
+            self.version.features, key=lambda x: len(x.name), reverse=True
+        ):
+            normalized_name = self._normalize_uvl_identifier(feature.name)
+            if normalized_name != feature.name:
+                uvl_expr = uvl_expr.replace(feature.name, normalized_name)
 
         return uvl_expr
+
+    def _get_constraint_expression(self, constraint: Constraint) -> str:
+        """
+        Obtener la expresión textual de un constraint.
+
+        Soporta tanto el campo actual `expr_text` como el nombre legado
+        `expression` para mantener compatibilidad con datos antiguos.
+        """
+        return getattr(constraint, "expr_text", None) or getattr(
+            constraint, "expression", ""
+        )
 
     # ========================================================================
     # DOT (Graphviz) EXPORT
