@@ -19,6 +19,7 @@ from app.api.deps import (
     get_verified_user,
     AsyncFeatureModelVersionRepoDep,
 )
+from app.api.utils import resolve_version_id_or_latest
 from app.models import FeatureModelVersion
 from app.services.feature_model import FeatureModelExportService
 from app.services.feature_model.fm_tree_builder import FeatureModelTreeBuilder
@@ -32,7 +33,6 @@ from app.exceptions import (
     UnsupportedExportFormatException,
     ExportFailedException,
 )
-
 
 router = APIRouter(
     prefix="/feature-models",
@@ -149,7 +149,6 @@ class ExportCacheListResponse(BaseModel):
         400: {"description": "Invalid export format"},
     },
 )
-@cache(expire=300, key_builder=user_key_builder)
 async def export_latest_feature_model(
     *,
     model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
@@ -272,18 +271,22 @@ async def export_latest_feature_model(
         400: {"description": "Invalid export format"},
     },
 )
-@cache(expire=300, key_builder=user_key_builder)
 async def export_feature_model(
     *,
     model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
-    version_id: uuid.UUID = Path(..., description="Version UUID"),
+    version_id: str = Path(..., description="Version UUID or the literal 'latest'"),
     format: ExportFormat = Path(..., description="Export format"),
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
 ) -> Response:
     """Export a specific version to the specified format."""
+    # Resolver version_id (acepta UUID o 'latest') y obtener la versión
+    resolved_version_id = await resolve_version_id_or_latest(
+        version_id, model_id, version_repo
+    )
+
     # Obtener la versión con todas las relaciones cargadas
-    version = await version_repo.get_version_with_full_structure(version_id)
+    version = await version_repo.get_version_with_full_structure(resolved_version_id)
 
     if not version or version.feature_model_id != model_id:
         raise FeatureModelVersionNotFoundException(version_id=str(version_id))
@@ -381,13 +384,18 @@ async def export_feature_model(
 async def stream_feature_model_tree_json(
     *,
     model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
-    version_id: uuid.UUID = Path(..., description="Version UUID"),
+    version_id: str = Path(..., description="Version UUID or the literal 'latest'"),
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
 ) -> StreamingResponse:
     """Stream the complete tree as JSON using FeatureModelTreeBuilder.stream_complete_response_with_cache."""
+    # Resolver version_id (acepta UUID o 'latest') y obtener la versión
+    resolved_version_id = await resolve_version_id_or_latest(
+        version_id, model_id, version_repo
+    )
+
     # Obtener la versión con todas las relaciones cargadas
-    version = await version_repo.get_version_with_full_structure(version_id)
+    version = await version_repo.get_version_with_full_structure(resolved_version_id)
 
     if not version or version.feature_model_id != model_id:
         raise FeatureModelVersionNotFoundException(version_id=str(version_id))

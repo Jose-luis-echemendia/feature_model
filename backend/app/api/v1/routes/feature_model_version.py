@@ -9,6 +9,8 @@ from sqlmodel import select
 from app.api.deps import (
     AsyncFeatureModelRepoDep,
     AsyncFeatureModelVersionRepoDep,
+    get_model_designer_user,
+    get_verified_user,
     ModelDesignerUser,
     VerifiedUser,
 )
@@ -37,7 +39,7 @@ class FeatureModelVersionCreateRequest(BaseModel):
 
 @router.get(
     "/{model_id}/versions",
-    dependencies=[Depends(VerifiedUser)],
+    dependencies=[Depends(get_verified_user)],
     response_model=list[FeatureModelVersionPublic],
 )
 @cache(expire=300, key_builder=user_key_builder)
@@ -61,7 +63,7 @@ async def list_feature_model_versions(
 
 @router.get(
     "/{model_id}/versions/{version_id}",
-    dependencies=[Depends(VerifiedUser)],
+    dependencies=[Depends(get_verified_user)],
     response_model=FeatureModelVersionPublic,
 )
 @cache(expire=300, key_builder=user_key_builder)
@@ -86,7 +88,7 @@ async def read_feature_model_version(
 
 @router.post(
     "/{model_id}/versions",
-    dependencies=[Depends(ModelDesignerUser)],
+    dependencies=[Depends(get_model_designer_user)],
     response_model=FeatureModelVersionPublic,
 )
 async def create_feature_model_version(
@@ -127,7 +129,7 @@ async def create_feature_model_version(
 
 @router.patch(
     "/{model_id}/versions/{version_id}/publish",
-    dependencies=[Depends(ModelDesignerUser)],
+    dependencies=[Depends(get_model_designer_user)],
     response_model=FeatureModelVersionPublic,
 )
 async def publish_feature_model_version(
@@ -160,7 +162,7 @@ async def publish_feature_model_version(
 
 @router.patch(
     "/{model_id}/versions/{version_id}/archive",
-    dependencies=[Depends(ModelDesignerUser)],
+    dependencies=[Depends(get_model_designer_user)],
     response_model=FeatureModelVersionPublic,
 )
 async def archive_feature_model_version(
@@ -193,7 +195,7 @@ async def archive_feature_model_version(
 
 @router.patch(
     "/{model_id}/versions/{version_id}/restore",
-    dependencies=[Depends(ModelDesignerUser)],
+    dependencies=[Depends(get_model_designer_user)],
     response_model=FeatureModelVersionPublic,
 )
 async def restore_feature_model_version(

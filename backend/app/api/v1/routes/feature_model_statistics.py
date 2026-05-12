@@ -13,6 +13,7 @@ from app.api.deps import (
     AsyncFeatureModelRepoDep,
     get_verified_user,
 )
+from app.api.utils import resolve_version_id_or_latest
 from app.core.cache import user_key_builder
 from app.schemas.feature_model_complete import FeatureModelStatistics
 from app.exceptions import (
@@ -80,22 +81,12 @@ async def get_latest_feature_model_statistics(
         - Si hay múltiples versiones publicadas, devuelve la más reciente
         - Si solo hay versiones DRAFT o IN_REVIEW, retorna 404
     """
-    from app.enums import ModelStatus
-
     # Verificar que el feature model existe
     feature_model = await feature_model_repo.get(model_id)
     if not feature_model:
         raise FeatureModelNotFoundException(model_id=str(model_id))
 
-    # Buscar la última versión publicada
-    latest_version = None
-    max_version_number = -1
-
-    for version in feature_model.versions:
-        if version.status == ModelStatus.PUBLISHED:
-            if version.version_number > max_version_number:
-                max_version_number = version.version_number
-                latest_version = version
+    latest_version = await version_repo.get_latest_published_version(model_id)
 
     if latest_version is None:
         raise FeatureModelVersionNotFoundException(version_id="latest")
@@ -117,7 +108,7 @@ async def get_latest_feature_model_statistics(
 async def get_feature_model_statistics(
     *,
     model_id: uuid.UUID,
-    version_id: uuid.UUID,
+    version_id: str,
     feature_model_repo: AsyncFeatureModelRepoDep,
     version_repo: AsyncFeatureModelVersionRepoDep,
 ) -> FeatureModelStatistics:
@@ -207,7 +198,12 @@ async def get_feature_model_statistics(
         )
 
     # Verificar que la versión existe y pertenece al modelo
-    version = await version_repo.get(version_id)
+    resolved_version_id = await resolve_version_id_or_latest(
+        version_id,
+        model_id,
+        version_repo,
+    )
+    version = await version_repo.get(resolved_version_id)
     if not version:
         raise FeatureModelVersionNotFoundException(version_id=str(version_id))
 
@@ -218,7 +214,7 @@ async def get_feature_model_statistics(
         )
 
     # Calcular estadísticas en tiempo real
-    stats = await version_repo.get_statistics(version_id)
+    stats = await version_repo.get_statistics(resolved_version_id)
 
     if stats is None:
         raise FeatureModelVersionNotFoundException(version_id=str(version_id))

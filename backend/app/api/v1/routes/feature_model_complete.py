@@ -9,19 +9,16 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, Query
 from fastapi_cache.decorator import cache
 
-from sqlmodel import select
-
 from app.api.deps import (
     AsyncCurrentUser,
     get_verified_user,
     AsyncFeatureModelVersionRepoDep,
 )
-from app.models import FeatureModelVersion
+from app.api.utils import resolve_version_id_or_latest
 from app.schemas import FeatureModelCompleteResponse
 from app.services.feature_model import FeatureModelTreeBuilder
 from app.enums import ModelStatus
 from app.exceptions import (
-    NoPublishedVersionException,
     FeatureModelVersionNotFoundException,
     InvalidTreeStructureException,
     UnauthorizedException,
@@ -29,18 +26,11 @@ from app.exceptions import (
     BusinessLogicException,
 )
 
-
 router = APIRouter(
     prefix="/feature-models",
     tags=["Feature Models - Complete Structure"],
     dependencies=[Depends(get_verified_user)],
 )
-
-
-# ============================================================================
-# IMPORTANTE: Las rutas más específicas (/latest/) deben ir ANTES que las
-# rutas con parámetros variables (/{version_id}/) para evitar conflictos
-# ============================================================================
 
 
 @cache(
@@ -79,27 +69,9 @@ async def get_latest_complete_feature_model(
     include_statistics: bool = Query(default=True),
 ) -> FeatureModelCompleteResponse:
     """Get the complete structure of the latest published version."""
-    # Buscar la última versión publicada
-    stmt = (
-        select(FeatureModelVersion)
-        .where(
-            FeatureModelVersion.feature_model_id == model_id,
-            FeatureModelVersion.status == ModelStatus.PUBLISHED,
-        )
-        .order_by(FeatureModelVersion.version_number.desc())
-        .limit(1)
-    )
-
-    result = await version_repo.session.execute(stmt)
-    latest_version = result.scalar_one_or_none()
-
-    if not latest_version:
-        raise NoPublishedVersionException(model_id=str(model_id))
-
-    # Redirigir a la función principal
     return await get_complete_feature_model(
         model_id=model_id,
-        version_id=latest_version.id,
+        version_id="latest",
         version_repo=version_repo,
         current_user=current_user,
         include_resources=include_resources,
@@ -179,7 +151,7 @@ async def get_latest_complete_feature_model(
 async def get_complete_feature_model(
     *,
     model_id: uuid.UUID,
-    version_id: uuid.UUID,
+    version_id: str,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
     include_resources: bool = Query(
@@ -203,9 +175,14 @@ async def get_complete_feature_model(
     - Caching inteligente por ModelStatus
     - Serialización eficiente con caché pre-computado
     """
-    # 1. Obtener la versión completa con eager loading
+    # 1. Resolver latest/UUID y obtener la versión completa con eager loading
+    resolved_version_id = await resolve_version_id_or_latest(
+        version_id,
+        model_id,
+        version_repo,
+    )
     version = await version_repo.get_complete_with_relations(
-        version_id=version_id,
+        version_id=resolved_version_id,
         include_resources=include_resources,
     )
 

@@ -9,6 +9,7 @@ from app.api.deps import (
     AsyncFeatureModelRepoDep,
     AsyncDomainRepoDep,
     AsyncCurrentUser,
+    get_model_designer_user,
     get_verified_user,
     ModelDesignerUser,
 )
@@ -145,7 +146,7 @@ async def read_feature_models(
 
 @router.post(
     "/",
-    dependencies=[Depends(ModelDesignerUser)],
+    dependencies=[Depends(get_model_designer_user)],
     response_model=FeatureModelPublic,
     status_code=status.HTTP_201_CREATED,
 )
@@ -327,7 +328,7 @@ async def read_feature_model(
 
 @router.patch(
     "/{model_id}",
-    dependencies=[Depends(ModelDesignerUser)],
+    dependencies=[Depends(get_model_designer_user)],
     response_model=FeatureModelPublic,
 )
 async def update_feature_model(
@@ -428,7 +429,7 @@ async def update_feature_model(
 
 @router.patch(
     "/{model_id}/activate",
-    dependencies=[Depends(ModelDesignerUser)],
+    dependencies=[Depends(get_model_designer_user)],
     response_model=FeatureModelPublic,
 )
 async def activate_feature_model(
@@ -516,7 +517,7 @@ async def activate_feature_model(
 
 @router.patch(
     "/{model_id}/deactivate",
-    dependencies=[Depends(ModelDesignerUser)],
+    dependencies=[Depends(get_model_designer_user)],
     response_model=FeatureModelPublic,
 )
 async def deactivate_feature_model(
@@ -609,7 +610,7 @@ async def deactivate_feature_model(
 
 @router.delete(
     "/{model_id}",
-    dependencies=[Depends(ModelDesignerUser)],
+    dependencies=[Depends(get_model_designer_user)],
     response_model=Message,
 )
 async def delete_feature_model(

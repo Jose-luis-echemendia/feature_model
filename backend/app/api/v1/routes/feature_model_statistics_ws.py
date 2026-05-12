@@ -13,12 +13,13 @@ Casos de uso:
 import uuid
 import asyncio
 import json
-from typing import Set
+from typing import Any, Set
 from datetime import datetime
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status, Depends
 
-from app.api.deps import SessionDep, get_verified_user
+from app.api.deps import a_get_db, get_verified_user
+from app.api.utils import resolve_version_id_or_latest
 from app.repositories.feature_model import FeatureModelRepository
 from app.repositories.feature_model_version import (
     FeatureModelVersionRepository,
@@ -121,8 +122,8 @@ manager = StatisticsConnectionManager()
 async def websocket_statistics(
     websocket: WebSocket,
     model_id: uuid.UUID,
-    version_id: uuid.UUID,
-    session: SessionDep,
+    version_id: str,
+    session: Any = Depends(a_get_db),
 ):
     """
     WebSocket para recibir estadísticas en tiempo real de un feature model.
@@ -271,8 +272,14 @@ async def websocket_statistics(
             )
             return
 
+        resolved_version_id = await resolve_version_id_or_latest(
+            version_id,
+            model_id,
+            version_repo,
+        )
+
         # Validar que la versión existe
-        version = await version_repo.get(version_id)
+        version = await version_repo.get(resolved_version_id)
         if not version or version.feature_model_id != model_id:
             await websocket.close(
                 code=status.WS_1008_POLICY_VIOLATION,
@@ -281,25 +288,25 @@ async def websocket_statistics(
             return
 
         # Conectar cliente
-        await manager.connect(websocket, version_id)
+        await manager.connect(websocket, resolved_version_id)
 
         # Enviar mensaje de bienvenida
         await websocket.send_json(
             {
                 "type": "connected",
                 "message": "Connected to statistics stream",
-                "version_id": str(version_id),
-                "active_connections": manager.get_connection_count(version_id),
+                "version_id": str(resolved_version_id),
+                "active_connections": manager.get_connection_count(resolved_version_id),
             }
         )
 
         # Enviar estadísticas iniciales inmediatamente
-        initial_stats = await version_repo.get_statistics(version_id)
+        initial_stats = await version_repo.get_statistics(resolved_version_id)
         if initial_stats:
             await websocket.send_json(
                 {
                     "type": "statistics_update",
-                    "version_id": str(version_id),
+                    "version_id": str(resolved_version_id),
                     "timestamp": datetime.utcnow().isoformat(),
                     "data": initial_stats,
                 }
@@ -319,12 +326,12 @@ async def websocket_statistics(
                 # Manejar comandos del cliente
                 if action == "refresh":
                     # Cliente solicita actualización manual
-                    stats = await version_repo.get_statistics(version_id)
+                    stats = await version_repo.get_statistics(resolved_version_id)
                     if stats:
                         await websocket.send_json(
                             {
                                 "type": "statistics_update",
-                                "version_id": str(version_id),
+                                "version_id": str(resolved_version_id),
                                 "timestamp": datetime.utcnow().isoformat(),
                                 "data": stats,
                             }
@@ -348,7 +355,7 @@ async def websocket_statistics(
 
     except WebSocketDisconnect:
         # Cliente se desconectó
-        await manager.disconnect(websocket, version_id)
+        await manager.disconnect(websocket, resolved_version_id)
 
     except Exception as e:
         # Error inesperado
@@ -363,7 +370,7 @@ async def websocket_statistics(
         except:
             pass
 
-        await manager.disconnect(websocket, version_id)
+        await manager.disconnect(websocket, resolved_version_id)
         raise
 
 
@@ -374,7 +381,7 @@ async def websocket_statistics(
 
 async def trigger_statistics_update(
     version_id: uuid.UUID,
-    session: SessionDep,
+    session: Any,
 ):
     """
     Función auxiliar para disparar actualización de estadísticas via WebSocket.

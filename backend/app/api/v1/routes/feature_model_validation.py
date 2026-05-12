@@ -4,6 +4,7 @@ import uuid
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends
+from sqlmodel import select
 from pydantic import BaseModel, Field
 
 from app.api.deps import (
@@ -11,17 +12,18 @@ from app.api.deps import (
     AsyncFeatureModelVersionRepoDep,
     get_verified_user,
 )
-from app.enums import AnalysisType
+from app.enums import AnalysisType, ModelStatus
 from app.exceptions import (
     FeatureModelVersionNotFoundException,
     BusinessLogicException,
     ForbiddenException,
+    NoPublishedVersionException,
 )
+from app.models import FeatureModelVersion
 from app.services.feature_model import (
     FeatureModelLogicalValidator,
     FeatureModelStructuralAnalyzer,
 )
-
 
 router = APIRouter(
     prefix="/feature-models",
@@ -85,12 +87,21 @@ class FullValidationResponse(BaseModel):
 async def _get_version_for_validation(
     *,
     model_id: uuid.UUID,
-    version_id: uuid.UUID,
+    version_id: str | uuid.UUID,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
 ):
+    # Resolver 'latest' o UUID string a UUID real
+    from app.api.utils import resolve_version_id_or_latest
+
+    resolved_version_id = await resolve_version_id_or_latest(
+        version_identifier=version_id,
+        feature_model_id=model_id,
+        version_repo=version_repo,
+    )
+
     version = await version_repo.get_complete_with_relations(
-        version_id=version_id,
+        version_id=resolved_version_id,
         include_resources=False,
     )
 
@@ -224,7 +235,7 @@ def _build_validation_payload(
 async def validate_feature_model_logic(
     *,
     model_id: uuid.UUID,
-    version_id: uuid.UUID,
+    version_id: str,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
 ) -> LogicalValidationResponse:
@@ -261,6 +272,52 @@ async def validate_feature_model_logic(
 
 
 @router.post(
+    "/{model_id}/versions/latest/validation/structure",
+    response_model=StructureValidationResponse,
+    summary="Validar estructura de árbol del modelo (última versión publicada)",
+    description=(
+        "Valida la estructura del árbol para la última versión PUBLISHED del modelo."
+    ),
+)
+async def validate_latest_feature_model_structure(
+    *,
+    model_id: uuid.UUID,
+    version_repo: AsyncFeatureModelVersionRepoDep,
+    current_user: AsyncCurrentUser,
+) -> StructureValidationResponse:
+    stmt = (
+        select(FeatureModelVersion)
+        .where(
+            FeatureModelVersion.feature_model_id == model_id,
+            FeatureModelVersion.status == ModelStatus.PUBLISHED,
+        )
+        .order_by(FeatureModelVersion.version_number.desc())
+        .limit(1)
+    )
+
+    result = await version_repo.session.execute(stmt)
+    latest_version = result.scalar_one_or_none()
+
+    if not latest_version:
+        raise NoPublishedVersionException(model_id=str(model_id))
+
+    version = await _get_version_for_validation(
+        model_id=model_id,
+        version_id=latest_version.id,
+        version_repo=version_repo,
+        current_user=current_user,
+    )
+    features, relations, _ = _build_validation_payload(version)
+
+    analyzer = FeatureModelStructuralAnalyzer()
+    try:
+        analyzer.validate_tree_structure(features, relations)
+        return StructureValidationResponse(is_valid=True, errors=[])
+    except Exception as exc:
+        return StructureValidationResponse(is_valid=False, errors=[str(exc)])
+
+
+@router.post(
     "/{model_id}/versions/{version_id}/validation/structure",
     response_model=StructureValidationResponse,
     summary="Validar estructura de árbol del modelo",
@@ -272,7 +329,7 @@ async def validate_feature_model_logic(
 async def validate_feature_model_structure(
     *,
     model_id: uuid.UUID,
-    version_id: uuid.UUID,
+    version_id: str,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
 ) -> StructureValidationResponse:
@@ -309,7 +366,7 @@ async def validate_feature_model_structure(
 async def validate_feature_model_configuration(
     *,
     model_id: uuid.UUID,
-    version_id: uuid.UUID,
+    version_id: str,
     payload: ConfigurationValidationRequest,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
@@ -353,6 +410,92 @@ async def validate_feature_model_configuration(
 
 
 @router.post(
+    "/{model_id}/versions/latest/validation/analysis",
+    response_model=StructuralAnalysisResponse,
+    summary="Ejecutar análisis estructural del modelo (última versión publicada)",
+    description=(
+        "Ejecuta análisis estructural sobre la última versión PUBLISHED del modelo."
+    ),
+)
+async def validate_latest_feature_model_analysis(
+    *,
+    model_id: uuid.UUID,
+    payload: StructuralAnalysisRequest,
+    version_repo: AsyncFeatureModelVersionRepoDep,
+    current_user: AsyncCurrentUser,
+) -> StructuralAnalysisResponse:
+    stmt = (
+        select(FeatureModelVersion)
+        .where(
+            FeatureModelVersion.feature_model_id == model_id,
+            FeatureModelVersion.status == ModelStatus.PUBLISHED,
+        )
+        .order_by(FeatureModelVersion.version_number.desc())
+        .limit(1)
+    )
+
+    result = await version_repo.session.execute(stmt)
+    latest_version = result.scalar_one_or_none()
+
+    if not latest_version:
+        raise NoPublishedVersionException(model_id=str(model_id))
+
+    version = await _get_version_for_validation(
+        model_id=model_id,
+        version_id=latest_version.id,
+        version_repo=version_repo,
+        current_user=current_user,
+    )
+    features, relations, constraints = _build_validation_payload(version)
+
+    analyzer = FeatureModelStructuralAnalyzer()
+
+    try:
+        raw_results = analyzer.analyze_feature_model(
+            features=features,
+            relations=relations,
+            constraints=constraints,
+            analysis_types=payload.analysis_types,
+        )
+
+        results: list[StructuralAnalysisItem] = []
+        all_valid = True
+        for analysis_type, result in raw_results.items():
+            issues = [
+                ValidationIssue(
+                    issue_type=issue.issue_type,
+                    severity=issue.severity,
+                    feature_id=issue.feature_id,
+                    description=issue.description,
+                    recommendation=issue.recommendation,
+                )
+                for issue in result.issues
+            ]
+            if issues:
+                all_valid = False
+
+            results.append(
+                StructuralAnalysisItem(
+                    analysis_type=analysis_type,
+                    issues=issues,
+                    metrics=result.metrics,
+                )
+            )
+
+        return StructuralAnalysisResponse(
+            is_valid=all_valid,
+            results=results,
+            errors=[],
+        )
+    except Exception as exc:
+        return StructuralAnalysisResponse(
+            is_valid=False,
+            results=[],
+            errors=[str(exc)],
+        )
+
+
+@router.post(
     "/{model_id}/versions/{version_id}/validation/analysis",
     response_model=StructuralAnalysisResponse,
     summary="Ejecutar análisis estructural del modelo",
@@ -364,7 +507,7 @@ async def validate_feature_model_configuration(
 async def validate_feature_model_analysis(
     *,
     model_id: uuid.UUID,
-    version_id: uuid.UUID,
+    version_id: str,
     payload: StructuralAnalysisRequest,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
@@ -441,7 +584,7 @@ async def validate_feature_model_analysis(
 async def validate_feature_model_full(
     *,
     model_id: uuid.UUID,
-    version_id: uuid.UUID,
+    version_id: str,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
 ) -> FullValidationResponse:

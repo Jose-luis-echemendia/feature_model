@@ -13,6 +13,7 @@ from app.api.deps import (
     AsyncFeatureModelVersionRepoDep,
     get_verified_user,
 )
+from app.api.utils import resolve_version_id_or_latest
 from app.exceptions import FeatureModelVersionNotFoundException, ForbiddenException
 from app.models import FeatureModelVersionUVLPublic, FeatureModelVersionUVLUpdate
 from pydantic import BaseModel
@@ -28,6 +29,25 @@ router = APIRouter(
     tags=["Feature Models - UVL"],
     dependencies=[Depends(get_verified_user)],
 )
+
+
+async def _get_version_with_structure(
+    *,
+    model_id: uuid.UUID,
+    version_identifier: str,
+    version_repo: AsyncFeatureModelVersionRepoDep,
+):
+    resolved_version_id = await resolve_version_id_or_latest(
+        version_identifier,
+        model_id,
+        version_repo,
+    )
+    version = await version_repo.get_version_with_full_structure(resolved_version_id)
+
+    if not version or version.feature_model_id != model_id:
+        raise FeatureModelVersionNotFoundException(version_id=str(version_identifier))
+
+    return version
 
 
 class FeatureModelUVLDiff(BaseModel):
@@ -60,14 +80,15 @@ def _validate_uvl_content(uvl_content: str) -> str:
 async def get_feature_model_version_uvl(
     *,
     model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
-    version_id: uuid.UUID = Path(..., description="Version UUID"),
+    version_id: str = Path(..., description="Version UUID or the literal 'latest'"),
     version_repo: AsyncFeatureModelVersionRepoDep,
 ) -> FeatureModelVersionUVLPublic:
     """Obtiene el UVL efectivo (guardado o generado desde estructura)."""
-    version = await version_repo.get_version_with_full_structure(version_id)
-
-    if not version or version.feature_model_id != model_id:
-        raise FeatureModelVersionNotFoundException(version_id=str(version_id))
+    version = await _get_version_with_structure(
+        model_id=model_id,
+        version_identifier=version_id,
+        version_repo=version_repo,
+    )
 
     if version.uvl_content and version.uvl_content.strip():
         return FeatureModelVersionUVLPublic(
@@ -95,16 +116,17 @@ async def get_feature_model_version_uvl(
 async def save_feature_model_version_uvl(
     *,
     model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
-    version_id: uuid.UUID = Path(..., description="Version UUID"),
+    version_id: str = Path(..., description="Version UUID or the literal 'latest'"),
     data: FeatureModelVersionUVLUpdate,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
 ) -> FeatureModelVersionUVLPublic:
     """Guarda UVL textual para edición paralela durante el modelado visual."""
-    version = await version_repo.get_version_with_full_structure(version_id)
-
-    if not version or version.feature_model_id != model_id:
-        raise FeatureModelVersionNotFoundException(version_id=str(version_id))
+    version = await _get_version_with_structure(
+        model_id=model_id,
+        version_identifier=version_id,
+        version_repo=version_repo,
+    )
 
     # Solo owner del modelo o superuser pueden persistir cambios de UVL
     if (
@@ -150,15 +172,16 @@ async def save_feature_model_version_uvl(
 async def sync_feature_model_version_uvl_from_structure(
     *,
     model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
-    version_id: uuid.UUID = Path(..., description="Version UUID"),
+    version_id: str = Path(..., description="Version UUID or the literal 'latest'"),
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
 ) -> FeatureModelVersionUVLPublic:
     """Regenera UVL desde la estructura del modelo y lo persiste."""
-    version = await version_repo.get_version_with_full_structure(version_id)
-
-    if not version or version.feature_model_id != model_id:
-        raise FeatureModelVersionNotFoundException(version_id=str(version_id))
+    version = await _get_version_with_structure(
+        model_id=model_id,
+        version_identifier=version_id,
+        version_repo=version_repo,
+    )
 
     if (
         version.feature_model.owner_id != current_user.id
@@ -196,16 +219,19 @@ async def sync_feature_model_version_uvl_from_structure(
 async def apply_feature_model_uvl_to_structure(
     *,
     model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
-    version_id: uuid.UUID = Path(..., description="Source Version UUID"),
+    version_id: str = Path(
+        ..., description="Source Version UUID or the literal 'latest'"
+    ),
     data: FeatureModelVersionUVLUpdate,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
 ) -> FeatureModelVersionUVLPublic:
     """Aplicar UVL para crear una nueva versión estructurada del modelo."""
-    version = await version_repo.get_version_with_full_structure(version_id)
-
-    if not version or version.feature_model_id != model_id:
-        raise FeatureModelVersionNotFoundException(version_id=str(version_id))
+    version = await _get_version_with_structure(
+        model_id=model_id,
+        version_identifier=version_id,
+        version_repo=version_repo,
+    )
 
     if (
         version.feature_model.owner_id != current_user.id
@@ -245,7 +271,9 @@ async def apply_feature_model_uvl_to_structure(
 async def diff_feature_model_uvl(
     *,
     model_id: uuid.UUID = Path(..., description="Feature Model UUID"),
-    version_id: uuid.UUID = Path(..., description="Source Version UUID"),
+    version_id: str = Path(
+        ..., description="Source Version UUID or the literal 'latest'"
+    ),
     data: FeatureModelVersionUVLUpdate,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
@@ -255,10 +283,11 @@ async def diff_feature_model_uvl(
 
     Útil para previsualizar cambios antes de aplicar UVL.
     """
-    version = await version_repo.get_version_with_full_structure(version_id)
-
-    if not version or version.feature_model_id != model_id:
-        raise FeatureModelVersionNotFoundException(version_id=str(version_id))
+    version = await _get_version_with_structure(
+        model_id=model_id,
+        version_identifier=version_id,
+        version_repo=version_repo,
+    )
 
     if (
         version.feature_model.owner_id != current_user.id
