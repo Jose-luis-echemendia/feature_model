@@ -15,7 +15,7 @@ from fastapi import APIRouter
 from fastapi_cache.decorator import cache
 from pydantic import BaseModel
 
-from app.core.config import settings
+from app.core.config import normalize_minio_endpoint, settings
 from app.core.logging import get_logger
 
 log = get_logger(__name__)
@@ -175,7 +175,7 @@ async def system_status() -> SystemStatusResponse:
         t0 = time.monotonic()
         s3 = boto3.client(
             "s3",
-            endpoint_url=settings.MINIO_ENDPOINT,
+            endpoint_url=normalize_minio_endpoint(settings.MINIO_ENDPOINT),
             aws_access_key_id=settings.MINIO_ACCESS_KEY,
             aws_secret_access_key=settings.MINIO_SECRET_KEY,
             use_ssl=settings.MINIO_USE_SSL,

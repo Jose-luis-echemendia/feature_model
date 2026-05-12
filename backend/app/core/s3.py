@@ -79,7 +79,7 @@ class MinIOClient:
         )
 
         self._client = Minio(
-            endpoint=settings.MINIO_ENDPOINT,
+            endpoint=settings.MINIO_ENDPOINT_HOST,
             access_key=settings.MINIO_ACCESS_KEY,
             secret_key=secret_key,
             secure=settings.MINIO_USE_SSL,
@@ -379,7 +379,7 @@ class MinIOClient:
         Para assets (avatares, previews) que son de lectura pública.
         """
         scheme = "https" if settings.MINIO_USE_SSL else "http"
-        return f"{scheme}://{settings.MINIO_ENDPOINT}/{bucket}/{object_name}"
+        return f"{scheme}://{settings.MINIO_ENDPOINT_HOST}/{bucket}/{object_name}"
 
     async def health_check(self) -> bool:
         """Verifica que MinIO esté disponible listando los buckets."""

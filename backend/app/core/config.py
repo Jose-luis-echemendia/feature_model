@@ -1,5 +1,6 @@
 import secrets
 import warnings
+from urllib.parse import urlsplit
 from typing import Annotated, Any
 from functools import lru_cache
 
@@ -34,6 +35,17 @@ def parse_cors(v: Any) -> list[str] | str:
     elif isinstance(v, list | str):
         return v
     raise ValueError(v)
+
+
+def normalize_minio_endpoint(endpoint: str) -> str:
+    """Devuelve solo `host[:port]` para que MinIO/boto3 no reciban path ni scheme."""
+    raw_endpoint = endpoint.strip()
+    if not raw_endpoint:
+        return raw_endpoint
+
+    candidate = raw_endpoint if "://" in raw_endpoint else f"//{raw_endpoint}"
+    parsed = urlsplit(candidate)
+    return parsed.netloc or parsed.path.split("/")[0]
 
 
 class Settings(BaseSettings):
@@ -132,6 +144,11 @@ class Settings(BaseSettings):
         description="Validez del link de descarga. Máx 7 días.",
     )
     MINIO_PUBLIC_DOMAIN: str | None = None
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def MINIO_ENDPOINT_HOST(self) -> str:
+        return normalize_minio_endpoint(self.MINIO_ENDPOINT)
 
     # ── Redis ─────────────────────────────────────────────────────────────────
     REDIS_HOST: str = "redis"

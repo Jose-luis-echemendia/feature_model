@@ -1,6 +1,6 @@
 import pytest
 
-from app.core.config import Settings, parse_cors
+from app.core.config import Settings, normalize_minio_endpoint, parse_cors
 from app.enums import Environment
 
 
@@ -76,6 +76,26 @@ def test_settings_builds_redis_urls_with_password(base_settings_kwargs: dict) ->
         settings.REDIS_URL_CACHE
         == "redis://:redisStrongPassword123@redis.local:6380/12"
     )
+
+
+def test_normalize_minio_endpoint_strips_scheme_and_path() -> None:
+    assert normalize_minio_endpoint("https://minio.example.com:9000/s3") == (
+        "minio.example.com:9000"
+    )
+    assert normalize_minio_endpoint("minio.example.com:9000/s3") == (
+        "minio.example.com:9000"
+    )
+
+
+def test_settings_exposes_normalized_minio_endpoint_host(
+    base_settings_kwargs: dict,
+) -> None:
+    settings = Settings(
+        **base_settings_kwargs,
+        MINIO_ENDPOINT="https://minio.example.com:9000/s3",
+    )
+
+    assert settings.MINIO_ENDPOINT_HOST == "minio.example.com:9000"
 
 
 def test_settings_production_requires_non_empty_cors(
