@@ -27,7 +27,36 @@ from app.exceptions import (
 router = APIRouter(prefix="/feature-relations", tags=["feature-relations"])
 
 
-@router.get("/", response_model=list[FeatureRelationPublic])
+@router.get(
+    "/",
+    response_model=list[FeatureRelationPublic],
+    summary="Listar feature relations",
+    description="""Devuelve una lista de relaciones con filtros opcionales.
+
+    Use cases: navegación, auditoría de relaciones requires/excludes, listados de administración.
+    Permissions required: authenticated.
+    Filtros: feature_model_version_id, feature_id, relation_type, include_inactive, skip/limit.
+    """,
+    responses={
+        200: {
+            "description": "Lista de relaciones",
+            "content": {
+                "application/json": {
+                    "example": [
+                        {
+                            "id": "1111...",
+                            "type": "requires",
+                            "source_feature_id": "2222...",
+                            "target_feature_id": "3333...",
+                        }
+                    ]
+                }
+            },
+        },
+        400: {"description": "Parámetros inválidos"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def list_feature_relations(
     *,
     feature_relation_repo: AsyncFeatureRelationRepoDep,
@@ -68,7 +97,33 @@ async def list_feature_relations(
     return result.scalars().all()
 
 
-@router.get("/{relation_id}", response_model=FeatureRelationPublic)
+@router.get(
+    "/{relation_id}",
+    response_model=FeatureRelationPublic,
+    summary="Obtener feature relation por ID",
+    description="""Recupera una relación específica por su identificador.
+
+    Use cases: mostrar detalle en UI, validar antes de editar.
+    Permissions required: authenticated.
+    """,
+    responses={
+        200: {
+            "description": "Relación encontrada",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "type": "requires",
+                        "source_feature_id": "2222...",
+                        "target_feature_id": "3333...",
+                    }
+                }
+            },
+        },
+        404: {"description": "Relación no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def read_feature_relation(
     *,
     relation_id: uuid.UUID,
@@ -82,7 +137,34 @@ async def read_feature_relation(
 
 
 @router.post(
-    "/", response_model=FeatureRelationPublic, status_code=status.HTTP_201_CREATED
+    "/",
+    response_model=FeatureRelationPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear feature relation",
+    description="""Crea una relación y genera una nueva versión del modelo (copy-on-write).
+
+    Use cases: añadir restricciones requires/excludes entre features.
+    Permissions required: authenticated (owner or model designer).
+    Note: La operación dispara nueva versión del modelo.
+    """,
+    responses={
+        201: {
+            "description": "Relación creada en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "type": "requires",
+                        "source_feature_id": "2222...",
+                        "target_feature_id": "3333...",
+                    }
+                }
+            },
+        },
+        400: {"description": "Solicitud inválida o relación inconsistente"},
+        404: {"description": "Source feature no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def create_feature_relation(
     *,
@@ -126,7 +208,35 @@ async def create_feature_relation(
         raise InvalidFeatureRelationException(reason=str(e))
 
 
-@router.patch("/{relation_id}", response_model=FeatureRelationPublic)
+@router.patch(
+    "/{relation_id}",
+    response_model=FeatureRelationPublic,
+    summary="Actualizar feature relation (parcial)",
+    description="""Actualiza parcialmente una relación y crea una nueva versión del modelo (copy-on-write).
+
+    Use cases: cambiar tipo o endpoints de la relación.
+    Permissions required: authenticated (owner or model designer).
+    Behavior: copy-on-write; la relación original permanece en la versión anterior.
+    """,
+    responses={
+        200: {
+            "description": "Relación actualizada en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "type": "excludes",
+                        "source_feature_id": "2222...",
+                        "target_feature_id": "3333...",
+                    }
+                }
+            },
+        },
+        400: {"description": "Datos inválidos o conflicto de relación"},
+        404: {"description": "Relación no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def update_feature_relation(
     *,
     relation_id: uuid.UUID,
@@ -166,7 +276,35 @@ async def update_feature_relation(
         raise InvalidFeatureRelationException(reason=str(e))
 
 
-@router.put("/{relation_id}", response_model=FeatureRelationPublic)
+@router.put(
+    "/{relation_id}",
+    response_model=FeatureRelationPublic,
+    summary="Reemplazar feature relation (completo)",
+    description="""Reemplaza completamente una relación y crea una nueva versión del modelo (copy-on-write).
+
+    Use cases: reescritura completa de una relación.
+    Permissions required: authenticated (owner or model designer).
+    Behavior: requiere todos los campos principales.
+    """,
+    responses={
+        200: {
+            "description": "Relación reemplazada en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "type": "requires",
+                        "source_feature_id": "2222...",
+                        "target_feature_id": "3333...",
+                    }
+                }
+            },
+        },
+        400: {"description": "Datos inválidos o conflicto de relación"},
+        404: {"description": "Relación no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def replace_feature_relation(
     *,
     relation_id: uuid.UUID,
@@ -211,7 +349,31 @@ async def replace_feature_relation(
         raise InvalidFeatureRelationException(reason=str(e))
 
 
-@router.delete("/{relation_id}", response_model=Message)
+@router.delete(
+    "/{relation_id}",
+    response_model=Message,
+    summary="Eliminar feature relation",
+    description="""Elimina una relación y crea una nueva versión del modelo.
+
+    Use cases: remover relaciones obsoletas.
+    Permissions required: authenticated (owner or model designer).
+    Note: La operación es atómica; crea una nueva versión sin la relación.
+    """,
+    responses={
+        200: {
+            "description": "Eliminación exitosa",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Feature relation deleted in new model version created successfully."
+                    }
+                }
+            },
+        },
+        404: {"description": "Relación no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def delete_feature_relation(
     *,
     relation_id: uuid.UUID,
@@ -248,7 +410,27 @@ async def delete_feature_relation(
     )
 
 
-@router.patch("/{relation_id}/activate", response_model=FeatureRelationPublic)
+@router.patch(
+    "/{relation_id}/activate",
+    response_model=FeatureRelationPublic,
+    summary="Activar feature relation",
+    description="""Marca una relación como activa (`is_active=true`).
+
+    Use cases: reactivar relaciones desactivadas.
+    Permissions required: authenticated (owner or model designer).
+    """,
+    responses={
+        200: {
+            "description": "Relación activada",
+            "content": {
+                "application/json": {"example": {"id": "1111...", "is_active": True}}
+            },
+        },
+        400: {"description": "Ya está activa"},
+        404: {"description": "Relación no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def activate_feature_relation(
     *,
     relation_id: uuid.UUID,
@@ -281,7 +463,27 @@ async def activate_feature_relation(
     return await feature_relation_repo.activate(db_relation)
 
 
-@router.patch("/{relation_id}/deactivate", response_model=FeatureRelationPublic)
+@router.patch(
+    "/{relation_id}/deactivate",
+    response_model=FeatureRelationPublic,
+    summary="Desactivar feature relation",
+    description="""Marca una relación como inactiva (`is_active=false`).
+
+    Use cases: deshabilitar una relación temporalmente sin eliminarla.
+    Permissions required: authenticated (owner or model designer).
+    """,
+    responses={
+        200: {
+            "description": "Relación desactivada",
+            "content": {
+                "application/json": {"example": {"id": "1111...", "is_active": False}}
+            },
+        },
+        400: {"description": "Ya está inactiva"},
+        404: {"description": "Relación no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def deactivate_feature_relation(
     *,
     relation_id: uuid.UUID,

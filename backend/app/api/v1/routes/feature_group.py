@@ -27,7 +27,35 @@ from app.exceptions import (
 router = APIRouter(prefix="/feature-groups", tags=["feature-groups"])
 
 
-@router.get("/", response_model=list[FeatureGroupPublic])
+@router.get(
+    "/",
+    response_model=list[FeatureGroupPublic],
+    summary="Listar feature groups",
+    description="""Devuelve una lista de feature groups con filtros opcionales.
+
+    Use cases: navegación de grupos, listados de administración y filtros por tipo.
+    Permissions required: authenticated.
+    Filtros: feature_model_version_id, parent_feature_id, group_type, include_inactive, skip/limit.
+    """,
+    responses={
+        200: {
+            "description": "Lista de feature groups",
+            "content": {
+                "application/json": {
+                    "example": [
+                        {
+                            "id": "1111...",
+                            "group_type": "or",
+                            "parent_feature_id": "2222...",
+                        }
+                    ]
+                }
+            },
+        },
+        400: {"description": "Parámetros inválidos"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def list_feature_groups(
     *,
     feature_group_repo: AsyncFeatureGroupRepoDep,
@@ -65,7 +93,32 @@ async def list_feature_groups(
     return result.scalars().all()
 
 
-@router.get("/{group_id}", response_model=FeatureGroupPublic)
+@router.get(
+    "/{group_id}",
+    response_model=FeatureGroupPublic,
+    summary="Obtener feature group por ID",
+    description="""Recupera un feature group específico por su identificador.
+
+    Use cases: mostrar detalle en UI, validar estado antes de editar.
+    Permissions required: authenticated.
+    """,
+    responses={
+        200: {
+            "description": "Feature group encontrado",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "group_type": "or",
+                        "parent_feature_id": "2222...",
+                    }
+                }
+            },
+        },
+        404: {"description": "Feature group no encontrado"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def read_feature_group(
     *,
     group_id: uuid.UUID,
@@ -79,7 +132,33 @@ async def read_feature_group(
 
 
 @router.post(
-    "/", response_model=FeatureGroupPublic, status_code=status.HTTP_201_CREATED
+    "/",
+    response_model=FeatureGroupPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear feature group",
+    description="""Crea un feature group y genera una nueva versión del modelo (copy-on-write).
+
+    Use cases: definir grupos or/alternative dentro del árbol de features.
+    Permissions required: authenticated (owner or model designer).
+    Note: La operación dispara nueva versión del modelo.
+    """,
+    responses={
+        201: {
+            "description": "Feature group creado en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "group_type": "or",
+                        "parent_feature_id": "2222...",
+                    }
+                }
+            },
+        },
+        400: {"description": "Solicitud inválida o grupo inconsistente"},
+        404: {"description": "Parent feature no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def create_feature_group(
     *,
@@ -124,7 +203,35 @@ async def create_feature_group(
         raise InvalidFeatureGroupException(reason=str(e))
 
 
-@router.patch("/{group_id}", response_model=FeatureGroupPublic)
+@router.patch(
+    "/{group_id}",
+    response_model=FeatureGroupPublic,
+    summary="Actualizar feature group (parcial)",
+    description="""Actualiza parcialmente un feature group y crea una nueva versión del modelo (copy-on-write).
+
+    Use cases: cambiar cardinalidad o parent feature.
+    Permissions required: authenticated (owner or model designer).
+    Behavior: copy-on-write; el grupo original permanece en la versión anterior.
+    """,
+    responses={
+        200: {
+            "description": "Feature group actualizado en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "group_type": "alt",
+                        "min_cardinality": 1,
+                        "max_cardinality": 1,
+                    }
+                }
+            },
+        },
+        400: {"description": "Datos inválidos o conflicto de grupo"},
+        404: {"description": "Feature group no encontrado"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def update_feature_group(
     *,
     group_id: uuid.UUID,
@@ -164,7 +271,35 @@ async def update_feature_group(
         raise InvalidFeatureGroupException(reason=str(e))
 
 
-@router.put("/{group_id}", response_model=FeatureGroupPublic)
+@router.put(
+    "/{group_id}",
+    response_model=FeatureGroupPublic,
+    summary="Reemplazar feature group (completo)",
+    description="""Reemplaza completamente un feature group y crea una nueva versión del modelo (copy-on-write).
+
+    Use cases: reescritura completa de la estructura del grupo.
+    Permissions required: authenticated (owner or model designer).
+    Behavior: requiere todos los campos principales.
+    """,
+    responses={
+        200: {
+            "description": "Feature group reemplazado en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "group_type": "or",
+                        "min_cardinality": 1,
+                        "max_cardinality": 3,
+                    }
+                }
+            },
+        },
+        400: {"description": "Datos inválidos o conflicto de grupo"},
+        404: {"description": "Feature group no encontrado"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def replace_feature_group(
     *,
     group_id: uuid.UUID,
@@ -210,7 +345,31 @@ async def replace_feature_group(
         raise InvalidFeatureGroupException(reason=str(e))
 
 
-@router.delete("/{group_id}", response_model=Message)
+@router.delete(
+    "/{group_id}",
+    response_model=Message,
+    summary="Eliminar feature group",
+    description="""Elimina un feature group y crea una nueva versión del modelo.
+
+    Use cases: remover grupos obsoletos.
+    Permissions required: authenticated (owner or model designer).
+    Note: La operación es atómica; crea una nueva versión sin el grupo.
+    """,
+    responses={
+        200: {
+            "description": "Eliminación exitosa",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Feature group deleted in new model version created successfully."
+                    }
+                }
+            },
+        },
+        404: {"description": "Feature group no encontrado"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def delete_feature_group(
     *,
     group_id: uuid.UUID,
@@ -247,7 +406,27 @@ async def delete_feature_group(
     )
 
 
-@router.patch("/{group_id}/activate", response_model=FeatureGroupPublic)
+@router.patch(
+    "/{group_id}/activate",
+    response_model=FeatureGroupPublic,
+    summary="Activar feature group",
+    description="""Marca un feature group como activo (`is_active=true`).
+
+    Use cases: reactivar grupos desactivados.
+    Permissions required: authenticated (owner or model designer).
+    """,
+    responses={
+        200: {
+            "description": "Feature group activado",
+            "content": {
+                "application/json": {"example": {"id": "1111...", "is_active": True}}
+            },
+        },
+        400: {"description": "Ya está activo"},
+        404: {"description": "Feature group no encontrado"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def activate_feature_group(
     *,
     group_id: uuid.UUID,
@@ -278,7 +457,27 @@ async def activate_feature_group(
     return await feature_group_repo.activate(db_group)
 
 
-@router.patch("/{group_id}/deactivate", response_model=FeatureGroupPublic)
+@router.patch(
+    "/{group_id}/deactivate",
+    response_model=FeatureGroupPublic,
+    summary="Desactivar feature group",
+    description="""Marca un feature group como inactivo (`is_active=false`).
+
+    Use cases: deshabilitar un grupo temporalmente sin eliminarlo.
+    Permissions required: authenticated (owner or model designer).
+    """,
+    responses={
+        200: {
+            "description": "Feature group desactivado",
+            "content": {
+                "application/json": {"example": {"id": "1111...", "is_active": False}}
+            },
+        },
+        400: {"description": "Ya está inactivo"},
+        404: {"description": "Feature group no encontrado"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def deactivate_feature_group(
     *,
     group_id: uuid.UUID,

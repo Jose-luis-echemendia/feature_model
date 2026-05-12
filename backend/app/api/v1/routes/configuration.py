@@ -19,7 +19,6 @@ from app.services.feature_model import (
     FeatureModelLogicalValidator,
 )
 
-
 router = APIRouter(prefix="/configurations", tags=["configurations"])
 
 
@@ -185,7 +184,40 @@ def _build_configuration_payload(
     "/",
     response_model=ConfigurationPublic,
     summary="Crear configuración",
-    description="Crea y valida una configuración para una versión del modelo.",
+    description="""
+    Crea y persiste una configuración para una versión específica del feature model.
+
+    Use cases:
+    - Crear configuraciones desde la UI o procesos de importación.
+    - Validación previa a despliegues o pruebas automatizadas.
+
+    Permissions required: authenticated (owner or project contributor).
+    Performance: la validación puede ser costosa en modelos grandes; para cargas masivas
+    considerar procesamiento asíncrono o encolado.
+    """,
+    responses={
+        200: {
+            "description": "Configuración creada correctamente",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "11111111-1111-1111-1111-111111111111",
+                        "name": "Configuración ejemplo",
+                        "feature_ids": ["22222222-2222-2222-2222-222222222222"],
+                        "is_active": False,
+                    }
+                }
+            },
+        },
+        400: {
+            "description": "Solicitud inválida o fallo de validación",
+            "content": {
+                "application/json": {"example": {"detail": ["Feature X is required"]}}
+            },
+        },
+        404: {"description": "Feature model version no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def create_configuration(
     *,
@@ -231,8 +263,37 @@ async def create_configuration(
 @router.get(
     "/{id}",
     response_model=ConfigurationPublicWithFeatures,
-    summary="Obtener configuración",
-    description="Recupera una configuración por su ID, incluyendo features y tags.",
+    summary="Obtener configuración por ID",
+    description="""
+    Recupera una configuración por su identificador, incluyendo los features
+    y metadatos asociados.
+
+    Use cases: mostrar detalle en UI, validar estado antes de operaciones.
+    Permissions required: authenticated (owner or project contributor).
+    """,
+    responses={
+        200: {
+            "description": "Configuración encontrada",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "11111111-1111-1111-1111-111111111111",
+                        "name": "Configuración ejemplo",
+                        "feature_ids": ["22222222-2222-2222-2222-222222222222"],
+                        "features": [
+                            {
+                                "id": "22222222-2222-2222-2222-222222222222",
+                                "name": "Feature A",
+                            }
+                        ],
+                    }
+                }
+            },
+        },
+        400: {"description": "Parametros inválidos"},
+        404: {"description": "Configuración no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def read_configuration(
     *,
@@ -251,8 +312,34 @@ async def read_configuration(
 @router.get(
     "/",
     response_model=ConfigurationListResponse,
-    summary="Listar configuraciones",
-    description="Lista configuraciones con paginación (skip/limit).",
+    summary="Listar configuraciones (paginado)",
+    description="""
+    Devuelve una lista paginada de configuraciones con los parámetros `skip` y `limit`.
+
+    Use cases: listados en tablas, exportaciones y búsqueda. Se recomienda caché para
+    listados frecuentes en entornos con alto tráfico.
+    Permissions required: authenticated.
+    """,
+    responses={
+        200: {
+            "description": "Lista paginada de configuraciones",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "data": [
+                            {"id": "1111-1111-1111", "name": "Conf A"},
+                            {"id": "2222-2222-2222", "name": "Conf B"},
+                        ],
+                        "count": 42,
+                        "skip": 0,
+                        "limit": 100,
+                    }
+                }
+            },
+        },
+        400: {"description": "Parámetros inválidos"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def list_configurations(
     *,
@@ -274,7 +361,29 @@ async def list_configurations(
     "/{id}",
     response_model=ConfigurationPublic,
     summary="Actualizar configuración",
-    description="Actualiza nombre, descripción y/o features asociados.",
+    description="""
+    Actualiza campos modificables de una configuración (nombre, descripción, features).
+
+    Use cases: edición desde UI o integraciones. Permissions required: authenticated (owner).
+    Validation: se validan reglas de negocio; puede devolver 400 si la actualización viola constraints.
+    """,
+    responses={
+        200: {
+            "description": "Configuración actualizada",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "11111111-1111-1111-1111-111111111111",
+                        "name": "Configuración actualizada",
+                        "feature_ids": ["2222..."],
+                    }
+                }
+            },
+        },
+        400: {"description": "Datos inválidos o violación de reglas"},
+        404: {"description": "Configuración no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def update_configuration(
     *,
@@ -300,7 +409,24 @@ async def update_configuration(
     "/{id}/activate",
     response_model=ConfigurationPublic,
     summary="Activar configuración",
-    description="Activa una configuración (is_active=true).",
+    description="""
+    Marca la configuración como activa (`is_active=true`).
+
+    Use cases: seleccionar una configuración para uso en despliegues o pruebas.
+    Nota: si ya está activa retorna 400.
+    Permissions required: authenticated (owner or admin).
+    """,
+    responses={
+        200: {
+            "description": "Configuración activada",
+            "content": {
+                "application/json": {"example": {"id": "1111...", "is_active": True}}
+            },
+        },
+        400: {"description": "Operación no válida (ya activa)"},
+        404: {"description": "Configuración no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def activate_configuration(
     *,
@@ -324,7 +450,23 @@ async def activate_configuration(
     "/{id}/deactivate",
     response_model=ConfigurationPublic,
     summary="Desactivar configuración",
-    description="Desactiva una configuración (is_active=false).",
+    description="""
+    Marca la configuración como inactiva (`is_active=false`).
+
+    Use cases: dejar de usar una configuración sin eliminarla. Retorna 400 si ya está inactiva.
+    Permissions required: authenticated (owner or admin).
+    """,
+    responses={
+        200: {
+            "description": "Configuración desactivada",
+            "content": {
+                "application/json": {"example": {"id": "1111...", "is_active": False}}
+            },
+        },
+        400: {"description": "Operación no válida (ya inactiva)"},
+        404: {"description": "Configuración no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def deactivate_configuration(
     *,
@@ -348,7 +490,23 @@ async def deactivate_configuration(
     "/{id}",
     response_model=Message,
     summary="Eliminar configuración",
-    description="Elimina una configuración existente por su ID.",
+    description="""
+    Elimina permanentemente una configuración por su ID.
+
+    Use cases: operaciones administrativas. Considerar soft-delete si se requiere historial.
+    Permissions required: authenticated (owner or admin).
+    """,
+    responses={
+        200: {
+            "description": "Eliminación exitosa",
+            "content": {
+                "application/json": {"example": {"message": "Configuration deleted"}}
+            },
+        },
+        400: {"description": "Solicitud inválida"},
+        404: {"description": "Configuración no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def delete_configuration(
     *,
@@ -370,7 +528,30 @@ async def delete_configuration(
     "/validate",
     response_model=ConfigurationValidationResponse,
     summary="Validar configuración",
-    description="Valida una selección de features contra una versión del modelo.",
+    description="""
+    Valida si una selección propuesta de features es satisfiable respecto a la versión indicada del feature model.
+
+    Use cases: validación en UI antes de persistir, checks automáticos en pipelines.
+    Performance: generalmente rápido; para modelos grandes indicar limites. Devuelve errores y warnings detallados.
+    Permissions required: authenticated.
+    """,
+    responses={
+        200: {
+            "description": "Resultado de la validación",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "is_valid": False,
+                        "errors": ["Feature X requires Y"],
+                        "warnings": [],
+                    }
+                }
+            },
+        },
+        400: {"description": "Error durante la validación"},
+        404: {"description": "Feature model version no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def validate_configuration(
     *,
@@ -417,10 +598,36 @@ async def validate_configuration(
     "/generate",
     response_model=ConfigurationGenerationResponse,
     summary="Generar configuraciones",
-    description=(
-        "Genera una o varias configuraciones válidas usando una estrategia "
-        "(greedy, random, beam_search, genetic, sat_enum, pairwise, uniform, stratified, cp_sat, bdd, nsga2)."
-    ),
+    description="""
+    Genera una o varias configuraciones válidas usando la estrategia indicada (greedy, random, beam_search,
+    genetic, sat_enum, pairwise, uniform, stratified, cp_sat, bdd, nsga2, etc.).
+
+    Use cases: generación automática para pruebas, población inicial para optimización, y exploración de espacio.
+    Performance: puede ser costoso según la estrategia y el tamaño del modelo; para conteos grandes usar límites razonables.
+    Permissions required: authenticated.
+    """,
+    responses={
+        200: {
+            "description": "Configuraciones generadas",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "results": [
+                            {
+                                "success": True,
+                                "selected_features": ["2222..."],
+                                "score": 0.95,
+                            }
+                        ],
+                        "quality": {"diversity": 0.8},
+                    }
+                }
+            },
+        },
+        400: {"description": "Solicitud inválida o generation error"},
+        404: {"description": "Feature model version no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def generate_configuration(
     *,
@@ -505,9 +712,35 @@ async def generate_configuration(
     "/optimize",
     response_model=ConfigurationOptimizationResponse,
     summary="Optimizar configuraciones",
-    description=(
-        "Genera configuraciones optimizadas usando estrategias avanzadas (NSGA2, CP_SAT, BDD)."
-    ),
+    description="""
+    Ejecuta optimización multi-objetivo para generar configuraciones (NSGA2, CP_SAT, BDD, etc.).
+
+    Use cases: búsqueda de soluciones pareto-óptimas según objetivos definidos.
+    Performance: operación computacionalmente intensa; establecer límites y considerar ejecución asíncrona para cargas largas.
+    Permissions required: authenticated (may require elevated privileges).
+    """,
+    responses={
+        200: {
+            "description": "Resultados de optimización",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "results": [
+                            {
+                                "success": True,
+                                "selected_features": ["2222..."],
+                                "score": 0.99,
+                            }
+                        ],
+                        "quality": {"pareto_front_size": 3},
+                    }
+                }
+            },
+        },
+        400: {"description": "Solicitud inválida u optimización fallida"},
+        404: {"description": "Feature model version no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def optimize_configurations(
     *,
@@ -568,11 +801,33 @@ async def optimize_configurations(
 @router.post(
     "/staged/options",
     response_model=StagedConfigurationResponse,
-    summary="Staged configuration",
-    description=(
-        "Dadas decisiones parciales, devuelve qué features pueden seleccionarse "
-        "o deseleccionarse, y cuáles quedan forzadas por las restricciones."
-    ),
+    summary="Opciones para configuración por etapas",
+    description="""
+    Dada una selección parcial, devuelve qué features pueden seleccionarse/deseleccionarse
+    y cuáles quedan forzadas por las restricciones del modelo.
+
+    Use cases: UIs de selección guiada (staged configuration). Performance: puede beneficiarse de cache
+    por hash de partial selection en modelos grandes.
+    Permissions required: authenticated.
+    """,
+    responses={
+        200: {
+            "description": "Opciones calculadas",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "can_select": ["3333..."],
+                        "can_deselect": [],
+                        "must_select": [],
+                        "must_deselect": [],
+                    }
+                }
+            },
+        },
+        400: {"description": "Partial selection insatisfiable"},
+        404: {"description": "Feature model version no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 async def staged_configuration_options(
     *,

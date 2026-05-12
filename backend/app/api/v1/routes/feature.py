@@ -30,7 +30,6 @@ from app.exceptions import (
     TagNotFoundException,
 )
 
-
 router = APIRouter(prefix="/features", tags=["features"])
 
 
@@ -49,6 +48,34 @@ class FeatureReplace(BaseModel):
     "/",
     dependencies=[Depends(VerifiedUser)],
     response_model=list[FeaturePublicWithChildren],
+    summary="Listar features",
+    description="""Devuelve una lista de features filtrada y paginada. Soporta dos modos:
+    - Con feature_model_version_id: árbol de la versión (root nodes).
+    - Sin feature_model_version_id: lista plana con filtros avanzados.
+
+    Use cases: listados en UI, navegación de árbol, búsqueda avanzada.
+    Permissions required: authenticated.
+    Performance: cachéado por 5 minutos. Filtros: name, feature_type, parent_id, group_id.
+    """,
+    responses={
+        200: {
+            "description": "Lista de features",
+            "content": {
+                "application/json": {
+                    "example": [
+                        {
+                            "id": "1111...",
+                            "name": "Feature A",
+                            "type": "mandatory",
+                            "children": [],
+                        }
+                    ]
+                }
+            },
+        },
+        400: {"description": "Parámetros inválidos"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 @cache(expire=300)  # Cache por 5 minutos
 async def read_features_by_model(
@@ -99,7 +126,35 @@ async def read_features_by_model(
     return [FeaturePublicWithChildren.model_validate(f) for f in features]
 
 
-@router.post("/", response_model=FeaturePublic, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    response_model=FeaturePublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear feature",
+    description="""Crea una nueva feature dentro de una versión del modelo (copy-on-write).
+
+    Use cases: añadir features desde UI o integraciones.
+    Permissions required: authenticated (MODEL_DESIGNER, ADMIN, DEVELOPER).
+    Note: La operación es atómica; la nueva versión contiene la feature creada.
+    """,
+    responses={
+        201: {
+            "description": "Feature creada en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "name": "New Feature",
+                        "type": "mandatory",
+                        "parent_id": None,
+                    }
+                }
+            },
+        },
+        400: {"description": "Solicitud inválida o parent_id no encontrado"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def create_feature(
     *,
     feature_repo: AsyncFeatureRepoDep,
@@ -148,7 +203,32 @@ async def create_feature(
 
 
 @router.get(
-    "/{feature_id}", dependencies=[Depends(VerifiedUser)], response_model=FeaturePublic
+    "/{feature_id}",
+    dependencies=[Depends(VerifiedUser)],
+    response_model=FeaturePublic,
+    summary="Obtener feature por ID",
+    description="""Recupera una feature específica por su identificador.
+
+    Use cases: mostrar detalle en UI, validar estado antes de operaciones.
+    Permissions required: authenticated.
+    Performance: cachéado por 5 minutos.
+    """,
+    responses={
+        200: {
+            "description": "Feature encontrada",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "name": "Feature A",
+                        "type": "mandatory",
+                    }
+                }
+            },
+        },
+        404: {"description": "Feature no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
 )
 @cache(expire=300)  # Cache por 5 minutos
 async def read_feature(
@@ -326,7 +406,34 @@ async def remove_tag_from_feature(
     return Message(message="Tag removed from feature")
 
 
-@router.patch("/{feature_id}", response_model=FeaturePublic)
+@router.patch(
+    "/{feature_id}",
+    response_model=FeaturePublic,
+    summary="Actualizar feature (parcial)",
+    description="""Actualiza parcialmente una feature (copy-on-write, crea nueva versión).
+
+    Use cases: editar nombre, tipo u otros campos permitidos.
+    Permissions required: authenticated (MODEL_DESIGNER, ADMIN, DEVELOPER).
+    Behavior: copy-on-write; la feature antigua queda en la versión anterior.
+    """,
+    responses={
+        200: {
+            "description": "Feature actualizada en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "name": "Updated Name",
+                        "type": "optional",
+                    }
+                }
+            },
+        },
+        400: {"description": "Datos inválidos o parent_id no encontrado"},
+        404: {"description": "Feature no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def update_feature(
     *,
     feature_id: uuid.UUID,
@@ -367,7 +474,35 @@ async def update_feature(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.put("/{feature_id}", response_model=FeaturePublic)
+@router.put(
+    "/{feature_id}",
+    response_model=FeaturePublic,
+    summary="Reemplazar feature (completo)",
+    description="""Reemplaza completamente una feature (copy-on-write).
+
+    Use cases: reescribir una feature completamente (nombre, tipo, parent, grupo).
+    Permissions required: authenticated (MODEL_DESIGNER, ADMIN, DEVELOPER).
+    Behavior: copy-on-write; requiere todos los campos principales.
+    """,
+    responses={
+        200: {
+            "description": "Feature reemplazada en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "name": "Completely New Feature",
+                        "type": "optional",
+                        "parent_id": None,
+                    }
+                }
+            },
+        },
+        400: {"description": "Datos inválidos o parent_id no encontrado"},
+        404: {"description": "Feature no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def replace_feature(
     *,
     feature_id: uuid.UUID,
@@ -423,7 +558,29 @@ async def replace_feature(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.patch("/{feature_id}/move", response_model=FeaturePublic)
+@router.patch(
+    "/{feature_id}/move",
+    response_model=FeaturePublic,
+    summary="Mover feature (reparenting)",
+    description="""Cambia el parent_id de una feature (reparenting explícito, copy-on-write).
+
+    Use cases: reorganizar el árbol de features.
+    Permissions required: authenticated (MODEL_DESIGNER, ADMIN, DEVELOPER).
+    """,
+    responses={
+        200: {
+            "description": "Feature reubicada en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {"id": "1111...", "parent_id": "2222..."}
+                }
+            },
+        },
+        400: {"description": "parent_id no encontrado o inválido"},
+        404: {"description": "Feature no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def move_feature(
     *,
     feature_id: uuid.UUID,
@@ -472,7 +629,27 @@ async def move_feature(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.patch("/{feature_id}/activate", response_model=FeaturePublic)
+@router.patch(
+    "/{feature_id}/activate",
+    response_model=FeaturePublic,
+    summary="Activar feature",
+    description="""Marca una feature como activa (`is_active=true`).
+
+    Use cases: reactivar una feature después de desactivarla.
+    Permissions required: authenticated (MODEL_DESIGNER, ADMIN, DEVELOPER).
+    """,
+    responses={
+        200: {
+            "description": "Feature activada",
+            "content": {
+                "application/json": {"example": {"id": "1111...", "is_active": True}}
+            },
+        },
+        400: {"description": "Ya está activa"},
+        404: {"description": "Feature no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def activate_feature(
     *,
     feature_id: uuid.UUID,
@@ -501,7 +678,27 @@ async def activate_feature(
     return await feature_repo.activate(db_feature)
 
 
-@router.patch("/{feature_id}/deactivate", response_model=FeaturePublic)
+@router.patch(
+    "/{feature_id}/deactivate",
+    response_model=FeaturePublic,
+    summary="Desactivar feature",
+    description="""Marca una feature como inactiva (`is_active=false`).
+
+    Use cases: deshabilitar una feature temporalmente sin eliminarla.
+    Permissions required: authenticated (MODEL_DESIGNER, ADMIN, DEVELOPER).
+    """,
+    responses={
+        200: {
+            "description": "Feature desactivada",
+            "content": {
+                "application/json": {"example": {"id": "1111...", "is_active": False}}
+            },
+        },
+        400: {"description": "Ya está inactiva"},
+        404: {"description": "Feature no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def deactivate_feature(
     *,
     feature_id: uuid.UUID,
@@ -530,7 +727,31 @@ async def deactivate_feature(
     return await feature_repo.deactivate(db_feature)
 
 
-@router.delete("/{feature_id}", response_model=Message)
+@router.delete(
+    "/{feature_id}",
+    response_model=Message,
+    summary="Eliminar feature",
+    description="""Elimina una feature y crea una nueva versión del modelo.
+
+    Use cases: remover features obsoletas.
+    Permissions required: authenticated (MODEL_DESIGNER, ADMIN, DEVELOPER).
+    Note: La operación es atómica; crea una nueva versión sin la feature.
+    """,
+    responses={
+        200: {
+            "description": "Eliminación exitosa",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Feature deleted in new model version created successfully."
+                    }
+                }
+            },
+        },
+        404: {"description": "Feature no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def delete_feature(
     *,
     feature_id: uuid.UUID,

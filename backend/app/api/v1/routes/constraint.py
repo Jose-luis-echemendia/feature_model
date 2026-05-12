@@ -25,7 +25,35 @@ from app.exceptions import (
 router = APIRouter(prefix="/constraints", tags=["constraints"])
 
 
-@router.get("/", response_model=list[ConstraintPublic])
+@router.get(
+    "/",
+    response_model=list[ConstraintPublic],
+    summary="Listar constraints",
+    description="""Devuelve una lista paginada de constraints con filtros opcionales.
+
+    Use cases: listados, filtrado por versión del modelo, inclusión de inactivos.
+    Permissions required: authenticated (can be read by any project member).
+    Filtros: feature_model_version_id, include_inactive, skip/limit para paginación.
+    """,
+    responses={
+        200: {
+            "description": "Lista de constraints",
+            "content": {
+                "application/json": {
+                    "example": [
+                        {
+                            "id": "1111...",
+                            "description": "Feature A requires B",
+                            "expr_text": "A => B",
+                        }
+                    ]
+                }
+            },
+        },
+        400: {"description": "Parámetros inválidos"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def list_constraints(
     *,
     constraint_repo: AsyncConstraintRepoDep,
@@ -54,7 +82,32 @@ async def list_constraints(
     return result.scalars().all()
 
 
-@router.get("/{constraint_id}", response_model=ConstraintPublic)
+@router.get(
+    "/{constraint_id}",
+    response_model=ConstraintPublic,
+    summary="Obtener constraint por ID",
+    description="""Recupera una constraint específica por su identificador.
+
+    Use cases: mostrar detalle en UI, validar estado antes de operaciones.
+    Permissions required: authenticated (can read if member of project).
+    """,
+    responses={
+        200: {
+            "description": "Constraint encontrada",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "description": "Feature A requires B",
+                        "expr_text": "A => B",
+                    }
+                }
+            },
+        },
+        404: {"description": "Constraint no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def read_constraint(
     *,
     constraint_id: uuid.UUID,
@@ -67,7 +120,35 @@ async def read_constraint(
     return constraint
 
 
-@router.post("/", response_model=ConstraintPublic, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    response_model=ConstraintPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear constraint",
+    description="""Crea una nueva constraint compleja y dispara la creación de una nueva versión del modelo (copy-on-write).
+
+    Use cases: añadir restricciones (requires, excludes) desde UI o integraciones.
+    Permissions required: authenticated (owner or model designer).
+    Note: La operación es atómica; la nueva versión refleja la constraint creada.
+    """,
+    responses={
+        201: {
+            "description": "Constraint creada en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "description": "Feature A requires B",
+                        "expr_text": "A => B",
+                    }
+                }
+            },
+        },
+        400: {"description": "Solicitud inválida o expresión malformada"},
+        404: {"description": "Feature model version no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def create_constraint(
     *,
     constraint_in: ConstraintCreate,
@@ -107,7 +188,34 @@ async def create_constraint(
         raise InvalidConstraintOperationException(reason=str(e))
 
 
-@router.patch("/{constraint_id}", response_model=ConstraintPublic)
+@router.patch(
+    "/{constraint_id}",
+    response_model=ConstraintPublic,
+    summary="Actualizar constraint (parcial)",
+    description="""Actualiza parcialmente una constraint y crea una nueva versión del modelo (copy-on-write).
+
+    Use cases: editar descripción o expresión de constraint.
+    Permissions required: authenticated (owner or model designer).
+    Behavior: copy-on-write; la constraint anterior queda asociada a la versión anterior.
+    """,
+    responses={
+        200: {
+            "description": "Constraint actualizada en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "description": "Updated",
+                        "expr_text": "A => B | C",
+                    }
+                }
+            },
+        },
+        400: {"description": "Datos inválidos o violación de reglas"},
+        404: {"description": "Constraint no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def update_constraint(
     *,
     constraint_id: uuid.UUID,
@@ -147,7 +255,34 @@ async def update_constraint(
         raise InvalidConstraintOperationException(reason=str(e))
 
 
-@router.put("/{constraint_id}", response_model=ConstraintPublic)
+@router.put(
+    "/{constraint_id}",
+    response_model=ConstraintPublic,
+    summary="Reemplazar constraint (completo)",
+    description="""Reemplaza completamente una constraint y crea una nueva versión del modelo (copy-on-write).
+
+    Use cases: reescribir una constraint completamente.
+    Permissions required: authenticated (owner or model designer).
+    Behavior: copy-on-write; requiere todos los campos.
+    """,
+    responses={
+        200: {
+            "description": "Constraint reemplazada en nueva versión",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "1111...",
+                        "description": "New description",
+                        "expr_text": "(A | B) => C",
+                    }
+                }
+            },
+        },
+        400: {"description": "Datos inválidos o expresión malformada"},
+        404: {"description": "Constraint no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def replace_constraint(
     *,
     constraint_id: uuid.UUID,
@@ -191,7 +326,31 @@ async def replace_constraint(
         raise InvalidConstraintOperationException(reason=str(e))
 
 
-@router.delete("/{constraint_id}", response_model=Message)
+@router.delete(
+    "/{constraint_id}",
+    response_model=Message,
+    summary="Eliminar constraint",
+    description="""Elimina una constraint y dispara la creación de una nueva versión del modelo.
+
+    Use cases: remover constraints obsoletas.
+    Permissions required: authenticated (owner or model designer).
+    Note: La operación es atómica; crea una nueva versión sin la constraint.
+    """,
+    responses={
+        200: {
+            "description": "Eliminación exitosa",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Constraint deleted in new model version created successfully."
+                    }
+                }
+            },
+        },
+        404: {"description": "Constraint no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def delete_constraint(
     *,
     constraint_id: uuid.UUID,
@@ -228,7 +387,27 @@ async def delete_constraint(
     )
 
 
-@router.patch("/{constraint_id}/activate", response_model=ConstraintPublic)
+@router.patch(
+    "/{constraint_id}/activate",
+    response_model=ConstraintPublic,
+    summary="Activar constraint",
+    description="""Marca una constraint como activa (`is_active=true`).
+
+    Use cases: reactivar una constraint después de desactivarla.
+    Permissions required: authenticated (owner or model designer).
+    """,
+    responses={
+        200: {
+            "description": "Constraint activada",
+            "content": {
+                "application/json": {"example": {"id": "1111...", "is_active": True}}
+            },
+        },
+        400: {"description": "Ya está activa"},
+        404: {"description": "Constraint no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def activate_constraint(
     *,
     constraint_id: uuid.UUID,
@@ -259,7 +438,27 @@ async def activate_constraint(
     return await constraint_repo.activate(db_constraint)
 
 
-@router.patch("/{constraint_id}/deactivate", response_model=ConstraintPublic)
+@router.patch(
+    "/{constraint_id}/deactivate",
+    response_model=ConstraintPublic,
+    summary="Desactivar constraint",
+    description="""Marca una constraint como inactiva (`is_active=false`).
+
+    Use cases: deshabilitar una constraint temporalmente sin eliminarla.
+    Permissions required: authenticated (owner or model designer).
+    """,
+    responses={
+        200: {
+            "description": "Constraint desactivada",
+            "content": {
+                "application/json": {"example": {"id": "1111...", "is_active": False}}
+            },
+        },
+        400: {"description": "Ya está inactiva"},
+        404: {"description": "Constraint no encontrada"},
+        403: {"description": "Acceso denegado"},
+    },
+)
 async def deactivate_constraint(
     *,
     constraint_id: uuid.UUID,
