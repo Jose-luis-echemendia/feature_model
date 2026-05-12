@@ -1,4 +1,4 @@
-name: CI/CD Smart Web Scraping (Zero-Code Mode)
+name: Deploy Backend (FM) to Kubernetes
 
 on:
   push:
