@@ -42,6 +42,7 @@ router = APIRouter(
 
 
 class ExportCacheItem(BaseModel):
+    model_config = {"protected_namespaces": ()}
     model_id: str
     version_id: str
     format: str

@@ -1,5 +1,7 @@
 import sentry_sdk
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
@@ -95,11 +97,15 @@ app = FastAPI(
 # ========================================================================
 #              --- Servir documentación interna ---
 # ========================================================================
-app.mount(
-    "/internal-docs",
-    StaticFiles(directory="internal_docs/site", html=True),
-    name="internal-docs",
-)
+internal_docs_path = Path("internal_docs/site")
+if internal_docs_path.is_dir():
+    app.mount(
+        "/internal-docs",
+        StaticFiles(directory=str(internal_docs_path), html=True),
+        name="internal-docs",
+    )
+else:
+    log.warning("internal_docs.missing", path=str(internal_docs_path))
 
 # ========================================================================
 #              --- CONFIGURACIÓN DE MIDDLEWARES ---
