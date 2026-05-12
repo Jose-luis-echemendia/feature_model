@@ -23,7 +23,6 @@ from pathlib import Path
 
 from app.enums import Environment
 
-
 # ── Directorio raíz del proyecto ──────────────────────────────────────────────
 ROOT_DIR = Path(__file__).resolve().parents[2]  # cv-generator/
 TEMPLATES_DIR = ROOT_DIR / "app" / "templates"
@@ -209,7 +208,7 @@ class Settings(BaseSettings):
     SMTP_HOST: str | None = None
     SMTP_USER: str | None = None
     SMTP_PASSWORD: str | None = None
-    
+
     EMAILS_FROM_EMAIL: EmailStr | None = None
     EMAILS_FROM_NAME: EmailStr | None = None
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
