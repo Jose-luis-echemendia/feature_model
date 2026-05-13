@@ -62,6 +62,8 @@ COPY --chown=appuser:appuser ./scripts /app/scripts
 COPY --chown=appuser:appuser ./app /app/app
 COPY --chown=appuser:appuser ./docs /app/backend_docs
 
+RUN chmod +x /app/scripts/*.sh
+
 # Create directories for documentation
 RUN mkdir -p /app/internal_docs/docs && chown -R appuser:appuser /app/internal_docs
 
