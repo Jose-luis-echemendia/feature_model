@@ -1,80 +1,49 @@
+from __future__ import annotations
+
 import secrets
 import warnings
-from urllib.parse import urlsplit
+import os
+from pathlib import Path
 from typing import Annotated, Any
-from functools import lru_cache
+
+import ipaddress
 
 from pydantic import (
+    BaseSettings,
+    Field,
+    computed_field,
+    SecretStr,
     AnyUrl,
-    BeforeValidator,
-    EmailStr,
     HttpUrl,
     PostgresDsn,
-    computed_field,
-    model_validator,
+    EmailStr,
+    BeforeValidator,
+    SettingsConfigDict,
     field_validator,
-    SecretStr,
-    Field,
+    model_validator,
 )
-from pydantic_core import MultiHostUrl
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing_extensions import Self
-from pathlib import Path
+from typing import Self
+from functools import lru_cache
 
 from app.enums import Environment
 
-# ── Directorio raíz del proyecto ──────────────────────────────────────────────
-ROOT_DIR = Path(__file__).resolve().parents[2]  # cv-generator/
-TEMPLATES_DIR = ROOT_DIR / "app" / "templates"
+from .config_helpers import (
+    parse_cors,
+    normalize_minio_endpoint,
+    resolve_minio_connection,
+)
 
+ROOT_DIR = Path(__file__).resolve().parents[2]
 
-def parse_cors(v: Any) -> list[str] | str:
-    if isinstance(v, str) and not v.startswith("["):
-        return [i.strip() for i in v.split(",")]
-    elif isinstance(v, list | str):
-        return v
-    raise ValueError(v)
-
-
-def normalize_minio_endpoint(endpoint: str) -> str:
-    """Devuelve solo `host[:port]` para que MinIO/boto3 no reciban path ni scheme."""
-    raw_endpoint = endpoint.strip()
-    if not raw_endpoint:
-        return raw_endpoint
-
-    # Si tiene scheme, parsearlo; si no, asumirlo como host[:port]
-    if "://" in raw_endpoint:
-        parsed = urlsplit(raw_endpoint)
-        netloc = parsed.netloc
-    else:
-        netloc = raw_endpoint
-
-    # Remover trailing slash y path
-    if "/" in netloc:
-        netloc = netloc.split("/")[0]
-
-    return netloc.strip()
-
-
-def resolve_minio_connection(endpoint: str, configured_use_ssl: bool) -> tuple[str, bool]:
-    """
-    Resuelve el host y el modo SSL efectivo para MinIO.
-
-    Si el endpoint trae scheme explícito (`http://` o `https://`), ese valor
-    tiene prioridad sobre `MINIO_USE_SSL` para evitar errores de configuración.
-    """
-    raw_endpoint = endpoint.strip()
-    if not raw_endpoint:
-        return raw_endpoint, configured_use_ssl
-
-    parsed = urlsplit(raw_endpoint if "://" in raw_endpoint else f"//{raw_endpoint}")
-    host = (parsed.netloc or parsed.path.split("/")[0]).strip()
-
-    if parsed.scheme in {"http", "https"}:
-        return host, parsed.scheme == "https"
-
-    return host, configured_use_ssl
-
+# Compatibility fallback for MultiHostUrl if the project didn't define it.
+try:
+    from app.core.urls import MultiHostUrl  # type: ignore
+except Exception:
+    class MultiHostUrl:
+        @staticmethod
+        def build(scheme: str, username: str, password: str, host: str, port: int, path: str) -> str:
+            auth = f"{username}:{password}@" if username or password else ""
+            return f"{scheme}://{auth}{host}:{port}/{path}"
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(

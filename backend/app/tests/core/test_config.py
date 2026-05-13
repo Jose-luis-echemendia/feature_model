@@ -1,7 +1,7 @@
 import pytest
 
-from app.core.config import (
-    Settings,
+from app.core.config import Settings
+from app.core.config_helpers import (
     normalize_minio_endpoint,
     parse_cors,
     resolve_minio_connection,
