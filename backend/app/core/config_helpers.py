@@ -33,7 +33,9 @@ def normalize_minio_endpoint(endpoint: str) -> str:
     return netloc.strip()
 
 
-def resolve_minio_connection(endpoint: str, configured_use_ssl: bool) -> tuple[str, bool]:
+def resolve_minio_connection(
+    endpoint: str, configured_use_ssl: bool
+) -> tuple[str, bool]:
     """
     Resuelve el host y el modo SSL efectivo para MinIO.
 

@@ -39,11 +39,15 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 try:
     from app.core.urls import MultiHostUrl  # type: ignore
 except Exception:
+
     class MultiHostUrl:
         @staticmethod
-        def build(scheme: str, username: str, password: str, host: str, port: int, path: str) -> str:
+        def build(
+            scheme: str, username: str, password: str, host: str, port: int, path: str
+        ) -> str:
             auth = f"{username}:{password}@" if username or password else ""
             return f"{scheme}://{auth}{host}:{port}/{path}"
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
