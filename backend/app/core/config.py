@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import secrets
-import warnings
-import os
+import secrets, warnings 
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -17,11 +15,11 @@ from pydantic import (
     PostgresDsn,
     EmailStr,
     BeforeValidator,
-    SettingsConfigDict,
     field_validator,
     model_validator,
 )
-from pydantic_settings import BaseSettings
+from pydantic_core import MultiHostUrl
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Self
 from functools import lru_cache
 
@@ -34,19 +32,6 @@ from app.utils.config import (
 )
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-
-# Compatibility fallback for MultiHostUrl if the project didn't define it.
-try:
-    from app.core.urls import MultiHostUrl  # type: ignore
-except Exception:
-
-    class MultiHostUrl:
-        @staticmethod
-        def build(
-            scheme: str, username: str, password: str, host: str, port: int, path: str
-        ) -> str:
-            auth = f"{username}:{password}@" if username or password else ""
-            return f"{scheme}://{auth}{host}:{port}/{path}"
 
 
 class Settings(BaseSettings):
