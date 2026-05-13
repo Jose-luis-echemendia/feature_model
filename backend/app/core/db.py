@@ -38,11 +38,40 @@ def init_db(session: Session) -> None:
         raise
 
 async def check_database() -> bool:
-    """Health check de la base de datos."""
+    """
+    Health check de la base de datos.
+    Verifica conectividad con timeout y retorna bool sin lanzar excepción.
+    """
+    from sqlalchemy import text
+    from sqlalchemy.exc import SQLAlchemyError
+    from asyncio import timeout
+    
     try:
-        async with a_engine.connect() as conn:
-            await conn.execute(__import__("sqlalchemy").text("SELECT 1"))
+        async with timeout(5.0):  # Timeout de 5 segundos
+            async with a_engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
+        logger.debug("db.health_check.ok")
         return True
+    except TimeoutError as exc:
+        logger.error(
+            "db.health_check.timeout",
+            timeout_sec=5.0,
+            error_type="TimeoutError",
+        )
+        return False
+    except SQLAlchemyError as exc:
+        logger.error(
+            "db.health_check.failed",
+            error=str(exc),
+            error_type=type(exc).__name__,
+            host=settings.POSTGRES_HOST,
+            port=settings.POSTGRES_PORT,
+        )
+        return False
     except Exception as exc:
-        logger.error("db.health_check.failed: %s", exc)
+        logger.error(
+            "db.health_check.unexpected",
+            error=str(exc),
+            error_type=type(exc).__name__,
+        )
         return False

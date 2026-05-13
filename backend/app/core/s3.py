@@ -399,25 +399,39 @@ class MinIOClient:
         return f"{scheme}://{settings.MINIO_ENDPOINT_HOST}/{bucket}/{object_name}"
 
     async def health_check(self) -> bool:
-        """Verifica que MinIO esté disponible listando los buckets."""
+        """
+        Verifica que MinIO esté disponible listando los buckets.
+        Incluye timeout para evitar bloqueos indefinidos.
+        """
+        from asyncio import timeout
+        
         try:
             log.debug(
                 "minio.health_check.attempting",
                 endpoint=settings.MINIO_ENDPOINT_HOST,
-                access_key=settings.MINIO_ACCESS_KEY,
+                bucket=self._bucket_primary,
             )
-            # list_buckets() retorna un iterator de Bucket objects
-            buckets = await asyncio.to_thread(self._client.list_buckets)
-            # Materializar el iterator para verificar conexión
-            _ = await asyncio.to_thread(lambda: list(buckets))
-            log.info("minio.health_check.success")
+            async with timeout(5.0):  # Timeout de 5 segundos
+                # list_buckets() retorna un iterator de Bucket objects
+                buckets = await asyncio.to_thread(self._client.list_buckets)
+                # Materializar el iterator para verificar conexión
+                _ = await asyncio.to_thread(lambda: list(buckets))
+            log.debug("minio.health_check.ok")
             return True
+        except TimeoutError:
+            log.error(
+                "minio.health_check.timeout",
+                timeout_sec=5.0,
+                endpoint=settings.MINIO_ENDPOINT_HOST,
+            )
+            return False
         except Exception as exc:
             log.error(
                 "minio.health_check.failed",
                 error=str(exc),
                 error_type=type(exc).__name__,
                 endpoint=settings.MINIO_ENDPOINT_HOST,
+                ssl=settings.MINIO_USE_SSL,
             )
             return False
 

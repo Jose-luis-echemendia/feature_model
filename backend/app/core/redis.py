@@ -169,9 +169,29 @@ async def check_redis() -> bool:
     """
     Comprueba que Redis responde. Usado en GET /health.
     Retorna False en lugar de lanzar excepción.
+    Incluye timeout para evitar bloqueos indefinidos.
     """
+    from asyncio import timeout
+    
     try:
-        return bool(await redis_client.ping())
+        async with timeout(5.0):  # Timeout de 5 segundos
+            result = await redis_client.ping()
+        log.debug("redis.health_check.ok")
+        return bool(result)
+    except TimeoutError:
+        log.error(
+            "redis.health_check.timeout",
+            timeout_sec=5.0,
+            host=settings.REDIS_HOST,
+            port=settings.REDIS_PORT,
+        )
+        return False
     except Exception as exc:
-        log.error("redis.health_check.failed", error=str(exc))
+        log.error(
+            "redis.health_check.failed",
+            error=str(exc),
+            error_type=type(exc).__name__,
+            host=settings.REDIS_HOST,
+            port=settings.REDIS_PORT,
+        )
         return False
