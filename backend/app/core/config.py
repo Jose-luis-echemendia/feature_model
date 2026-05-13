@@ -42,9 +42,18 @@ def normalize_minio_endpoint(endpoint: str) -> str:
     if not raw_endpoint:
         return raw_endpoint
 
-    candidate = raw_endpoint if "://" in raw_endpoint else f"//{raw_endpoint}"
-    parsed = urlsplit(candidate)
-    return parsed.netloc or parsed.path.split("/")[0]
+    # Si tiene scheme, parsearlo; si no, asumirlo como host[:port]
+    if "://" in raw_endpoint:
+        parsed = urlsplit(raw_endpoint)
+        netloc = parsed.netloc
+    else:
+        netloc = raw_endpoint
+
+    # Remover trailing slash y path
+    if "/" in netloc:
+        netloc = netloc.split("/")[0]
+
+    return netloc.strip()
 
 
 class Settings(BaseSettings):

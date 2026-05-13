@@ -85,6 +85,9 @@ def test_normalize_minio_endpoint_strips_scheme_and_path() -> None:
     assert normalize_minio_endpoint("minio.example.com:9000/s3") == (
         "minio.example.com:9000"
     )
+    assert normalize_minio_endpoint("minio:9000") == "minio:9000"
+    assert normalize_minio_endpoint("http://minio:9000/path") == "minio:9000"
+    assert normalize_minio_endpoint("minio.local") == "minio.local"
 
 
 def test_settings_exposes_normalized_minio_endpoint_host(

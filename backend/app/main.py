@@ -58,9 +58,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     log.info("app.cache.ready")
 
     # 4. MinIO — verificar conexión y crear buckets si no existen
+    log.info(
+        "app.minio.connecting",
+        endpoint=settings.MINIO_ENDPOINT,
+        endpoint_host=settings.MINIO_ENDPOINT_HOST,
+        ssl=settings.MINIO_USE_SSL,
+        bucket_fm=settings.MINIO_BUCKET_FM,
+        bucket_assets=settings.MINIO_BUCKET_ASSETS,
+    )
     minio_ok = await minio_client.health_check()
     if not minio_ok:
-        raise RuntimeError("No se puede conectar a MinIO. Abortando arranque.")
+        error_msg = "No se puede conectar a MinIO. Abortando arranque."
+        log.error("app.minio.health_check.failed", msg=error_msg)
+        raise RuntimeError(error_msg)
     await minio_client.ensure_buckets()
     log.info("app.minio.ready")
 

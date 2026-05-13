@@ -78,12 +78,29 @@ class MinIOClient:
             else str(raw_secret)
         )
 
-        self._client = Minio(
-            endpoint=settings.MINIO_ENDPOINT_HOST,
+        log.debug(
+            "minio.client.init",
+            endpoint_host=settings.MINIO_ENDPOINT_HOST,
             access_key=settings.MINIO_ACCESS_KEY,
-            secret_key=secret_key,
-            secure=settings.MINIO_USE_SSL,
+            ssl=settings.MINIO_USE_SSL,
         )
+
+        try:
+            self._client = Minio(
+                endpoint=settings.MINIO_ENDPOINT_HOST,
+                access_key=settings.MINIO_ACCESS_KEY,
+                secret_key=secret_key,
+                secure=settings.MINIO_USE_SSL,
+            )
+            log.debug("minio.client.created")
+        except Exception as exc:
+            log.error(
+                "minio.client.init_failed",
+                error=str(exc),
+                error_type=type(exc).__name__,
+                endpoint_host=settings.MINIO_ENDPOINT_HOST,
+            )
+            raise
 
         # Bucket principal y bucket de assets
         self._bucket_primary = getattr(settings, "MINIO_BUCKET_FM", "media")
@@ -384,10 +401,24 @@ class MinIOClient:
     async def health_check(self) -> bool:
         """Verifica que MinIO esté disponible listando los buckets."""
         try:
-            await asyncio.to_thread(list, self._client.list_buckets())
+            log.debug(
+                "minio.health_check.attempting",
+                endpoint=settings.MINIO_ENDPOINT_HOST,
+                access_key=settings.MINIO_ACCESS_KEY,
+            )
+            # list_buckets() retorna un iterator de Bucket objects
+            buckets = await asyncio.to_thread(self._client.list_buckets)
+            # Materializar el iterator para verificar conexión
+            _ = await asyncio.to_thread(lambda: list(buckets))
+            log.info("minio.health_check.success")
             return True
         except Exception as exc:
-            log.error("minio.health_check.failed", error=str(exc))
+            log.error(
+                "minio.health_check.failed",
+                error=str(exc),
+                error_type=type(exc).__name__,
+                endpoint=settings.MINIO_ENDPOINT_HOST,
+            )
             return False
 
 
