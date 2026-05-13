@@ -172,7 +172,7 @@ async def check_redis() -> bool:
     Incluye timeout para evitar bloqueos indefinidos.
     """
     from asyncio import timeout
-    
+
     try:
         async with timeout(5.0):  # Timeout de 5 segundos
             result = await redis_client.ping()

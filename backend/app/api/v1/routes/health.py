@@ -15,8 +15,9 @@ from fastapi import APIRouter
 from fastapi_cache.decorator import cache
 from pydantic import BaseModel
 
-from app.core.config import normalize_minio_endpoint, settings
+from app.core.config import settings
 from app.core.logging import get_logger
+from app.core.s3 import minio_client
 
 log = get_logger(__name__)
 router = APIRouter(tags=["Health"])
@@ -125,7 +126,11 @@ async def system_status() -> SystemStatusResponse:
         )
         overall = "down"
     except Exception as exc:
-        log.error("health.postgres.failed", error=str(exc)[:150], error_type=type(exc).__name__)
+        log.error(
+            "health.postgres.failed",
+            error=str(exc)[:150],
+            error_type=type(exc).__name__,
+        )
         services.append(
             ServiceStatus(name="postgresql", status="down", detail=str(exc)[:150])
         )
@@ -152,13 +157,13 @@ async def system_status() -> SystemStatusResponse:
             overall = "degraded"
     except TimeoutError:
         log.error("health.redis.timeout", timeout_sec=5.0)
-        services.append(
-            ServiceStatus(name="redis", status="down", detail="timeout")
-        )
+        services.append(ServiceStatus(name="redis", status="down", detail="timeout"))
         if overall != "down":
             overall = "degraded"
     except Exception as exc:
-        log.error("health.redis.failed", error=str(exc)[:150], error_type=type(exc).__name__)
+        log.error(
+            "health.redis.failed", error=str(exc)[:150], error_type=type(exc).__name__
+        )
         services.append(
             ServiceStatus(name="redis", status="down", detail=str(exc)[:150])
         )
@@ -185,7 +190,9 @@ async def system_status() -> SystemStatusResponse:
         if workers == 0 and overall == "ok":
             overall = "degraded"
     except Exception as exc:
-        log.error("health.celery.failed", error=str(exc)[:150], error_type=type(exc).__name__)
+        log.error(
+            "health.celery.failed", error=str(exc)[:150], error_type=type(exc).__name__
+        )
         services.append(
             ServiceStatus(name="celery", status="degraded", detail=str(exc)[:150])
         )
@@ -194,25 +201,11 @@ async def system_status() -> SystemStatusResponse:
 
     # ── MinIO / S3  ────────────────────────────────────────────
     try:
-        import boto3
-        from asyncio import timeout
-
         t0 = time.monotonic()
-        # Construir endpoint_url con scheme
-        scheme = "https" if settings.MINIO_USE_SSL else "http"
-        endpoint_url = f"{scheme}://{settings.MINIO_ENDPOINT_HOST}"
-        
-        s3 = boto3.client(
-            "s3",
-            endpoint_url=endpoint_url,
-            aws_access_key_id=settings.MINIO_ACCESS_KEY,
-            aws_secret_access_key=settings.MINIO_SECRET_KEY,
-            use_ssl=settings.MINIO_USE_SSL,
-            region_name="us-east-1",
-        )
-        # Verificamos si el bucket existe y tenemos acceso
-        s3.head_bucket(Bucket=settings.MINIO_BUCKET_FM)
+        ok = await minio_client.health_check()
         latency = round((time.monotonic() - t0) * 1000, 1)
+        if not ok:
+            raise RuntimeError("MinIO no respondió correctamente")
         services.append(
             ServiceStatus(
                 name="minio",

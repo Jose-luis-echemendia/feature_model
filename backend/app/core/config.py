@@ -151,6 +151,24 @@ class Settings(BaseSettings):
         le=604800,
         description="Validez del link de descarga. Máx 7 días.",
     )
+    MINIO_HEALTHCHECK_TIMEOUT_SECONDS: float = Field(
+        default=15.0,
+        ge=1.0,
+        le=120.0,
+        description="Timeout por intento para validar la conectividad con MinIO.",
+    )
+    MINIO_HEALTHCHECK_RETRIES: int = Field(
+        default=3,
+        ge=1,
+        le=10,
+        description="Cantidad de reintentos del health check de MinIO.",
+    )
+    MINIO_HEALTHCHECK_RETRY_DELAY_SECONDS: float = Field(
+        default=1.5,
+        ge=0.0,
+        le=30.0,
+        description="Espera entre reintentos del health check de MinIO.",
+    )
     MINIO_PUBLIC_DOMAIN: str | None = None
 
     @computed_field  # type: ignore[prop-decorator]

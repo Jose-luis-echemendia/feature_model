@@ -401,39 +401,67 @@ class MinIOClient:
     async def health_check(self) -> bool:
         """
         Verifica que MinIO esté disponible listando los buckets.
-        Incluye timeout para evitar bloqueos indefinidos.
+        Incluye timeout y reintentos para evitar falsos negativos por latencia
+        o arranques lentos del servicio.
         """
         from asyncio import timeout
-        
-        try:
-            log.debug(
-                "minio.health_check.attempting",
-                endpoint=settings.MINIO_ENDPOINT_HOST,
-                bucket=self._bucket_primary,
-            )
-            async with timeout(5.0):  # Timeout de 5 segundos
-                # list_buckets() retorna un iterator de Bucket objects
-                buckets = await asyncio.to_thread(self._client.list_buckets)
-                # Materializar el iterator para verificar conexión
-                _ = await asyncio.to_thread(lambda: list(buckets))
-            log.debug("minio.health_check.ok")
-            return True
-        except TimeoutError:
-            log.error(
-                "minio.health_check.timeout",
-                timeout_sec=5.0,
-                endpoint=settings.MINIO_ENDPOINT_HOST,
-            )
-            return False
-        except Exception as exc:
-            log.error(
-                "minio.health_check.failed",
-                error=str(exc),
-                error_type=type(exc).__name__,
-                endpoint=settings.MINIO_ENDPOINT_HOST,
-                ssl=settings.MINIO_USE_SSL,
-            )
-            return False
+
+        timeout_seconds = float(settings.MINIO_HEALTHCHECK_TIMEOUT_SECONDS)
+        retries = int(settings.MINIO_HEALTHCHECK_RETRIES)
+        retry_delay = float(settings.MINIO_HEALTHCHECK_RETRY_DELAY_SECONDS)
+
+        last_error: Exception | None = None
+        for attempt in range(1, retries + 1):
+            try:
+                log.debug(
+                    "minio.health_check.attempting",
+                    attempt=attempt,
+                    retries=retries,
+                    timeout_sec=timeout_seconds,
+                    endpoint=settings.MINIO_ENDPOINT_HOST,
+                    bucket=self._bucket_primary,
+                )
+                async with timeout(timeout_seconds):
+                    await asyncio.to_thread(self._client.list_buckets)
+                log.debug(
+                    "minio.health_check.ok",
+                    attempt=attempt,
+                    retries=retries,
+                )
+                return True
+            except TimeoutError as exc:
+                last_error = exc
+                log.warning(
+                    "minio.health_check.timeout",
+                    attempt=attempt,
+                    retries=retries,
+                    timeout_sec=timeout_seconds,
+                    endpoint=settings.MINIO_ENDPOINT_HOST,
+                )
+            except Exception as exc:
+                last_error = exc
+                log.warning(
+                    "minio.health_check.failed_attempt",
+                    attempt=attempt,
+                    retries=retries,
+                    error=str(exc),
+                    error_type=type(exc).__name__,
+                    endpoint=settings.MINIO_ENDPOINT_HOST,
+                    ssl=settings.MINIO_USE_SSL,
+                )
+
+            if attempt < retries and retry_delay > 0:
+                await asyncio.sleep(retry_delay * attempt)
+
+        log.error(
+            "minio.health_check.failed",
+            error=str(last_error) if last_error else "unknown",
+            error_type=type(last_error).__name__ if last_error else "UnknownError",
+            endpoint=settings.MINIO_ENDPOINT_HOST,
+            retries=retries,
+            timeout_sec=timeout_seconds,
+        )
+        return False
 
 
 # ── Singleton ─────────────────────────────────────────────────────────────────

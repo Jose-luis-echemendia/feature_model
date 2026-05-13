@@ -37,6 +37,7 @@ def init_db(session: Session) -> None:
         logger.error(f"❌ Error al conectar con la base de datos: {e}")
         raise
 
+
 async def check_database() -> bool:
     """
     Health check de la base de datos.
@@ -45,7 +46,7 @@ async def check_database() -> bool:
     from sqlalchemy import text
     from sqlalchemy.exc import SQLAlchemyError
     from asyncio import timeout
-    
+
     try:
         async with timeout(5.0):  # Timeout de 5 segundos
             async with a_engine.connect() as conn:
