@@ -14,6 +14,7 @@ _ERROR_CODE_MAP = {
     404: 1005,
     409: 1006,
     500: 5000,
+    503: 5030,  # Service Unavailable — Celery o servicios críticos no disponibles
 }
 
 

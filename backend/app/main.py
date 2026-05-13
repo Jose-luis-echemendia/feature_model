@@ -57,7 +57,45 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await setup_cache()
     log.info("app.cache.ready")
 
-    # 4. MinIO — verificar conexión y crear buckets si no existen
+    # 4. Celery — modo degradado (si falla, continúa)
+    from app.core.celery import (
+        check_celery_availability,
+        celery_available as celery_available_flag,
+    )
+    import app.core.celery as celery_module
+
+    try:
+        log.info("app.celery.initializing")
+        # Intentar inspeccionar un worker para verificar conexión
+        from app.core.celery import celery_app
+
+        try:
+            inspect_result = celery_app.control.inspect(timeout=2.0)
+            if inspect_result and inspect_result.active():
+                celery_module.celery_available = True
+                log.info("app.celery.ready", workers=len(inspect_result.active()))
+            else:
+                log.warning(
+                    "app.celery.no_workers",
+                    detail="No hay workers de Celery activos; sistema funcionará sin tareas asíncronas",
+                )
+                celery_module.celery_available = False
+        except Exception as celery_exc:
+            log.warning(
+                "app.celery.health_check.failed",
+                detail=str(celery_exc),
+                message="Sistema funcionará sin tareas asíncronas (modo degradado)",
+            )
+            celery_module.celery_available = False
+    except Exception as celery_error:
+        log.warning(
+            "app.celery.initialization.failed",
+            detail=str(celery_error),
+            message="Celery no disponible; continuando en modo degradado",
+        )
+        celery_module.celery_available = False
+
+    # 5. MinIO — verificar conexión y crear buckets si no existen
     log.info(
         "app.minio.connecting",
         endpoint=settings.MINIO_ENDPOINT,

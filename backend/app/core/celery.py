@@ -197,3 +197,57 @@ def init_worker_process(**kwargs: object) -> None:
 @worker_process_shutdown.connect
 def shutdown_worker_process(**kwargs: object) -> None:
     log.info("celery.worker.shutdown")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Estado Global y Health Check
+# ─────────────────────────────────────────────────────────────────────────────
+
+celery_available = False
+"""Flag global indicando si Celery está inicializado y disponible."""
+
+
+async def check_celery_availability() -> tuple[bool, str]:
+    """
+    Verifica si Celery está disponible y operativo.
+
+    Returns:
+        (is_available, reason): Tupla con estado booleano y razón del estado.
+        - (True, "") — Celery operativo con workers activos
+        - (False, "celery_not_initialized") — Celery no fue inicializado en startup
+        - (False, "workers_unavailable") — No hay workers activos
+        - (False, "redis_broker_down") — Redis broker inaccesible
+        - (False, "redis_backend_down") — Redis result backend inaccesible
+        - (False, "inspect_timeout") — Timeout al inspeccionar workers
+    """
+    global celery_available
+
+    if not celery_available:
+        return False, "celery_not_initialized"
+
+    try:
+        # Inspeccionar workers activos con timeout breve (2 segundos)
+        inspect_result = celery_app.control.inspect(timeout=2.0)
+        if inspect_result is None:
+            return False, "redis_broker_down"
+
+        active_workers = inspect_result.active()
+        if not active_workers or len(active_workers) == 0:
+            return False, "workers_unavailable"
+
+        # Celery disponible y con workers activos
+        return True, ""
+
+    except Exception as exc:
+        error_msg = str(exc)
+        # Intentar determinar la causa del error
+        if (
+            "connection refused" in error_msg.lower()
+            or "failed to connect" in error_msg.lower()
+        ):
+            if "6379" in error_msg:  # Puerto típico de Redis
+                return False, "redis_broker_down"
+        if "timeout" in error_msg.lower():
+            return False, "inspect_timeout"
+        # Fallback: error genérico de conectividad
+        return False, "redis_broker_down"

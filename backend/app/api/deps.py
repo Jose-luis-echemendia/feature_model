@@ -15,6 +15,9 @@ from app.core import security
 
 from app.core.config import settings
 from app.core.db import a_engine
+from app.core.logging import get_logger
+
+log = get_logger(__name__)
 
 
 # ========================================================================
@@ -49,6 +52,51 @@ async def a_get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 SessionDep = Annotated[AsyncSession, Depends(a_get_db)]
+
+
+# ========================================================================
+#     --- DEPENDENCIAS PARA VERIFICACIÓN DE CELERY ---
+# ========================================================================
+
+_CELERY_ERROR_MESSAGES = {
+    "celery_not_initialized": "Tareas Celery no disponibles: servicio no inicializado (mantenimiento)",
+    "workers_unavailable": "Tareas Celery no disponibles: sin workers activos",
+    "redis_broker_down": "Tareas Celery no disponibles: Redis broker inoperativo",
+    "redis_backend_down": "Tareas Celery no disponibles: Redis result backend inoperativo",
+    "inspect_timeout": "Tareas Celery no disponibles: timeout inspeccionar workers",
+}
+
+
+async def require_celery_available() -> None:
+    """
+    Dependencia que verifica si Celery está disponible.
+
+    Si Celery no está disponible, lanza HTTPException(503) con mensaje diferenciado.
+    Logea cada rechazo para monitoreo.
+
+    Raises:
+        HTTPException(503): Si Celery no está operativo con reason específica.
+    """
+    from app.core.celery import check_celery_availability
+
+    is_available, reason = await check_celery_availability()
+
+    if not is_available:
+        error_msg = _CELERY_ERROR_MESSAGES.get(reason, "Tareas Celery no disponibles")
+        # Logging para monitoreo
+        log.warn(
+            "celery.required_unavailable",
+            reason=reason,
+            message=error_msg,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=error_msg,
+        )
+
+
+CeleryAvailableDep = Annotated[None, Depends(require_celery_available)]
+"""Tipo anotado para inyectar validación de Celery como dependencia en routers."""
 
 
 # ========================================================================

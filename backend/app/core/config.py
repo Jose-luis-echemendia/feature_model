@@ -9,7 +9,6 @@ from typing import Annotated, Any
 import ipaddress
 
 from pydantic import (
-    BaseSettings,
     Field,
     computed_field,
     SecretStr,
@@ -22,12 +21,13 @@ from pydantic import (
     field_validator,
     model_validator,
 )
+from pydantic_settings import BaseSettings
 from typing import Self
 from functools import lru_cache
 
 from app.enums import Environment
 
-from .config_helpers import (
+from app.utils.config import (
     parse_cors,
     normalize_minio_endpoint,
     resolve_minio_connection,
@@ -215,9 +215,11 @@ class Settings(BaseSettings):
         return self._build_redis_url(self.REDIS_DB_CACHE)
 
     def _build_redis_url(self, db: int) -> str:
-        password = self.REDIS_PASSWORD
-        auth = f":{password.get_secret_value()}@" if password else ""
-        return f"redis://{auth}{self.REDIS_HOST}:{self.REDIS_PORT}/{db}"
+        """Construye URL de Redis para una base de datos específica."""
+        password_str = ""
+        if self.REDIS_PASSWORD:
+            password_str = f":{self.REDIS_PASSWORD.get_secret_value()}@"
+        return f"redis://{password_str}{self.REDIS_HOST}:{self.REDIS_PORT}/{db}"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -256,10 +258,6 @@ class Settings(BaseSettings):
     # Validadores
     # ─────────────────────────────────────────────────────────────────────────
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # Validadores
-    # ─────────────────────────────────────────────────────────────────────────
-
     @field_validator("SECRET_KEY", mode="before")
     @classmethod
     def validate_secret_key(cls, v: str) -> str:
@@ -289,21 +287,22 @@ class Settings(BaseSettings):
 
     @field_validator("SMTP_TLS", mode="before")
     @classmethod
-    def default_smtp_tls_if_empty(cls, v: Any) -> Any:
-        if isinstance(v, str) and v.strip() == "":
-            return True
-        return v
+    def validate_smtp_tls(cls, v: Any) -> bool:
+        """Por defecto True si está vacío."""
+        return True if not isinstance(v, str) or v.strip() != "" else True
 
     @field_validator("SMTP_SSL", mode="before")
     @classmethod
-    def default_smtp_ssl_if_empty(cls, v: Any) -> Any:
+    def validate_smtp_ssl(cls, v: Any) -> bool:
+        """Por defecto False si está vacío."""
         if isinstance(v, str) and v.strip() == "":
             return False
         return v
 
     @field_validator("SMTP_PORT", mode="before")
     @classmethod
-    def default_smtp_port_if_empty(cls, v: Any) -> Any:
+    def validate_smtp_port(cls, v: Any) -> int:
+        """Por defecto 587 si está vacío."""
         if isinstance(v, str) and v.strip() == "":
             return 587
         return v
@@ -390,18 +389,6 @@ class Settings(BaseSettings):
             self._check_default_secret("SMTP_PASSWORD", self.SMTP_PASSWORD)
 
         return self
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # Helpers
-    # ─────────────────────────────────────────────────────────────────────────
-
-    @property
-    def is_development(self) -> bool:
-        return self.ENVIRONMENT == Environment.DEVELOPMENT
-
-    @property
-    def is_production(self) -> bool:
-        return self.ENVIRONMENT == Environment.PRODUCTION
 
     # ─────────────────────────────────────────────────────────────────────────
     # Helpers

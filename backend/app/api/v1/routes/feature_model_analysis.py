@@ -10,6 +10,7 @@ from app.api.deps import (
     AsyncCurrentUser,
     AsyncFeatureModelVersionRepoDep,
     get_verified_user,
+    CeleryAvailableDep,
 )
 from app.api.utils import resolve_version_id_or_latest
 from app.enums import AnalysisType
@@ -285,6 +286,7 @@ async def feature_model_analysis_batch(
     payload: BatchAnalysisRequest,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
+    _celery_check: CeleryAvailableDep,
 ) -> BatchAnalysisResponse:
     resolved_version_id = await resolve_version_id_or_latest(
         version_id,
@@ -342,6 +344,7 @@ async def feature_model_bulk_configurations(
     payload: BulkConfigurationsRequest,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
+    _celery_check: CeleryAvailableDep,
 ) -> TaskLaunchResponse:
     resolved_version_id = await resolve_version_id_or_latest(
         version_id,
@@ -407,6 +410,7 @@ async def feature_model_export_bundle(
     payload: ExportBundleRequest,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
+    _celery_check: CeleryAvailableDep,
 ) -> TaskLaunchResponse:
     resolved_version_id = await resolve_version_id_or_latest(
         version_id,
@@ -464,6 +468,7 @@ async def feature_model_compare_batch(
     payload: CompareBatchRequest,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
+    _celery_check: CeleryAvailableDep,
 ) -> TaskLaunchResponse:
     resolved_version_id = await resolve_version_id_or_latest(
         version_id,
@@ -526,6 +531,7 @@ async def feature_model_recompute_stats(
     version_id: str = Path(..., description="Version UUID or the literal 'latest'"),
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
+    _celery_check: CeleryAvailableDep,
 ) -> TaskLaunchResponse:
     resolved_version_id = await resolve_version_id_or_latest(
         version_id,

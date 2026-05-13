@@ -12,6 +12,7 @@ from app.api.deps import (
     AsyncCurrentUser,
     AsyncFeatureModelVersionRepoDep,
     get_verified_user,
+    CeleryAvailableDep,
 )
 from app.api.utils import resolve_version_id_or_latest
 from app.exceptions import FeatureModelVersionNotFoundException, ForbiddenException
@@ -120,6 +121,7 @@ async def save_feature_model_version_uvl(
     data: FeatureModelVersionUVLUpdate,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
+    _celery_check: CeleryAvailableDep,
 ) -> FeatureModelVersionUVLPublic:
     """Guarda UVL textual para edición paralela durante el modelado visual."""
     version = await _get_version_with_structure(
@@ -175,6 +177,7 @@ async def sync_feature_model_version_uvl_from_structure(
     version_id: str = Path(..., description="Version UUID or the literal 'latest'"),
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
+    _celery_check: CeleryAvailableDep,
 ) -> FeatureModelVersionUVLPublic:
     """Regenera UVL desde la estructura del modelo y lo persiste."""
     version = await _get_version_with_structure(
@@ -225,6 +228,7 @@ async def apply_feature_model_uvl_to_structure(
     data: FeatureModelVersionUVLUpdate,
     version_repo: AsyncFeatureModelVersionRepoDep,
     current_user: AsyncCurrentUser,
+    _celery_check: CeleryAvailableDep,
 ) -> FeatureModelVersionUVLPublic:
     """Aplicar UVL para crear una nueva versión estructurada del modelo."""
     version = await _get_version_with_structure(
