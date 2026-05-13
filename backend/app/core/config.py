@@ -56,6 +56,26 @@ def normalize_minio_endpoint(endpoint: str) -> str:
     return netloc.strip()
 
 
+def resolve_minio_connection(endpoint: str, configured_use_ssl: bool) -> tuple[str, bool]:
+    """
+    Resuelve el host y el modo SSL efectivo para MinIO.
+
+    Si el endpoint trae scheme explícito (`http://` o `https://`), ese valor
+    tiene prioridad sobre `MINIO_USE_SSL` para evitar errores de configuración.
+    """
+    raw_endpoint = endpoint.strip()
+    if not raw_endpoint:
+        return raw_endpoint, configured_use_ssl
+
+    parsed = urlsplit(raw_endpoint if "://" in raw_endpoint else f"//{raw_endpoint}")
+    host = (parsed.netloc or parsed.path.split("/")[0]).strip()
+
+    if parsed.scheme in {"http", "https"}:
+        return host, parsed.scheme == "https"
+
+    return host, configured_use_ssl
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=ROOT_DIR / ".env",
@@ -175,6 +195,15 @@ class Settings(BaseSettings):
     @property
     def MINIO_ENDPOINT_HOST(self) -> str:
         return normalize_minio_endpoint(self.MINIO_ENDPOINT)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def MINIO_USE_SSL_EFFECTIVE(self) -> bool:
+        _, effective_use_ssl = resolve_minio_connection(
+            self.MINIO_ENDPOINT,
+            self.MINIO_USE_SSL,
+        )
+        return effective_use_ssl
 
     # ── Redis ─────────────────────────────────────────────────────────────────
     REDIS_HOST: str = "redis"

@@ -82,15 +82,25 @@ class MinIOClient:
             "minio.client.init",
             endpoint_host=settings.MINIO_ENDPOINT_HOST,
             access_key=settings.MINIO_ACCESS_KEY,
-            ssl=settings.MINIO_USE_SSL,
+            ssl=settings.MINIO_USE_SSL_EFFECTIVE,
+            ssl_configured=settings.MINIO_USE_SSL,
         )
+
+        if settings.MINIO_USE_SSL != settings.MINIO_USE_SSL_EFFECTIVE:
+            log.warning(
+                "minio.client.ssl_mismatch",
+                endpoint=settings.MINIO_ENDPOINT,
+                endpoint_host=settings.MINIO_ENDPOINT_HOST,
+                ssl_configured=settings.MINIO_USE_SSL,
+                ssl_effective=settings.MINIO_USE_SSL_EFFECTIVE,
+            )
 
         try:
             self._client = Minio(
                 endpoint=settings.MINIO_ENDPOINT_HOST,
                 access_key=settings.MINIO_ACCESS_KEY,
                 secret_key=secret_key,
-                secure=settings.MINIO_USE_SSL,
+                secure=settings.MINIO_USE_SSL_EFFECTIVE,
             )
             log.debug("minio.client.created")
         except Exception as exc:
@@ -395,7 +405,7 @@ class MinIOClient:
         Construye la URL pública de un objeto en un bucket sin acceso restringido.
         Para assets (avatares, previews) que son de lectura pública.
         """
-        scheme = "https" if settings.MINIO_USE_SSL else "http"
+        scheme = "https" if settings.MINIO_USE_SSL_EFFECTIVE else "http"
         return f"{scheme}://{settings.MINIO_ENDPOINT_HOST}/{bucket}/{object_name}"
 
     async def health_check(self) -> bool:
@@ -420,6 +430,7 @@ class MinIOClient:
                     timeout_sec=timeout_seconds,
                     endpoint=settings.MINIO_ENDPOINT_HOST,
                     bucket=self._bucket_primary,
+                    ssl=settings.MINIO_USE_SSL_EFFECTIVE,
                 )
                 async with timeout(timeout_seconds):
                     await asyncio.to_thread(self._client.list_buckets)
@@ -447,7 +458,7 @@ class MinIOClient:
                     error=str(exc),
                     error_type=type(exc).__name__,
                     endpoint=settings.MINIO_ENDPOINT_HOST,
-                    ssl=settings.MINIO_USE_SSL,
+                    ssl=settings.MINIO_USE_SSL_EFFECTIVE,
                 )
 
             if attempt < retries and retry_delay > 0:

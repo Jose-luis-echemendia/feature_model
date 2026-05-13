@@ -62,7 +62,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         "app.minio.connecting",
         endpoint=settings.MINIO_ENDPOINT,
         endpoint_host=settings.MINIO_ENDPOINT_HOST,
-        ssl=settings.MINIO_USE_SSL,
+        ssl=settings.MINIO_USE_SSL_EFFECTIVE,
+        ssl_configured=settings.MINIO_USE_SSL,
         bucket_fm=settings.MINIO_BUCKET_FM,
         bucket_assets=settings.MINIO_BUCKET_ASSETS,
     )

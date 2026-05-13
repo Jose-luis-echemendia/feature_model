@@ -1,6 +1,11 @@
 import pytest
 
-from app.core.config import Settings, normalize_minio_endpoint, parse_cors
+from app.core.config import (
+    Settings,
+    normalize_minio_endpoint,
+    parse_cors,
+    resolve_minio_connection,
+)
 from app.enums import Environment
 
 
@@ -99,6 +104,20 @@ def test_settings_exposes_normalized_minio_endpoint_host(
     )
 
     assert settings.MINIO_ENDPOINT_HOST == "minio.example.com:9000"
+
+
+def test_resolve_minio_connection_prefers_explicit_http_scheme() -> None:
+    host, use_ssl = resolve_minio_connection("http://minio-service:9099", True)
+
+    assert host == "minio-service:9099"
+    assert use_ssl is False
+
+
+def test_resolve_minio_connection_prefers_explicit_https_scheme() -> None:
+    host, use_ssl = resolve_minio_connection("https://minio-service:9099", False)
+
+    assert host == "minio-service:9099"
+    assert use_ssl is True
 
 
 def test_settings_production_requires_non_empty_cors(
