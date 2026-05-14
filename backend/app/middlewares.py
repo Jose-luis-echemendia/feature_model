@@ -16,7 +16,7 @@ Uso:
 """
 
 import logging
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.middleware.gzip import GZipMiddleware
 import jwt
@@ -24,7 +24,7 @@ from jwt.exceptions import InvalidTokenError
 
 from app.core.config import settings
 from app.core.redis import redis_client
-from app.core.security import ALGORITHM
+from app.core.security import ALGORITHM, require_api_key
 from app.enums import UserRole
 
 # Configurar logger para este módulo
@@ -365,6 +365,21 @@ async def invalidate_cache_on_write_middleware(request: Request, call_next):
         return await call_next(request)
 
 
+async def require_api_key_middleware(request: Request, call_next):
+    """
+    Middleware global para exigir X-API-Key en todos los endpoints.
+
+    Utiliza la dependencia require_api_key para validar la cabecera y
+    retorna 403 si falta o es incorrecta.
+    """
+    try:
+        await require_api_key(request.headers.get("X-API-Key"))
+    except HTTPException as exc:
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+    return await call_next(request)
+
+
 async def _invalidate_cache_pattern(redis_client, pattern: str):
     """
     Invalida todas las claves de caché que coincidan con el patrón dado.
@@ -432,14 +447,20 @@ def setup_middlewares(app: FastAPI) -> None:
         app.add_middleware(GZipMiddleware, minimum_size=settings.GZIP_MINIMUM_SIZE)
     except Exception:
         # Si falla la configuración, continuar sin GZip
-        logger.exception("No se pudo configurar GZipMiddleware, continuando sin compresión")
+        logger.exception(
+            "No se pudo configurar GZipMiddleware, continuando sin compresión"
+        )
 
-    # Registrar middleware de invalidación de caché (primero para que se ejecute después)
+    # Registrar middleware de API key (externo, se ejecuta primero)
+    app.middleware("http")(require_api_key_middleware)
+
+    # Registrar middleware de invalidación de caché (se ejecuta después)
     app.middleware("http")(invalidate_cache_on_write_middleware)
 
     # Registrar middleware de protección de documentación interna
     app.middleware("http")(protect_internal_docs_middleware)
 
     logger.info("✅ Middlewares configurados correctamente")
+    logger.info("  - 🔐 API key middleware (X-API-Key requerido)")
     logger.info("  - 🔄 Cache invalidation middleware (POST/PUT/PATCH/DELETE)")
     logger.info("  - 🔒 Internal docs protection middleware (/internal-docs)")
