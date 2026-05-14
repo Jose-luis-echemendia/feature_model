@@ -23,7 +23,7 @@ from functools import lru_cache
 
 from app.enums import Environment
 
-from app.utils import (
+from app.utils.config import (
     parse_cors,
     normalize_minio_endpoint,
     resolve_minio_connection,
