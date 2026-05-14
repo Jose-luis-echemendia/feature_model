@@ -562,6 +562,7 @@ async def feature_model_recompute_stats(
 async def feature_model_analysis_task_status(
     *,
     task_id: str,
+    _celery_check: CeleryAvailableDep,
 ) -> dict[str, Any]:
     from app.core.celery import celery_app
 

@@ -5,14 +5,13 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from app.api.deps import get_verified_user
+from app.api.deps import get_verified_user, require_celery_available
 from app.core.celery import celery_app
-
 
 router = APIRouter(
     prefix="/tasks",
     tags=["Tasks"],
-    dependencies=[Depends(get_verified_user)],
+    dependencies=[Depends(get_verified_user), Depends(require_celery_available)],
 )
 
 
