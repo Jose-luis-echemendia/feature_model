@@ -26,7 +26,7 @@ jobs:
           context: ./backend
           file: ./backend/docker/Dockerfile
           push: true
-          tags: jose031003/ffm-app:latest,jose031003/ffm-app:${{ github.sha }}
+          tags: jose031003/fm-app:latest,jose031003/fm-app:${{ github.sha }}
 
       - name: 4. Checkout Repo de Infraestructura (Externo)
         uses: actions/checkout@v4
@@ -74,9 +74,9 @@ jobs:
           kubectl apply -f $INFRA_PATH/services-ingress.yaml
 
           # --- E. Actualizar Imágenes al SHA actual ---
-          kubectl set image deployment/fm-backend backend=jose031003/ffm-app:${{ github.sha }}
-          kubectl set image deployment/fm-worker worker=jose031003/ffm-app:${{ github.sha }}
-          kubectl set image deployment/fm-beat beat=jose031003/ffm-app:${{ github.sha }}
+          kubectl set image deployment/fm-backend backend=jose031003/fm-app:${{ github.sha }}
+          kubectl set image deployment/fm-worker worker=jose031003/fm-app:${{ github.sha }}
+          kubectl set image deployment/fm-beat beat=jose031003/fm-app:${{ github.sha }}
 
           # --- F. Verificar salud final ---
           kubectl rollout status deployment/fm-backend
