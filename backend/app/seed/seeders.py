@@ -21,9 +21,7 @@ from app.models import (
     Feature,
 )
 from app.core.security import get_password_hash
-from app.models.user import UserCreate
 from app.enums import UserRole, FeatureGroupType
-from app.repositories import UserRepository
 
 # Importar datos
 from .data_settings import settings_data
@@ -94,14 +92,16 @@ def create_first_superuser(session: Session) -> Optional[User]:
         return existing
 
     # Crear el primer superusuario
-    user_in = UserCreate(
+    user = User(
         email=settings.FIRST_SUPERUSER,
-        password=settings.FIRST_SUPERUSER_PASSWORD,
+        hashed_password=get_password_hash(settings.FIRST_SUPERUSER_PASSWORD),
         role=UserRole.DEVELOPER,
+        is_superuser=True,
+        is_active=True,
     )
-
-    user_repo = UserRepository(session)
-    user = user_repo.create(user_in)
+    session.add(user)
+    session.commit()
+    session.refresh(user)
 
     logger.info(f"  ✅ FIRST_SUPERUSER creado: {settings.FIRST_SUPERUSER}")
     return user
@@ -148,14 +148,14 @@ def seed_production_users(session: Session) -> dict[str, User]:
             continue
 
         # Crear usuario (la contraseña se establecerá por email)
-        user_in = UserCreate(
+        user = User(
             email=email,
-            password="ChangeMe123!",  # Contraseña temporal
+            hashed_password=get_password_hash("ChangeMe123!"),  # Contraseña temporal
             role=role,
+            is_superuser=role == UserRole.ADMIN,
+            is_active=True,
         )
-
-        user_repo = UserRepository(session)
-        user = user_repo.create(user_in)
+        session.add(user)
         users[email] = user
         logger.info(f"  ✅ Creado usuario: {email} ({role.value})")
 
