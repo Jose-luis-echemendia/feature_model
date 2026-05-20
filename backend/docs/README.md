@@ -59,6 +59,18 @@ Documentación técnica del backend del sistema de Feature Models para gestión 
 - **[CAMBIOS_EDUCATIVOS.md](./backend_CAMBIOS_EDUCATIVOS.md)** - Cambios en el contexto educativo
 - **[MAESTRIA_CIENCIA_DATOS.md](./backend_MAESTRIA_CIENCIA_DATOS.md)** - Caso de uso: Maestría en Ciencia de Datos
 
+### 🏗️ Análisis de Mecanismo de Evolución del Feature Model
+
+**⭐ ANÁLISIS EXHAUSTIVO: Cómo el FM evoluciona sin invalidar configuraciones antiguas**
+
+- **[EXECUTIVE_SUMMARY_EVOLUCION_FM.md](./EXECUTIVE_SUMMARY_EVOLUCION_FM.md)** - 📄 **COMIENZA AQUÍ** (1 página, 30 segundos)
+- **[RESPUESTA_FINAL_5_CRITERIOS.md](./RESPUESTA_FINAL_5_CRITERIOS.md)** - ⚡ **Respuesta directa** (5 criterios + código, 5 min)
+- **[VISUAL_ARQUITECTURA_EVOLUCION.md](./VISUAL_ARQUITECTURA_EVOLUCION.md)** - 📊 **Diagramas visuales** (flujos, tablas, 10 min)
+- **[RESPUESTA_MECANISMO_EVOLUCION_FM.md](./RESPUESTA_MECANISMO_EVOLUCION_FM.md)** - ✅ **Respuesta ejecutiva completa** (con comparativas, 15 min)
+- **[ANALISIS_MECANISMO_EVOLUCION_FM.md](./ANALISIS_MECANISMO_EVOLUCION_FM.md)** - 🔬 **Análisis exhaustivo** (cada criterio en profundidad, 45 min)
+- **[INDICE_ANALISIS_EVOLUCION_FM.md](./INDICE_ANALISIS_EVOLUCION_FM.md)** - 🗂️ **Índice y navegación** (rutas de lectura, FAQ)
+- **[GUIA_LECTURA_MECANISMO_EVOLUCION.md](./GUIA_LECTURA_MECANISMO_EVOLUCION.md)** - 🧭 **Guía de lectura** (rutas por público objetivo)
+
 ---
 
 ## 🎯 Documentos Destacados
