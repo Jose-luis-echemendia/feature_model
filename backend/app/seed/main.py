@@ -28,6 +28,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def _log_seeded_models(feature_models) -> None:
+    """Registrar en logs los modelos sembrados."""
+
+    if not feature_models:
+        logger.info("📝 No se sembraron modelos curriculares.")
+        return
+
+    logger.info("📝 Modelos curriculares sembrados:")
+    for feature_model in feature_models:
+        logger.info(f"  • {feature_model.name}")
+
+
 def seed_production(session: Session) -> None:
     """
     Seeding para entorno de producción
@@ -49,7 +61,28 @@ def seed_production(session: Session) -> None:
     create_first_superuser(session)
 
     # 3. Usuarios de producción
-    seed_production_users(session)
+    production_user = seed_production_users(session)
+
+    # 3. Obtener admin para crear otros datos
+    admin = get_admin_user(session)
+    if not admin:
+        logger.error("❌ No se encontró usuario admin, abortando seeding de desarrollo")
+        return
+
+    # 4. Dominios académicos
+    domains = seed_domains(session, admin)
+
+    # 5. Etiquetas pedagógicas
+    tags = seed_tags(session, admin)
+
+    # 6. Recursos educativos
+    resources = seed_resources(session, admin)
+
+    # 7. Planes de estudio y modelos curriculares
+    # Buscar usuario diseñador curricular
+    designer = production_user.get("yadira.rodriguez@uci.cu", admin)
+    feature_models = seed_feature_models(session, designer, domains, resources)
+    _log_seeded_models(feature_models)
 
     logger.info("=" * 70)
     logger.info("✅ SEEDING DE PRODUCCIÓN COMPLETADO")
@@ -98,6 +131,7 @@ def seed_development(session: Session) -> None:
     # Buscar usuario diseñador curricular
     designer = dev_users.get("diseñador.curricular@example.com", admin)
     feature_models = seed_feature_models(session, designer, domains, resources)
+    _log_seeded_models(feature_models)
 
     logger.info("=" * 70)
     logger.info("✅ SEEDING DE DESARROLLO COMPLETADO")
